@@ -1,0 +1,5 @@
+/.env
+.idea
+/tmp/*
+/tmp/build-errors.log
+/main
