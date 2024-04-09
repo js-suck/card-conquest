@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'home_screen.dart'; // Assurez-vous que ce fichier existe et contient votre widget HomePage
+import 'home_screen.dart';
+import 'login_screen.dart';
+import 'signup_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -12,7 +14,13 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: HomePage(), // Définir HomePage comme écran d'accueil
+      initialRoute: '/',
+      routes: {
+        '/': (context) => HomePage(),
+        '/login': (context) => LoginPage(),
+        '/signup': (context) => SignUpPage(),
+        // Ajoutez d'autres routes selon vos besoins
+      },
       theme: ThemeData(
         useMaterial3: true,
       ),
