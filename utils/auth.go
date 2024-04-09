@@ -11,7 +11,7 @@ var secretKey = []byte("vivianméchant")
 func GenerateToken(userID uint) (string, error) {
 	claims := jwt.MapClaims{}
 	claims["user_id"] = userID
-	claims["exp"] = time.Now().Add(time.Hour * 1).Unix() // Token is valid for 1 hour :)
+	claims["exp"] = time.Now().Add(time.Hour * 6).Unix() // Token is valid for 6 hours (to decrease later when on first prod) :)
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString(secretKey)
