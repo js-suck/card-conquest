@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'home_screen.dart'; // Assurez-vous que ce fichier existe et contient le widget HomePage pour la navigation après l'inscription
+import '../home_screen.dart'; // Assurez-vous que ce fichier existe et contient le widget HomePage pour la navigation après l'inscription
 
 class SignUpPage extends StatefulWidget {
   @override
