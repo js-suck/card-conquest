@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import '../home_screen.dart'; // Assurez-vous que ce fichier existe et contient le widget HomePage
 
 class LoginPage extends StatefulWidget {
+  const LoginPage({super.key});
+
   @override
   _LoginPageState createState() => _LoginPageState();
 }
@@ -27,7 +28,6 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Connexion'),
       ),
       body:SingleChildScrollView(
        child: Center(
@@ -55,10 +55,10 @@ class _LoginPageState extends State<LoginPage> {
                     TextFormField(
                       decoration: InputDecoration(
                         hintText: 'tcg@gmail.com',
-                        hintStyle: TextStyle(color: Color(0xFF888888).withOpacity(0.5)),
+                        hintStyle: TextStyle(color: const Color(0xFF888888).withOpacity(0.5)),
                         fillColor: Colors.grey[100],
                         filled: true,
-                        contentPadding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 10.0),  // Réduit le padding interne
+                        contentPadding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 10.0),  // Réduit le padding interne
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10.0),
                           borderSide: BorderSide.none,
@@ -72,16 +72,16 @@ class _LoginPageState extends State<LoginPage> {
                       },
                     ),
                     const SizedBox(height: 20),
-                    Text('Mot de passe',
+                    const Text('Mot de passe',
                         style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
-                    SizedBox(height: 10),
+                    const SizedBox(height: 10),
                     TextFormField(
                       decoration: InputDecoration(
                         hintText: '*******',
-                        hintStyle: TextStyle(color: Color(0xFF888888).withOpacity(0.5)),
+                        hintStyle: TextStyle(color: const Color(0xFF888888).withOpacity(0.5)),
                         fillColor: Colors.grey[100],
                         filled: true,
-                        contentPadding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 10.0),  // Réduit le padding interne
+                        contentPadding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 10.0),  // Réduit le padding interne
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10.0),
                           borderSide: BorderSide.none,
@@ -95,23 +95,23 @@ class _LoginPageState extends State<LoginPage> {
                         return null;
                       },
                     ),
-                    SizedBox(height: 20),
+                    const SizedBox(height: 20),
                 ElevatedButton(
                   onPressed: _login,
-                  child: Text(
-                    'Connexion',
-                    style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold), // Texte en blanc
-                  ),
                   style: ElevatedButton.styleFrom(
-                    foregroundColor: Colors.white, backgroundColor: Color(0xFFFF933D), // Couleur du texte (utile pour les effets de pression)
-                    minimumSize: Size(double.infinity, 45), // Prend toute la largeur disponible et hauteur de 50
+                    foregroundColor: Colors.white, backgroundColor: const Color(0xFFFF933D), // Couleur du texte (utile pour les effets de pression)
+                    minimumSize: const Size(double.infinity, 45), // Prend toute la largeur disponible et hauteur de 50
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10), // Bords arrondis
                     ),
                   ),
+                  child: const Text(
+                    'Connexion',
+                    style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold), // Texte en blanc
+                  ),
                 ),
-                SizedBox(height: 20),
-                Row(
+                const SizedBox(height: 20),
+                const Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: <Widget>[
                     Flexible(  // Rend le texte flexible pour éviter le débordement
@@ -123,12 +123,12 @@ class _LoginPageState extends State<LoginPage> {
                   ],
                 ),
 
-                SizedBox(height: 10),
+                const SizedBox(height: 10),
                 ElevatedButton(
                   onPressed: _googleSignIn,
                   style: ElevatedButton.styleFrom(
-                    foregroundColor: Colors.white, backgroundColor: Color(0xFFF5F4F6), // Couleur du texte (utile pour les effets de pression)
-                    minimumSize: Size(double.infinity, 45), // Prend toute la largeur disponible et hauteur de 50
+                    foregroundColor: Colors.white, backgroundColor: const Color(0xFFF5F4F6), // Couleur du texte (utile pour les effets de pression)
+                    minimumSize: const Size(double.infinity, 45), // Prend toute la largeur disponible et hauteur de 50
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10), // Bords arrondis
                     ),
@@ -137,16 +137,18 @@ class _LoginPageState extends State<LoginPage> {
                     mainAxisSize: MainAxisSize.min,
                     children: <Widget>[
                       Image.asset('assets/images/google.png', width: 30),
-                      SizedBox(width: 10),
+                      const SizedBox(width: 10),
                     ],
                   ),
                 ),
-                SizedBox(height: 10),
+
+
+                const SizedBox(height: 10),
 
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: <Widget>[
-                    Flexible(  // Rend le texte flexible pour éviter le débordement
+                    const Flexible(  // Rend le texte flexible pour éviter le débordement
                       child: Text(
                         'Vous n\'avez pas de compte ?',
                         style: TextStyle(fontSize: 14),
@@ -157,7 +159,7 @@ class _LoginPageState extends State<LoginPage> {
                       onPressed: () {
                         Navigator.pushNamed(context, '/signup');
                       },
-                      child: Text(
+                      child: const Text(
                         'Inscrivez-vous',
                         style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFFFF933D),
                       ),
