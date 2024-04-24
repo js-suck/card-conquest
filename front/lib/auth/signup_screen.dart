@@ -1,5 +1,29 @@
 import 'package:flutter/material.dart';
-import '../home_screen.dart'; // Assurez-vous que ce fichier existe et contient le widget HomePage pour la navigation après l'inscription
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+
+Future<void> signUp(BuildContext context, String username, String email, String password) async {
+  final response = await http.post(
+    Uri.parse('http://10.0.2.2:8080/api/v1/register'),
+    headers: <String, String>{
+      'Content-Type': 'application/json; charset=UTF-8',
+    },
+    body: jsonEncode(<String, String>{
+      'username': username,
+      'email': email,
+      'password': password,
+    }),
+  );
+
+  if (response.statusCode == 200) {
+    // Handle successful registration
+    Navigator.of(context).pushReplacementNamed('/');
+  } else {
+    // Handle error in registration
+    throw Exception('Failed to register');
+  }
+}
+
 
 class SignUpPage extends StatefulWidget {
   @override
@@ -20,15 +44,56 @@ class _SignUpPageState extends State<SignUpPage> {
     Navigator.of(context).pushReplacementNamed('/home');
   }
 
+
   void _signUp() {
     if (_formKey.currentState?.validate() == true && _acceptTermsAndConditions == true) {
-      // Intégrer votre logique d'inscription ici
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const HomePage(showVerificationDialog: true)),
+      signUp(context, _usernameController.text, _emailController.text, _passwordController.text)
+          .then((_) {
+        // Optionally handle success in the UI
+      })
+          .catchError((error) {
+        // Optionally handle error in the UI
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text("Error"),
+              content: Text('Failed to register. Please try again.'),
+              actions: [
+                TextButton(
+                  child: Text("Close"),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      });
+    } else {
+      // Show a message if terms and conditions are not accepted
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text("Terms Required"),
+            content: Text('You must accept terms and conditions to continue.'),
+            actions: [
+              TextButton(
+                child: Text("Close"),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
       );
     }
   }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -248,7 +313,7 @@ class _SignUpPageState extends State<SignUpPage> {
                               Navigator.pushNamed(context, '/login');
                             },
                             child: const Text(
-                              'COnnectez-vous',
+                              'Connectez-vous',
                               style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFFFF933D),
                               ),
                             ),
