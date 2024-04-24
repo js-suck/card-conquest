@@ -5,7 +5,7 @@ import 'auth/signup_screen.dart';
 class HomePage extends StatelessWidget {
   final bool showVerificationDialog;
 
-  const HomePage({Key? key, this.showVerificationDialog = false}) : super(key: key);
+  const HomePage({super.key, this.showVerificationDialog = false});
 
   @override
   Widget build(BuildContext context) {
@@ -40,7 +40,7 @@ class HomePage extends StatelessWidget {
             ElevatedButton(
               onPressed: () {
                 // Logique pour continuer en tant qu'invité
-                print('Continuer en tant qu\'invité');
+                Navigator.pushReplacementNamed(context, '/user');
               },
               child: Text('Continuer en tant qu\'Invité'),
             ),

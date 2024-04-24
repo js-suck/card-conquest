@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
+import '../home_screen.dart';
+
 Future<void> signUp(BuildContext context, String username, String email, String password) async {
   final response = await http.post(
     Uri.parse('http://10.0.2.2:8080/api/v1/register'),
@@ -17,8 +19,10 @@ Future<void> signUp(BuildContext context, String username, String email, String 
 
   if (response.statusCode == 200) {
     // Handle successful registration
-    Navigator.of(context).pushReplacementNamed('/');
-  } else {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => HomePage(showVerificationDialog: true)),
+    );  } else {
     // Handle error in registration
     throw Exception('Failed to register');
   }
@@ -57,11 +61,11 @@ class _SignUpPageState extends State<SignUpPage> {
           context: context,
           builder: (BuildContext context) {
             return AlertDialog(
-              title: Text("Error"),
-              content: Text('Failed to register. Please try again.'),
+              title: const Text("Error"),
+              content: const Text('Failed to register. Please try again.'),
               actions: [
                 TextButton(
-                  child: Text("Close"),
+                  child: const Text("Close"),
                   onPressed: () {
                     Navigator.of(context).pop();
                   },
@@ -77,11 +81,11 @@ class _SignUpPageState extends State<SignUpPage> {
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            title: Text("Terms Required"),
-            content: Text('You must accept terms and conditions to continue.'),
+            title: const Text("Terms Required"),
+            content: const Text('You must accept terms and conditions to continue.'),
             actions: [
               TextButton(
-                child: Text("Close"),
+                child: const Text("Close"),
                 onPressed: () {
                   Navigator.of(context).pop();
                 },

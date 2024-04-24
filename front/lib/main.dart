@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'home_screen.dart';
 import 'auth/login_screen.dart';
 import 'auth/signup_screen.dart';
+import 'user/home_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -16,9 +17,10 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       initialRoute: '/',
       routes: {
-        '/': (context) => HomePage(),
-        '/login': (context) => LoginPage(),
+        '/': (context) => const HomePage(),
+        '/login': (context) => const LoginPage(),
         '/signup': (context) => SignUpPage(),
+        '/user': (context) => const UserHomePage(),
         // Ajoutez d'autres routes selon vos besoins
       },
       theme: ThemeData(

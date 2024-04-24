@@ -1,10 +1,11 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 Future<void> login(BuildContext context, String email, String password) async {
-  final storage = new FlutterSecureStorage(); // Create instance of secure storage
+  const storage = FlutterSecureStorage(); // Create instance of secure storage
   final response = await http.post(
     Uri.parse('http://10.0.2.2:8080/api/v1/login'),
     headers: <String, String>{
@@ -23,7 +24,7 @@ Future<void> login(BuildContext context, String email, String password) async {
     // Store the token in secure storage
     await storage.write(key: 'jwt_token', value: token);
 
-    Navigator.of(context).pushReplacementNamed('/');
+    Navigator.pushReplacementNamed(context, '/user');
   } else {
     // Handle error in login
     throw Exception('Failed to log in');
@@ -47,7 +48,9 @@ class _LoginPageState extends State<LoginPage> {
       try {
         login(context, _emailController.text, _passwordController.text);
       } catch (e) {
-        print('Erreur de connexion: $e');
+        if (kDebugMode) {
+          print('Erreur de connexion: $e');
+        }
       }
     }
   }
@@ -145,7 +148,7 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                       ),
                       const SizedBox(height: 20),
-                      Row(
+                      const Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: <Widget>[
                           Flexible(
@@ -171,7 +174,7 @@ class _LoginPageState extends State<LoginPage> {
                           mainAxisSize: MainAxisSize.min,
                           children: <Widget>[
                             Image.asset('assets/images/google.png', width: 30),
-                            SizedBox(width: 10),
+                            const SizedBox(width: 10),
                           ],
                         ),
                       ),
@@ -179,7 +182,7 @@ class _LoginPageState extends State<LoginPage> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: <Widget>[
-                          Flexible(
+                          const Flexible(
                             child: Text(
                               'Vous n\'avez pas de compte ?',
                               style: TextStyle(fontSize: 14),
