@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
-import 'home_screen.dart';
-import 'login_screen.dart';
-import 'signup_screen.dart';
-import 'package:front/profile_screen.dart';
-import 'package:front/settings_screen.dart';
+import 'package:flutter/services.dart';
+import 'package:front/routes/routes.dart';
 import 'package:front/theme/dark_theme.dart';
 import 'package:front/theme/theme.dart';
 import 'package:provider/provider.dart';
 
 void main() {
+  SystemChrome.setPreferredOrientations(
+      [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
   runApp(const MyApp());
 }
 
@@ -42,14 +41,8 @@ class MyApp extends StatelessWidget {
         child: Consumer(builder: (context, ThemeNotifier notifier, child) {
           return MaterialApp(
             debugShowCheckedModeBanner: false,
-            initialRoute: '/',
-            routes: {
-              '/': (context) => HomePage(),
-              '/login': (context) => LoginPage(),
-              '/signup': (context) => SignUpPage(),
-              '/profile': (context) => const ProfilePage(),
-              '/settings': (context) => const SettingsPage(),
-            },
+            initialRoute: '/main',
+            routes: routes,
             theme: notifier.getTheme(),
           );
         }));

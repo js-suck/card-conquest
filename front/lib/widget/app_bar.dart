@@ -90,7 +90,6 @@ class TopAppBar extends StatelessWidget implements PreferredSizeWidget {
                 ),
                 Builder(builder: (context) {
                   if (!isPage) {
-                    child:
                     return const Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisAlignment: MainAxisAlignment.center,

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:front/widget/app_bar.dart';
-import 'package:front/widget/bottom_bar.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -8,16 +7,14 @@ class ProfilePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      bottomNavigationBar: const BottomBar(),
-      appBar: const TopAppBar(title: 'Connexion', isAvatar: false),
+      appBar: const TopAppBar(title: 'Profil', isAvatar: false),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             const CircleAvatar(
               radius: 50,
-              backgroundImage: AssetImage(
-                  'assets/avatar.png'), // Assurez-vous d'avoir un fichier image nommé 'avatar.png' dans le dossier 'assets'
+              backgroundImage: AssetImage('assets/images/avatar.png'),
             ),
             const SizedBox(height: 20),
             const Text(

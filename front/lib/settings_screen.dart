@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:front/widget/app_bar.dart';
-import 'package:front/widget/bottom_bar.dart';
 import 'package:provider/provider.dart';
 
 import 'main.dart';
@@ -11,11 +10,9 @@ class SettingsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      bottomNavigationBar: const BottomBar(),
-      appBar: const TopAppBar(title: 'Connexion', isAvatar: false),
+      appBar: const TopAppBar(title: 'Paramètres', isAvatar: false),
       body: Center(
         child: Consumer(builder: (context, ThemeNotifier notifier, child) {
-          child:
           return Column(
             children: [
               ElevatedButton(

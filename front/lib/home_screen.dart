@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
-import 'login_screen.dart'; // Assurez-vous que ce fichier existe et contient le widget LoginPage
-import 'signup_screen.dart'; // Créez ce fichier pour votre page d'inscription
+import 'package:front/widget/app_bar.dart';
+import 'login_screen.dart';
+import 'signup_screen.dart';
 
 class HomePage extends StatelessWidget {
   final bool showVerificationDialog;
 
-  const HomePage({Key? key, this.showVerificationDialog = false}) : super(key: key);
+  const HomePage({Key? key, this.showVerificationDialog = false})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -13,9 +15,7 @@ class HomePage extends StatelessWidget {
       Future.microtask(() => _showVerificationDialog(context));
     }
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Bienvenue'),
-      ),
+      appBar: const TopAppBar(title: 'Accueil', isAvatar: true, isPage: false),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -23,14 +23,18 @@ class HomePage extends StatelessWidget {
             ElevatedButton(
               onPressed: () => Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => SignUpPage()), // Naviguer vers la page d'inscription
+                MaterialPageRoute(
+                    builder: (context) =>
+                        SignUpPage()), // Naviguer vers la page d'inscription
               ),
               child: Text('Inscription'),
             ),
             ElevatedButton(
               onPressed: () => Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => LoginPage()), // Naviguer vers la page de connexion
+                MaterialPageRoute(
+                    builder: (context) =>
+                        LoginPage()), // Naviguer vers la page de connexion
               ),
               child: Text('Connexion'),
             ),
@@ -47,13 +51,15 @@ class HomePage extends StatelessWidget {
       ),
     );
   }
+
   void _showVerificationDialog(BuildContext context) {
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
           title: Text('Vérifiez votre email'),
-          content: Text('Un email de vérification a été envoyé. Veuillez vérifier votre email pour compléter l\'inscription.'),
+          content: Text(
+              'Un email de vérification a été envoyé. Veuillez vérifier votre email pour compléter l\'inscription.'),
           actions: <Widget>[
             TextButton(
               child: Text('OK'),
