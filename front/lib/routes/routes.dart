@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:front/main_screen.dart';
 import 'package:front/pages/games_screen.dart';
 import 'package:front/home_screen.dart';
-import 'package:front/login_screen.dart';
+import 'package:front/auth/login_screen.dart';
 import 'package:front/pages/profile_screen.dart';
 import 'package:front/settings_screen.dart';
-import 'package:front/signup_screen.dart';
+import 'package:front/auth/signup_screen.dart';
 
 var routes = <String, WidgetBuilder>{
   '/': (context) => const HomePage(),

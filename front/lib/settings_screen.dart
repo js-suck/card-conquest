@@ -10,7 +10,8 @@ class SettingsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const TopAppBar(title: 'Paramètres', isAvatar: false),
+      appBar: const TopAppBar(
+          title: 'Paramètres', isAvatar: false, isPage: true, isSettings: true),
       body: Center(
         child: Consumer(builder: (context, ThemeNotifier notifier, child) {
           return Column(

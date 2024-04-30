@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"authentication-api/models"
 	"fmt"
 	"github.com/golang-jwt/jwt/v5"
 	"time"
@@ -8,15 +9,16 @@ import (
 
 var secretKey = []byte("vivianméchant")
 
-func GenerateToken(userID uint) (string, error) {
+func GenerateToken(user models.User) (string, error) {
 	claims := jwt.MapClaims{}
-	claims["user_id"] = userID
+	claims["user_id"] = user.ID
+	claims["name"] = user.Username
+	claims["role"] = user.Role
 	claims["exp"] = time.Now().Add(time.Hour * 6).Unix() // Token is valid for 6 hours (to decrease later when on first prod) :)
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString(secretKey)
 }
-
 func VerifyToken(tokenString string) (jwt.MapClaims, error) {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {

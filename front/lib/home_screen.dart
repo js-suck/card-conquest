@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:front/widget/app_bar.dart';
-import 'login_screen.dart';
-import 'signup_screen.dart';
+import 'auth/login_screen.dart';
+import 'auth/signup_screen.dart';
 
 class HomePage extends StatelessWidget {
   final bool showVerificationDialog;
@@ -20,6 +20,10 @@ class HomePage extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
+            Image.asset('assets/images/logo.png', width: 200),
+            SizedBox(height: 10),
+            Text('Bienvenue sur notre application'),
+            SizedBox(height: 20),
             ElevatedButton(
               onPressed: () => Navigator.push(
                 context,
@@ -40,8 +44,7 @@ class HomePage extends StatelessWidget {
             ),
             ElevatedButton(
               onPressed: () {
-                // Ajoutez ici votre logique pour continuer en tant qu'invité
-                // Par exemple, naviguer vers une page principale de l'application pour les invités
+                // Logique pour continuer en tant qu'invité
                 print('Continuer en tant qu\'invité');
               },
               child: Text('Continuer en tant qu\'Invité'),

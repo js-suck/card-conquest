@@ -8,11 +8,13 @@ class TopAppBar extends StatelessWidget implements PreferredSizeWidget {
     required this.title,
     this.isAvatar = true,
     this.isPage = true,
+    this.isSettings = false,
   });
 
   final String title;
   final bool isAvatar;
   final bool isPage;
+  final bool isSettings;
 
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
@@ -61,7 +63,7 @@ class TopAppBar extends StatelessWidget implements PreferredSizeWidget {
                   ),
                 ),
               );
-            } else {
+            } else if (!isSettings) {
               return IconButton(
                 icon: const Icon(Icons.settings),
                 color: Colors.white,
@@ -69,50 +71,55 @@ class TopAppBar extends StatelessWidget implements PreferredSizeWidget {
                   Navigator.of(context).pushNamed('/settings');
                 },
               );
+            } else {
+              return const Text('');
             }
           })
         ],
+        leadingWidth: isPage ? 64 : 1000,
         leading: Builder(builder: (context) {
           if (isAvatar) {
-            return Row(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(left: 4, top: 4, bottom: 4),
-                  child: GestureDetector(
-                    onTap: () {
-                      Navigator.of(context).pushNamed('/profile');
-                    },
-                    child: const CircleAvatar(
-                      radius: 30,
-                      backgroundImage: AssetImage('assets/images/avatar.png'),
+            return Expanded(
+              child: Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(left: 4, top: 4, bottom: 4),
+                    child: GestureDetector(
+                      onTap: () {
+                        Navigator.of(context).pushNamed('/profile');
+                      },
+                      child: const CircleAvatar(
+                        radius: 30,
+                        backgroundImage: AssetImage('assets/images/avatar.png'),
+                      ),
                     ),
                   ),
-                ),
-                Builder(builder: (context) {
-                  if (!isPage) {
-                    return const Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text('John Doe',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                            )),
-                        Text('Admin',
-                            style: TextStyle(
-                              color: Colors.white70,
-                              fontSize: 18,
-                              fontWeight: FontWeight.w400,
-                            )),
-                      ],
-                    );
-                  } else {
-                    return const Text('');
-                  }
-                }),
-              ],
+                  Builder(builder: (context) {
+                    if (!isPage) {
+                      return const Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text('John Doe',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              )),
+                          Text('Admin',
+                              style: TextStyle(
+                                color: Colors.white70,
+                                fontSize: 18,
+                                fontWeight: FontWeight.w400,
+                              )),
+                        ],
+                      );
+                    } else {
+                      return const Text('');
+                    }
+                  }),
+                ],
+              ),
             );
           } else {
             // Retourne un bouton de retour par défaut
