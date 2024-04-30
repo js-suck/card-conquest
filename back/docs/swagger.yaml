@@ -7,6 +7,21 @@ definitions:
       message:
         type: string
     type: object
+  models.Game:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: integer
+      media:
+        $ref: '#/definitions/models.Media'
+      media_id:
+        type: integer
+      name:
+        type: string
+      updated_at:
+        type: string
+    type: object
   models.LoginPayload:
     properties:
       password:
@@ -14,12 +29,117 @@ definitions:
       username:
         type: string
     type: object
+  models.Media:
+    properties:
+      created_at:
+        type: string
+      fileExtension:
+        type: string
+      fileName:
+        type: string
+      id:
+        type: integer
+      updated_at:
+        type: string
+    type: object
+  models.NewTournamentPayload:
+    properties:
+      description:
+        example: Tournament 1 description
+        type: string
+      end_date:
+        example: "2024-05-12T00:00:00Z"
+        format: date-time
+        type: string
+      game_id:
+        example: 1
+        type: integer
+      location:
+        example: New York
+        type: string
+      name:
+        example: Tournament 1
+        type: string
+      organizer_id:
+        example: 1
+        type: integer
+      rounds:
+        example: 3
+        type: integer
+      start_date:
+        example: "2024-04-12T00:00:00Z"
+        format: date-time
+        type: string
+    required:
+    - description
+    - end_date
+    - game_id
+    - name
+    - organizer_id
+    - rounds
+    - start_date
+    type: object
   models.NewUserPayload:
     properties:
+      address:
+        example: 1234 street
+        type: string
+      email:
+        type: string
       password:
+        example: password
+        type: string
+      phone:
+        example: "1234567890"
         type: string
       username:
+        example: username
         type: string
+    type: object
+  models.Tournament:
+    properties:
+      created_at:
+        type: string
+      description:
+        type: string
+      end_date:
+        type: string
+      game:
+        $ref: '#/definitions/models.Game'
+      game_id:
+        type: integer
+      id:
+        type: integer
+      location:
+        type: string
+      media:
+        $ref: '#/definitions/models.Media'
+      media_id:
+        type: integer
+      name:
+        type: string
+      organizer_id:
+        type: integer
+      rounds:
+        type: integer
+      start_date:
+        type: string
+      status:
+        type: string
+      updated_at:
+        type: string
+      user:
+        $ref: '#/definitions/models.User'
+      users:
+        items:
+          $ref: '#/definitions/models.User'
+        type: array
+    required:
+    - end_date
+    - game_id
+    - name
+    - rounds
+    - start_date
     type: object
   models.User:
     properties:
@@ -33,19 +153,29 @@ definitions:
         type: string
       id:
         type: integer
+      is_verified:
+        type: boolean
+      media:
+        $ref: '#/definitions/models.Media'
+      media_id:
+        type: integer
       password:
+        minLength: 6
         type: string
       phone:
         type: string
       role:
         type: string
+      tournaments:
+        items:
+          $ref: '#/definitions/models.Tournament'
+        type: array
       updated_at:
         type: string
       username:
         type: string
     required:
     - password
-    - username
     type: object
 host: localhost:8080
 info:
@@ -61,6 +191,88 @@ info:
   title: Swagger Example API
   version: "1.0"
 paths:
+  /confirm-email:
+    get:
+      consumes:
+      - application/json
+      description: Confirm email
+      parameters:
+      - description: Token
+        in: query
+        name: token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+      summary: Confirm email
+      tags:
+      - Auth
+  /games:
+    get:
+      consumes:
+      - application/json
+      description: Get all games
+      parameters:
+      - default: Bearer <Add access token here>
+        description: Insert your access token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get all games
+      tags:
+      - Game
+  /images:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Upload an image
+      parameters:
+      - description: Image file
+        in: formData
+        name: image
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+      summary: Upload an image
+      tags:
+      - Upload
   /login:
     post:
       consumes:
@@ -91,13 +303,150 @@ paths:
       summary: Login
       tags:
       - Auth
-  /user/{id}:
+  /matches/{id}/finish:
+    post:
+      consumes:
+      - application/json
+      description: Finish a match
+      parameters:
+      - description: Match ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Winner ID
+        in: query
+        name: winnerId
+        required: true
+        type: integer
+      - default: Bearer <Add access token here>
+        description: Insert your access token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Finish a match
+      tags:
+      - tournament
+  /register:
+    post:
+      consumes:
+      - application/json
+      description: Register
+      parameters:
+      - description: User Payload
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/models.NewUserPayload'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.User'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+      summary: Register
+      tags:
+      - Auth
+  /tournaments:
     get:
       consumes:
       - application/json
-      description: Get a user by ID
+      description: Get all tournaments
       parameters:
-      - description: User ID
+      - default: Bearer <Add access token here>
+        description: Insert your access token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get all tournaments
+      tags:
+      - tournament
+    post:
+      consumes:
+      - application/json
+      description: Create a new tournament
+      parameters:
+      - description: Tournament object
+        in: body
+        name: tournament
+        required: true
+        schema:
+          $ref: '#/definitions/models.NewTournamentPayload'
+      - default: Bearer <Add access token here>
+        description: Insert your access token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Tournament'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create a new tournament
+      tags:
+      - tournament
+  /tournaments/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get a tournament
+      parameters:
+      - description: Tournament ID
         in: path
         name: id
         required: true
@@ -114,13 +463,9 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/models.User'
+            $ref: '#/definitions/models.Tournament'
         "400":
           description: Bad Request
-          schema:
-            $ref: '#/definitions/errors.ErrorResponse'
-        "404":
-          description: Not Found
           schema:
             $ref: '#/definitions/errors.ErrorResponse'
         "500":
@@ -129,15 +474,110 @@ paths:
             $ref: '#/definitions/errors.ErrorResponse'
       security:
       - BearerAuth: []
-      summary: Get a user by ID
+      summary: Get a tournament
       tags:
-      - User
+      - tournament
+  /tournaments/{id}/generate-matches:
+    post:
+      consumes:
+      - application/json
+      description: Generate matches for a tournament
+      parameters:
+      - description: Tournament ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - default: Bearer <Add access token here>
+        description: Insert your access token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Generate matches for a tournament
+      tags:
+      - tournament
+  /tournaments/{id}/register/{userID}:
+    post:
+      consumes:
+      - application/json
+      description: Register a user to a tournament
+      parameters:
+      - description: Tournament ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: User ID
+        in: path
+        name: userID
+        required: true
+        type: integer
+      - default: Bearer <Add access token here>
+        description: Insert your access token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Register a user to a tournament
+      tags:
+      - tournament
   /users:
     get:
       consumes:
       - application/json
       description: Get all users
       parameters:
+      - description: Filter by isVerified
+        in: query
+        name: isVerified
+        type: string
+      - description: Sort by
+        in: query
+        name: sort
+        type: string
+      - description: Filter by role
+        in: query
+        name: role
+        type: string
+      - description: Filter by country
+        in: query
+        name: country
+        type: string
       - default: Bearer <Add access token here>
         description: Insert your access token
         in: header
@@ -236,6 +676,46 @@ paths:
       summary: Delete a user
       tags:
       - User
+    get:
+      consumes:
+      - application/json
+      description: Get a user by ID
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - default: Bearer <Add access token here>
+        description: Insert your access token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.User'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get a user by ID
+      tags:
+      - User
     put:
       consumes:
       - application/json
@@ -271,6 +751,48 @@ paths:
       security:
       - BearerAuth: []
       summary: Update a user
+      tags:
+      - User
+  /users/{id}/upload/picture:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Upload a picture
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Image file
+        in: formData
+        name: image
+        required: true
+        type: file
+      - default: Bearer <Add access token here>
+        description: Insert your access token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Upload a picture
       tags:
       - User
 securityDefinitions:
