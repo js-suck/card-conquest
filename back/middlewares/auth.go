@@ -47,7 +47,6 @@ func PermissionMiddleware(db *gorm.DB) gin.HandlerFunc {
 
 		idInt := int(idFloat64)
 
-		// Convert idInt to uint
 		idUint := uint(idInt)
 
 		fmt.Println(idUint)

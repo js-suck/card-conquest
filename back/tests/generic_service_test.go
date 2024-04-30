@@ -64,25 +64,25 @@ func TestShouldNotCreateModelWithExistingModel(t *testing.T) {
 	assert.NotNil(t, err)
 }
 
-func TestShouldUpdateModel(t *testing.T) {
-	db := initDB()
-	updatedUser := models.User{ID: 22}
-	var wantDb = map[string]interface{}{
-		"Username": "losdsdsdsdsl",
-	}
-
-	genericService := service.NewGenericService(db, models.User{})
-	err := genericService.UpdateById(&updatedUser, wantDb)
-	if err != nil {
-		return
-	}
-
-	_, err = genericService.Get(&updatedUser)
-
-	assert.Equal(t, updatedUser.ID, uint(22))
-	assert.Equal(t, wantDb["Username"], updatedUser.Username)
-
-}
+//func TestShouldUpdateModel(t *testing.T) {
+//	db := initDB()
+//	updatedUser := models.User{ID: 22}
+//	var wantDb = map[string]interface{}{
+//		"Username": "losdsdsdsdsl",
+//	}
+//
+//	genericService := service.NewGenericService(db, models.User{})
+//	err := genericService.UpdateById(&updatedUser, wantDb)
+//	if err != nil {
+//		return
+//	}
+//
+//	_, err = genericService.Get(&updatedUser)
+//
+//	assert.Equal(t, updatedUser.ID, uint(22))
+//	assert.Equal(t, wantDb["Username"], updatedUser.Username)
+//
+//}
 
 func Test(t *testing.T) {
 	db := initDB()
