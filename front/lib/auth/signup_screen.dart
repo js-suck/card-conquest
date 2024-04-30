@@ -15,7 +15,7 @@ Future<void> signUp(BuildContext context, String username, String email, String 
     }),
   );
 
-  if (response.statusCode == 200) {
+  if (response.statusCode == 201) {
     // Handle successful registration
     Navigator.of(context).pushReplacementNamed('/');
   } else {
