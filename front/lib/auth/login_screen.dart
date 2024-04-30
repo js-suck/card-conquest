@@ -4,7 +4,8 @@ import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 Future<void> login(BuildContext context, String email, String password) async {
-  final storage = new FlutterSecureStorage(); // Create instance of secure storage
+  final storage =
+      new FlutterSecureStorage(); // Create instance of secure storage
   final response = await http.post(
     Uri.parse('http://10.0.2.2:8080/api/v1/login'),
     headers: <String, String>{
@@ -79,19 +80,24 @@ class _LoginPageState extends State<LoginPage> {
                     children: [
                       const Text(
                         'Connectez-vous à votre compte',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 20),
-                      const Text('Email', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                      const Text('Email',
+                          style: TextStyle(
+                              fontSize: 14, fontWeight: FontWeight.bold)),
                       const SizedBox(height: 10),
                       TextFormField(
                         controller: _emailController,
                         decoration: InputDecoration(
                           hintText: 'tcg@gmail.com',
-                          hintStyle: TextStyle(color: const Color(0xFF888888).withOpacity(0.5)),
+                          hintStyle: TextStyle(
+                              color: const Color(0xFF888888).withOpacity(0.5)),
                           fillColor: Colors.grey[100],
                           filled: true,
-                          contentPadding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 10.0),
+                          contentPadding: const EdgeInsets.symmetric(
+                              vertical: 10.0, horizontal: 10.0),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(10.0),
                             borderSide: BorderSide.none,
@@ -105,16 +111,20 @@ class _LoginPageState extends State<LoginPage> {
                         },
                       ),
                       const SizedBox(height: 20),
-                      const Text('Mot de passe', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                      const Text('Mot de passe',
+                          style: TextStyle(
+                              fontSize: 14, fontWeight: FontWeight.bold)),
                       const SizedBox(height: 10),
                       TextFormField(
                         controller: _passwordController,
                         decoration: InputDecoration(
                           hintText: '*******',
-                          hintStyle: TextStyle(color: const Color(0xFF888888).withOpacity(0.5)),
+                          hintStyle: TextStyle(
+                              color: const Color(0xFF888888).withOpacity(0.5)),
                           fillColor: Colors.grey[100],
                           filled: true,
-                          contentPadding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 10.0),
+                          contentPadding: const EdgeInsets.symmetric(
+                              vertical: 10.0, horizontal: 10.0),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(10.0),
                             borderSide: BorderSide.none,
@@ -122,7 +132,9 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                         obscureText: true,
                         validator: (value) {
-                          if (value == null || value.isEmpty || value.length < 6) {
+                          if (value == null ||
+                              value.isEmpty ||
+                              value.length < 6) {
                             return 'Le mot de passe doit contenir au moins 6 caractères';
                           }
                           return null;
@@ -141,7 +153,10 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                         child: const Text(
                           'Connexion',
-                          style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold),
                         ),
                       ),
                       const SizedBox(height: 20),
@@ -192,7 +207,10 @@ class _LoginPageState extends State<LoginPage> {
                             },
                             child: const Text(
                               'Inscrivez-vous',
-                              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFFFF933D)),
+                              style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFFFF933D)),
                             ),
                           ),
                         ],
