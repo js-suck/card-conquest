@@ -40,4 +40,8 @@ final ThemeData theme = ThemeData(
       foregroundColor: MaterialStateProperty.all<Color>(fontColor),
     ),
   ),
+  badgeTheme: const BadgeThemeData(
+    textColor: fontColor,
+    backgroundColor: accentColor,
+  ),
 );

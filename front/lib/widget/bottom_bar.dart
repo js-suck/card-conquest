@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:front/games_screen.dart';
+import 'package:front/pages/games_screen.dart';
 import 'package:front/home_screen.dart';
-import 'package:front/login_screen.dart';
-import 'package:front/profile_screen.dart';
+import 'package:front/pages/tournaments_screen.dart';
+import 'package:front/pages/user_profile_screen.dart';
+import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
+import 'package:provider/provider.dart';
 
 class BottomBar extends StatefulWidget {
   const BottomBar({super.key});
@@ -14,18 +16,23 @@ class BottomBar extends StatefulWidget {
 class _BottomBarState extends State<BottomBar> {
   int _selectedIndex = 0;
 
-  final List _pages = [
-    LoginPage(),
-    //TournamentsPage(),
+  final List<Widget> _pages = [
+    const HomePage(),
+    const TournamentsPage(),
     const GamesPage(),
-    const ProfilePage(),
+    const UserProfilePage(),
   ];
 
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
     });
+    final selectedPageModel =
+        Provider.of<SelectedPageModel>(context, listen: false);
+    selectedPageModel.changePage(_pages[_selectedIndex], _selectedIndex);
   }
+
+  get selectedPage => _pages[_selectedIndex];
 
   @override
   Widget build(BuildContext context) {
@@ -35,27 +42,41 @@ class _BottomBarState extends State<BottomBar> {
         topRight: Radius.circular(20),
       ),
       child: BottomNavigationBar(
-        items: const [
-          BottomNavigationBarItem(
+        items: [
+          const BottomNavigationBarItem(
             icon: Icon(Icons.home),
             label: 'Accueil',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.score_rounded),
+            icon: Icon(MdiIcons.swordCross),
             label: 'Tournois',
           ),
-          BottomNavigationBarItem(
+          const BottomNavigationBarItem(
             icon: Icon(Icons.videogame_asset_rounded),
             label: 'Jeux',
           ),
-          BottomNavigationBarItem(
+          const BottomNavigationBarItem(
             icon: Icon(Icons.person),
-            label: 'Profil',
+            label: 'Mes tournois',
           ),
         ],
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
       ),
     );
+  }
+}
+
+class SelectedPageModel extends ChangeNotifier {
+  Widget _selectedPage = const HomePage();
+  int _selectedIndex = 0;
+
+  Widget get selectedPage => _selectedPage;
+  int get selectedIndex => _selectedIndex;
+
+  void changePage(Widget page, int index) {
+    _selectedPage = page;
+    _selectedIndex = index;
+    notifyListeners();
   }
 }

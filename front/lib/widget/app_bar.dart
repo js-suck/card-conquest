@@ -1,11 +1,18 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 
 class TopAppBar extends StatelessWidget implements PreferredSizeWidget {
-  const TopAppBar({super.key, required this.title, this.isAvatar = true});
+  const TopAppBar({
+    super.key,
+    required this.title,
+    this.isAvatar = true,
+    this.isPage = true,
+  });
 
   final String title;
   final bool isAvatar;
+  final bool isPage;
 
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
@@ -18,57 +25,95 @@ class TopAppBar extends StatelessWidget implements PreferredSizeWidget {
         bottomRight: Radius.circular(30),
       ),
       child: AppBar(
+        title: Builder(builder: (context) {
+          if (isPage) {
+            return Text(
+              title,
+              style: const TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            );
+          } else {
+            return const Text('');
+          }
+        }),
+        centerTitle: true,
         actions: [
-          const Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Titre',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
+          Builder(builder: (context) {
+            if (!isPage) {
+              return Container(
+                margin: const EdgeInsets.only(right: 10),
+                width: 45,
+                height: 45,
+                decoration: const BoxDecoration(
+                  shape: BoxShape.rectangle,
+                  borderRadius: BorderRadius.all(Radius.circular(20)),
                   color: Colors.white,
                 ),
-              ),
-              Text(
-                'Sous-titre',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.white,
+                child: Badge.count(
+                  count: 0,
+                  child: IconButton(
+                    icon: const Icon(Icons.notifications),
+                    color: Colors.black,
+                    onPressed: () {},
+                  ),
                 ),
-              ),
-            ],
-          ),
-          Container(
-            margin: const EdgeInsets.only(right: 10),
-            width: 45,
-            height: 45,
-            decoration: const BoxDecoration(
-              shape: BoxShape.rectangle,
-              borderRadius: BorderRadius.all(Radius.circular(20)),
-              color: Colors.white,
-            ),
-            child: IconButton(
-              icon: const Icon(Icons.notifications),
-              color: Colors.black,
-              onPressed: () {},
-            ),
-          ),
+              );
+            } else {
+              return IconButton(
+                icon: const Icon(Icons.settings),
+                color: Colors.white,
+                onPressed: () {
+                  Navigator.of(context).pushNamed('/settings');
+                },
+              );
+            }
+          })
         ],
         leading: Builder(builder: (context) {
           if (isAvatar) {
-            return Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: GestureDetector(
-                onTap: () {
-                  Navigator.of(context).pushNamed('/profile');
-                },
-                child: const CircleAvatar(
-                  radius: 30,
-                  child: Icon(Icons.person),
+            return Row(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(left: 4, top: 4, bottom: 4),
+                  child: GestureDetector(
+                    onTap: () {
+                      Navigator.of(context).pushNamed('/profile');
+                    },
+                    child: const CircleAvatar(
+                      radius: 30,
+                      backgroundImage: AssetImage('assets/images/avatar.png'),
+                    ),
+                  ),
                 ),
-              ),
+                Builder(builder: (context) {
+                  if (!isPage) {
+                    child:
+                    return const Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text('John Doe',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            )),
+                        Text('Admin',
+                            style: TextStyle(
+                              color: Colors.white70,
+                              fontSize: 18,
+                              fontWeight: FontWeight.w400,
+                            )),
+                      ],
+                    );
+                  } else {
+                    return const Text('');
+                  }
+                }),
+              ],
             );
           } else {
             // Retourne un bouton de retour par défaut
