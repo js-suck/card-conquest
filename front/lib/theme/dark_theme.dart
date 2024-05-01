@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 const Color fontColor = Color(0xfff5f4f6);
 const Color white = Colors.white;
 const Color backgroundColor = Color(0xff1E1E36);
+const Color invertedBackgroundColor = Colors.white;
 const Color accentBackgroundColor = Color(0xff000000);
+const Color secondaryAccentBackgroundColor = Color(0xff000000);
 const Color accentColor = Color(0xffFF5500);
 
 // Définissez votre thème dans un fichier séparé
@@ -22,6 +24,11 @@ final ThemeData darkTheme = ThemeData(
   appBarTheme: const AppBarTheme(
     backgroundColor: accentBackgroundColor,
     foregroundColor: fontColor,
+  ),
+  tabBarTheme: const TabBarTheme(
+    labelColor: accentColor,
+    unselectedLabelColor: fontColor,
+    indicatorColor: accentColor,
   ),
   buttonTheme: const ButtonThemeData(
     buttonColor: accentColor,
