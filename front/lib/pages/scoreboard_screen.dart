@@ -13,7 +13,7 @@ class ScoreboardPage extends StatelessWidget {
           isPage: true,
           isAvatar: false,
           isSettings: false),
-      body: Scoreboard(isTournament: false),
+      body: Scoreboard(isTounament: false),
     );
   }
 }

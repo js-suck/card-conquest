@@ -6,7 +6,6 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
-  WidgetsFlutterBinding.ensureInitialized();
   runApp(const MyApp());
 }
 
@@ -89,7 +88,7 @@ class MyApp extends StatelessWidget {
         child: Consumer(builder: (context, ThemeNotifier notifier, child) {
           return MaterialApp(
             debugShowCheckedModeBanner: false,
-            initialRoute: '/',
+            initialRoute: '/bracket',
             routes: routes,
             theme: notifier.getTheme(),
           );

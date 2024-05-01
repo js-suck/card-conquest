@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:front/extension/theme_extension.dart';
-import 'package:front/generated/tournament.pb.dart' as tournament;
+import 'package:front/widget/bracket/bracket.dart';
 import 'package:front/widget/bracket/match/match_tile.dart';
 
 class MatchTiles extends StatefulWidget {
@@ -13,7 +13,7 @@ class MatchTiles extends StatefulWidget {
     this.isScoreboard = false,
   });
 
-  final List<tournament.Match> matches;
+  final List<Match> matches;
   final bool isPast;
   final bool isLastMatches;
   final bool isH2H;
@@ -26,7 +26,7 @@ class MatchTiles extends StatefulWidget {
 class _MatchTilesState extends State<MatchTiles> {
   bool showMoreMatches = false;
 
-  List<tournament.Match> get displayMatches => !showMoreMatches &&
+  List<Match> get displayMatches => !showMoreMatches &&
           (widget.isLastMatches || widget.isH2H || widget.isScoreboard)
       ? widget.matches.take(5).toList()
       : widget.matches;
@@ -58,9 +58,9 @@ class _MatchTilesState extends State<MatchTiles> {
                   padding: const EdgeInsets.all(8),
                   color: context.themeColors.backgroundColor,
                   width: double.infinity,
-                  child: const Text(
-                    'Tournoi: nomDuTournoi',
-                    style: TextStyle(
+                  child: Text(
+                    'Tournoi: ${displayMatches[index].tournament}',
+                    style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                     ),
@@ -72,7 +72,7 @@ class _MatchTilesState extends State<MatchTiles> {
                   color: context.themeColors.backgroundColor,
                   width: double.infinity,
                   child: Text(
-                    'Derniers matchs: ${displayMatches[index].playerOne.username}',
+                    'Derniers matchs: ${displayMatches[index].player1}',
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,

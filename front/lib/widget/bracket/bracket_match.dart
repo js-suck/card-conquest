@@ -1,29 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:front/extension/theme_extension.dart';
-import 'package:front/generated/tournament.pb.dart' as tournament;
 import 'package:front/main.dart';
+import 'package:front/widget/bracket/bracket.dart';
 import 'package:provider/provider.dart';
 
 class BracketMatch extends StatelessWidget {
   const BracketMatch({super.key, required this.match});
 
-  final tournament.Match match;
+  final Match match;
 
   @override
   Widget build(BuildContext context) {
     final isDarkMode = Provider.of<ThemeNotifier>(context).isDarkMode;
     return GestureDetector(
       onTap: () {
-        if (match.status != '') {
-          Navigator.pushNamed(context, '/match', arguments: match);
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Il n\'y a pas de match'),
-              duration: Duration(seconds: 1),
-            ),
-          );
-        }
+        Navigator.pushNamed(context, '/match', arguments: match);
       },
       child: Column(
         children: [
@@ -34,7 +25,7 @@ class BracketMatch extends StatelessWidget {
               borderRadius: const BorderRadius.all(Radius.circular(10)),
               border: Border.fromBorderSide(
                 BorderSide(
-                  color: match.status == 'started'
+                  color: match.status == 'in progress'
                       ? Colors.redAccent
                       : context.themeColors.backgroundColor,
                   width: 1,
@@ -50,14 +41,13 @@ class BracketMatch extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        match.playerOne.username,
+                        match.player1!,
                         style: TextStyle(
-                          fontWeight: match.winnerId.toString() ==
-                                      match.playerOne.userId &&
+                          fontWeight: match.winnerId == match.playerOneId &&
                                   match.status == 'finished'
                               ? FontWeight.bold
                               : FontWeight.normal,
-                          color: match.status == 'started'
+                          color: match.status == 'in progress'
                               ? Colors.redAccent
                               : context.themeColors.invertedBackgroundColor,
                         ),
@@ -66,14 +56,13 @@ class BracketMatch extends StatelessWidget {
                         height: 10,
                       ),
                       Text(
-                        match.playerTwo.username,
+                        match.player2!,
                         style: TextStyle(
-                          fontWeight: match.winnerId.toString() ==
-                                      match.playerTwo.userId &&
+                          fontWeight: match.winnerId == match.playerTwoId &&
                                   match.status == 'finished'
                               ? FontWeight.bold
                               : FontWeight.normal,
-                          color: match.status == 'started'
+                          color: match.status == 'in progress'
                               ? Colors.redAccent
                               : context.themeColors.invertedBackgroundColor,
                         ),
@@ -86,10 +75,9 @@ class BracketMatch extends StatelessWidget {
                         return Column(
                           children: [
                             Text(
-                              match.playerOne.score.toString(),
+                              match.score1!,
                               style: TextStyle(
-                                  color: match.winnerId.toString() ==
-                                          match.playerOne.userId
+                                  color: match.winnerId == match.playerOneId
                                       ? Colors.green
                                       : Colors.red),
                             ),
@@ -97,33 +85,32 @@ class BracketMatch extends StatelessWidget {
                               height: 10,
                             ),
                             Text(
-                              match.playerTwo.score.toString(),
+                              match.score2!,
                               style: TextStyle(
-                                  color: match.winnerId.toString() ==
-                                          match.playerTwo.userId
+                                  color: match.winnerId == match.playerTwoId
                                       ? Colors.green
                                       : Colors.red),
                             ),
                           ],
                         );
-                      } else if (match.status == 'started') {
+                      } else if (match.status == 'in progress') {
                         return Column(
                           children: [
                             Text(
-                              match.playerOne.score.toString(),
+                              match.score1!,
                               style: const TextStyle(color: Colors.redAccent),
                             ),
                             const SizedBox(
                               height: 10,
                             ),
-                            Text(match.playerTwo.score.toString(),
+                            Text(match.score2!,
                                 style:
                                     const TextStyle(color: Colors.redAccent)),
                           ],
                         );
                       } else {
                         return Text(
-                          match.status != '' ? '18:00' : '',
+                          match.time!,
                           style: TextStyle(
                             fontSize: 16,
                             color: isDarkMode ? Colors.white : Colors.black,

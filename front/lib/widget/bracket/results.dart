@@ -1,80 +1,60 @@
 import 'package:flutter/material.dart';
-import 'package:front/generated/tournament.pb.dart' as tournament;
+import 'package:front/widget/bracket/bracket.dart';
 import 'package:front/widget/bracket/match/match_tiles.dart';
 
 class Results extends StatelessWidget {
   Results({super.key});
 
-  final List<tournament.Match> matches = [
-    tournament.Match(
-      playerOne: tournament.Player(
-        username: 'Alcaraz C',
-        userId: '1',
-        score: 2,
-      ),
-      playerTwo: tournament.Player(
-        username: 'Medvedev D',
-        userId: '5',
-        score: 0,
-      ),
+  final List<Match> matches = [
+    Match(
+      player1: 'Alcaraz C',
+      player2: 'Medvedev D',
+      playerOneId: 1,
+      playerTwoId: 5,
       status: 'finished',
+      score1: '2',
+      score2: '0',
       winnerId: 1,
     ),
-    tournament.Match(
-      playerOne: tournament.Player(
-        username: 'Federer R',
-        userId: '3',
-        score: 2,
-      ),
-      playerTwo: tournament.Player(
-        username: 'Nadal R',
-        userId: '7',
-        score: 1,
-      ),
+    Match(
+      player1: 'Federer R',
+      player2: 'Nadal R',
+      playerOneId: 3,
+      playerTwoId: 7,
       status: 'finished',
+      score1: '2',
+      score2: '1',
       winnerId: 3,
     ),
-    tournament.Match(
-      playerOne: tournament.Player(
-        username: 'Djokovic N',
-        userId: '9',
-        score: 2,
-      ),
-      playerTwo: tournament.Player(
-        username: 'Shapovalov D',
-        userId: '12',
-        score: 0,
-      ),
+    Match(
+      player1: 'Djokovic N',
+      player2: 'Shapovalov D',
+      playerOneId: 9,
+      playerTwoId: 12,
       status: 'finished',
+      score1: '2',
+      score2: '0',
       winnerId: 9,
     ),
-    tournament.Match(
-      playerOne: tournament.Player(
-        username: 'Auger-Aliassime F',
-        userId: '14',
-        score: 2,
-      ),
-      playerTwo: tournament.Player(
-        username: 'Monfils G',
-        userId: '16',
-        score: 0,
-      ),
+    Match(
+      player1: 'Auger-Aliassime F',
+      player2: 'Monfils G',
+      playerOneId: 14,
+      playerTwoId: 15,
       status: 'finished',
-      winnerId: 14,
+      score1: '1',
+      score2: '2',
+      winnerId: 15,
     ),
-    tournament.Match(
-      playerOne: tournament.Player(
-        username: 'Rublev A',
-        userId: '6',
-        score: 0,
-      ),
-      playerTwo: tournament.Player(
-        username: 'Sinner J',
-        userId: '2',
-        score: 2,
-      ),
+    Match(
+      player1: 'Rublev A',
+      player2: 'Sinner J',
+      playerOneId: 13,
+      playerTwoId: 21,
       status: 'finished',
-      winnerId: 2,
+      score1: '0',
+      score2: '2',
+      winnerId: 21,
     ),
   ];
 

@@ -1,226 +1,165 @@
 import 'package:flutter/material.dart';
-import 'package:front/generated/tournament.pb.dart' as tournament;
-
-import 'match_tiles.dart';
+import 'package:front/widget/bracket/bracket.dart';
+import 'package:front/widget/bracket/match/match_tiles.dart';
 
 class Head2Head extends StatelessWidget {
   Head2Head({super.key});
 
-  final List<tournament.Match> matchesPlayer1 = [
-    tournament.Match(
-      playerOne: tournament.Player(
-        username: 'Alcaraz',
-        userId: '1',
-        score: 2,
-      ),
-      playerTwo: tournament.Player(
-        username: 'Medvedev',
-        userId: '5',
-        score: 0,
-      ),
+  final List<Match> matchesPlayer1 = [
+    Match(
+      player1: 'Alcaraz',
+      player2: 'Medvedev',
+      playerOneId: 1,
+      playerTwoId: 5,
       status: 'finished',
+      score1: '2',
+      score2: '0',
       winnerId: 1,
     ),
-    tournament.Match(
-      playerOne: tournament.Player(
-        username: 'Alcaraz',
-        userId: '1',
-        score: 0,
-      ),
-      playerTwo: tournament.Player(
-        username: 'Djokovic',
-        userId: '9',
-        score: 2,
-      ),
+    Match(
+      player1: 'Alcaraz',
+      player2: 'Djokovic',
+      playerOneId: 1,
+      playerTwoId: 9,
       status: 'finished',
-      winnerId: 9,
+      score1: '2',
+      score2: '0',
+      winnerId: 1,
     ),
-    tournament.Match(
-      playerOne: tournament.Player(
-        username: 'Alcaraz',
-        userId: '1',
-        score: 0,
-      ),
-      playerTwo: tournament.Player(
-        username: 'Nadal',
-        userId: '7',
-        score: 2,
-      ),
+    Match(
+      player1: 'Alcaraz',
+      player2: 'Nadal',
+      playerOneId: 1,
+      playerTwoId: 7,
       status: 'finished',
+      score1: '1',
+      score2: '2',
       winnerId: 7,
     ),
-    tournament.Match(
-      playerOne: tournament.Player(
-        username: 'Alcaraz',
-        userId: '1',
-        score: 0,
-      ),
-      playerTwo: tournament.Player(
-        username: 'Federer',
-        userId: '3',
-        score: 2,
-      ),
+    Match(
+      player1: 'Alcaraz',
+      player2: 'Federer',
+      playerOneId: 1,
+      playerTwoId: 3,
       status: 'finished',
+      score1: '0',
+      score2: '2',
       winnerId: 3,
     ),
-    tournament.Match(
-      playerOne: tournament.Player(
-        username: 'Alcaraz',
-        userId: '1',
-        score: 2,
-      ),
-      playerTwo: tournament.Player(
-        username: 'Thiem',
-        userId: '4',
-        score: 0,
-      ),
+    Match(
+      player1: 'Alcaraz',
+      player2: 'Thiem',
+      playerOneId: 1,
+      playerTwoId: 4,
       status: 'finished',
+      score1: '2',
+      score2: '0',
       winnerId: 1,
     ),
-    tournament.Match(
-      playerOne: tournament.Player(
-        username: 'Alcaraz',
-        userId: '1',
-        score: 2,
-      ),
-      playerTwo: tournament.Player(
-        username: 'Zverev',
-        userId: '6',
-        score: 0,
-      ),
+    Match(
+      player1: 'Alcaraz',
+      player2: 'Zverev',
+      playerOneId: 1,
+      playerTwoId: 8,
       status: 'finished',
+      score1: '2',
+      score2: '0',
       winnerId: 1,
     ),
-    tournament.Match(
-      playerOne: tournament.Player(
-        username: 'Alcaraz',
-        userId: '1',
-        score: 2,
-      ),
-      playerTwo: tournament.Player(
-        username: 'Rublev',
-        userId: '8',
-        score: 0,
-      ),
+    Match(
+      player1: 'Alcaraz',
+      player2: 'Rublev',
+      playerOneId: 1,
+      playerTwoId: 6,
       status: 'finished',
+      score1: '2',
+      score2: '0',
       winnerId: 1,
     ),
   ];
 
-  final List<tournament.Match> matchesPlayer2 = [
-    tournament.Match(
-      playerOne: tournament.Player(
-        username: 'Medvedev',
-        userId: '5',
-        score: 0,
-      ),
-      playerTwo: tournament.Player(
-        username: 'Alcaraz',
-        userId: '1',
-        score: 2,
-      ),
+  final List<Match> matchesPlayer2 = [
+    Match(
+      player1: 'Medvedev',
+      player2: 'Alcaraz',
+      playerOneId: 5,
+      playerTwoId: 1,
       status: 'finished',
+      score1: '0',
+      score2: '2',
       winnerId: 1,
     ),
-    tournament.Match(
-      playerOne: tournament.Player(
-        username: 'Medvedev',
-        userId: '5',
-        score: 2,
-      ),
-      playerTwo: tournament.Player(
-        username: 'Djokovic',
-        userId: '9',
-        score: 0,
-      ),
+    Match(
+      player1: 'Medvedev',
+      player2: 'Djokovic',
+      playerOneId: 5,
+      playerTwoId: 9,
       status: 'finished',
+      score1: '2',
+      score2: '1',
       winnerId: 5,
     ),
-    tournament.Match(
-      playerOne: tournament.Player(
-        username: 'Medvedev',
-        userId: '5',
-        score: 2,
-      ),
-      playerTwo: tournament.Player(
-        username: 'Nadal',
-        userId: '7',
-        score: 0,
-      ),
+    Match(
+      player1: 'Medvedev',
+      player2: 'Nadal',
+      playerOneId: 5,
+      playerTwoId: 7,
       status: 'finished',
+      score1: '0',
+      score2: '2',
+      winnerId: 7,
+    ),
+    Match(
+      player1: 'Medvedev',
+      player2: 'Federer',
+      playerOneId: 5,
+      playerTwoId: 3,
+      status: 'finished',
+      score1: '0',
+      score2: '2',
+      winnerId: 3,
+    ),
+    Match(
+      player1: 'Medvedev',
+      player2: 'Thiem',
+      playerOneId: 5,
+      playerTwoId: 4,
+      status: 'finished',
+      score1: '2',
+      score2: '0',
       winnerId: 5,
     ),
-    tournament.Match(
-      playerOne: tournament.Player(
-        username: 'Medvedev',
-        userId: '5',
-        score: 2,
-      ),
-      playerTwo: tournament.Player(
-        username: 'Federer',
-        userId: '3',
-        score: 0,
-      ),
+    Match(
+      player1: 'Medvedev',
+      player2: 'Zverev',
+      playerOneId: 5,
+      playerTwoId: 6,
       status: 'finished',
+      score1: '2',
+      score2: '0',
       winnerId: 5,
     ),
-    tournament.Match(
-      playerOne: tournament.Player(
-        username: 'Medvedev',
-        userId: '5',
-        score: 2,
-      ),
-      playerTwo: tournament.Player(
-        username: 'Thiem',
-        userId: '4',
-        score: 0,
-      ),
+    Match(
+      player1: 'Medvedev',
+      player2: 'Rublev',
+      playerOneId: 5,
+      playerTwoId: 8,
       status: 'finished',
-      winnerId: 5,
-    ),
-    tournament.Match(
-      playerOne: tournament.Player(
-        username: 'Medvedev',
-        userId: '5',
-        score: 2,
-      ),
-      playerTwo: tournament.Player(
-        username: 'Zverev',
-        userId: '6',
-        score: 0,
-      ),
-      status: 'finished',
-      winnerId: 5,
-    ),
-    tournament.Match(
-      playerOne: tournament.Player(
-        username: 'Medvedev',
-        userId: '5',
-        score: 2,
-      ),
-      playerTwo: tournament.Player(
-        username: 'Rublev',
-        userId: '8',
-        score: 0,
-      ),
-      status: 'finished',
+      score1: '2',
+      score2: '0',
       winnerId: 5,
     ),
   ];
 
-  final List<tournament.Match> matchesH2H = [
-    tournament.Match(
-      playerOne: tournament.Player(
-        username: 'Alcaraz',
-        userId: '1',
-        score: 2,
-      ),
-      playerTwo: tournament.Player(
-        username: 'Medvedev',
-        userId: '5',
-        score: 0,
-      ),
+  final List<Match> matchesH2H = [
+    Match(
+      player1: 'Medvedev',
+      player2: 'Alcaraz',
+      playerOneId: 5,
+      playerTwoId: 1,
       status: 'finished',
+      score1: '0',
+      score2: '2',
       winnerId: 1,
     ),
   ];

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:front/extension/theme_extension.dart';
-import 'package:front/generated/tournament.pb.dart' as tournament;
+import 'package:front/widget/bracket/bracket.dart';
 
 class MatchTile extends StatelessWidget {
   const MatchTile(
@@ -9,7 +9,7 @@ class MatchTile extends StatelessWidget {
       required this.isPast,
       required this.isLastMatches});
 
-  final tournament.Match match;
+  final Match match;
   final bool isPast;
   final bool isLastMatches;
 
@@ -21,7 +21,7 @@ class MatchTile extends StatelessWidget {
       },
       child: Container(
         width: double.infinity,
-        color: match.status == 'started'
+        color: match.status == 'in progress'
             ? Colors.redAccent
             : context.themeColors.secondaryBackgroundAccentColor,
         child: Padding(
@@ -46,10 +46,9 @@ class MatchTile extends StatelessWidget {
                           ),
                           const SizedBox(width: 5),
                           Text(
-                            match.playerOne.username,
+                            match.player1!,
                             style: TextStyle(
-                              fontWeight: match.winnerId.toString() ==
-                                      match.playerOne.userId
+                              fontWeight: match.winnerId == match.playerOneId
                                   ? FontWeight.bold
                                   : FontWeight.normal,
                             ),
@@ -66,10 +65,9 @@ class MatchTile extends StatelessWidget {
                           ),
                           const SizedBox(width: 5),
                           Text(
-                            match.playerTwo.username,
+                            match.player2!,
                             style: TextStyle(
-                              fontWeight: match.winnerId.toString() ==
-                                      match.playerTwo.userId
+                              fontWeight: match.winnerId == match.playerTwoId
                                   ? FontWeight.bold
                                   : FontWeight.normal,
                             ),
@@ -93,17 +91,17 @@ class MatchTile extends StatelessWidget {
                             children: [
                               Column(
                                 children: [
-                                  Text(match.playerOne.score.toString(),
+                                  Text(match.score1!,
                                       style: TextStyle(
-                                          color: match.winnerId.toString() ==
-                                                  match.playerOne.userId
+                                          color: match.winnerId ==
+                                                  match.playerOneId
                                               ? Colors.green
                                               : Colors.red)),
                                   const SizedBox(height: 10),
-                                  Text(match.playerTwo.score.toString(),
+                                  Text(match.score2!,
                                       style: TextStyle(
-                                          color: match.winnerId.toString() ==
-                                                  match.playerTwo.userId
+                                          color: match.winnerId ==
+                                                  match.playerTwoId
                                               ? Colors.green
                                               : Colors.red)),
                                 ],
@@ -114,15 +112,13 @@ class MatchTile extends StatelessWidget {
                                 padding: const EdgeInsets.all(2),
                                 margin: const EdgeInsets.only(left: 10),
                                 decoration: BoxDecoration(
-                                  color: match.playerOne.userId ==
-                                          match.winnerId.toString()
+                                  color: match.playerOneId == match.winnerId
                                       ? Colors.green
                                       : Colors.red,
                                   borderRadius: BorderRadius.circular(5),
                                 ),
                                 child: Text(
-                                  match.playerOne.userId ==
-                                          match.winnerId.toString()
+                                  match.playerOneId == match.winnerId
                                       ? 'V'
                                       : 'D',
                                   textAlign: TextAlign.center,
@@ -137,17 +133,15 @@ class MatchTile extends StatelessWidget {
                         } else {
                           return Column(
                             children: [
-                              Text(match.playerOne.score.toString(),
+                              Text(match.score1!,
                                   style: TextStyle(
-                                      color: match.winnerId.toString() ==
-                                              match.playerOne.userId
+                                      color: match.winnerId == match.playerOneId
                                           ? Colors.green
                                           : Colors.red)),
                               const SizedBox(height: 10),
-                              Text(match.playerTwo.score.toString(),
+                              Text(match.score2!,
                                   style: TextStyle(
-                                      color: match.winnerId.toString() ==
-                                              match.playerTwo.userId
+                                      color: match.winnerId == match.playerTwoId
                                           ? Colors.green
                                           : Colors.red)),
                             ],
@@ -155,10 +149,10 @@ class MatchTile extends StatelessWidget {
                         }
                       });
                     } else {
-                      return const Row(
+                      return Row(
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
-                          Text('18:00'),
+                          Text(match.time!),
                         ],
                       );
                     }

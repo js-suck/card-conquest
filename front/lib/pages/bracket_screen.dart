@@ -1,37 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:front/extension/theme_extension.dart';
-import 'package:front/generated/tournament.pb.dart';
-import 'package:front/grpc/tournament_client.dart';
 import 'package:front/widget/bracket/bracket.dart';
 import 'package:front/widget/bracket/calendar.dart';
 import 'package:front/widget/bracket/results.dart';
 import 'package:front/widget/bracket/scoreboard.dart';
 
-class BracketPage extends StatefulWidget {
+class BracketPage extends StatelessWidget {
   const BracketPage({super.key});
 
-  final int tournamentID = 1;
-
-  @override
-  State<BracketPage> createState() => _BracketPageState();
-}
-
-class _BracketPageState extends State<BracketPage> {
   final isBracket = true;
-  late TournamentClient tournamentClient;
-
-  @override
-  void initState() {
-    super.initState();
-    tournamentClient = TournamentClient();
-    tournamentClient.subscribeTournamentUpdate(widget.tournamentID);
-  }
-
-  @override
-  void dispose() {
-    tournamentClient.shutdown();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -65,31 +42,19 @@ class _BracketPageState extends State<BracketPage> {
             ],
           ),
         ),
-        body: StreamBuilder<TournamentResponse>(
-            stream:
-                tournamentClient.subscribeTournamentUpdate(widget.tournamentID),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
-              } else if (snapshot.hasError) {
-                return const Center(child: Text('Erreur de connexion'));
-              } else if (!snapshot.hasData) {
-                return const Center(child: Text('Aucune donnée'));
-              }
-              return Column(
+        body: Column(
+          children: [
+            Expanded(
+              child: TabBarView(
                 children: [
-                  Expanded(
-                    child: TabBarView(
-                      children: [
-                        isBracket ? Bracket(snapshot) : Scoreboard(),
-                        Results(),
-                        Calendar(),
-                      ],
-                    ),
-                  ),
+                  isBracket ? Bracket() : Scoreboard(),
+                  Results(),
+                  Calendar(),
                 ],
-              );
-            }),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

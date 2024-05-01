@@ -11,8 +11,6 @@ import 'package:front/pages/profile_screen.dart';
 import 'package:front/pages/scoreboard_screen.dart';
 import 'package:front/settings_screen.dart';
 
-import '../grpc/tournament_update_screen.dart';
-
 var routes = <String, WidgetBuilder>{
   '/': (context) => const HomePage(),
   '/main': (context) => const MainPage(),
@@ -21,8 +19,6 @@ var routes = <String, WidgetBuilder>{
   '/profile': (context) => const ProfilePage(),
   '/settings': (context) => const SettingsPage(),
   '/games': (context) => const GamesPage(),
-  '/tournamentUpdatesDemo': (context) =>
-      TournamentUpdateScreen(tournamentID: 1),
   '/bracket': (context) => const BracketPage(),
   '/match': (context) => MatchPage(),
   '/player': (context) => PlayerPage(),
