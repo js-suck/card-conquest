@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-Future<void> signUp(BuildContext context, String username, String email, String password) async {
+Future<void> signUp(BuildContext context, String username, String email,
+    String password) async {
   final response = await http.post(
     Uri.parse('http://10.0.2.2:8080/api/v1/register'),
     headers: <String, String>{
@@ -24,7 +25,6 @@ Future<void> signUp(BuildContext context, String username, String email, String 
   }
 }
 
-
 class SignUpPage extends StatefulWidget {
   @override
   _SignUpPageState createState() => _SignUpPageState();
@@ -34,7 +34,8 @@ class _SignUpPageState extends State<SignUpPage> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmPasswordController = TextEditingController();
+  final TextEditingController _confirmPasswordController =
+      TextEditingController();
   final TextEditingController _usernameController = TextEditingController();
   bool _acceptTermsAndConditions = false;
 
@@ -44,14 +45,14 @@ class _SignUpPageState extends State<SignUpPage> {
     Navigator.of(context).pushReplacementNamed('/home');
   }
 
-
   void _signUp() {
-    if (_formKey.currentState?.validate() == true && _acceptTermsAndConditions == true) {
-      signUp(context, _usernameController.text, _emailController.text, _passwordController.text)
+    if (_formKey.currentState?.validate() == true &&
+        _acceptTermsAndConditions == true) {
+      signUp(context, _usernameController.text, _emailController.text,
+              _passwordController.text)
           .then((_) {
         // Optionally handle success in the UI
-      })
-          .catchError((error) {
+      }).catchError((error) {
         // Optionally handle error in the UI
         showDialog(
           context: context,
@@ -93,18 +94,18 @@ class _SignUpPageState extends State<SignUpPage> {
     }
   }
 
-
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Row(
-          mainAxisAlignment: MainAxisAlignment.end, // Alignement pour répartir l'espace
+          mainAxisAlignment:
+              MainAxisAlignment.end, // Alignement pour répartir l'espace
           children: <Widget>[
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12),
-              child: Image.asset('assets/images/logo.png', width: 30), // Logo à droite dans l'AppBar
+              child: Image.asset('assets/images/logo.png',
+                  width: 30), // Logo à droite dans l'AppBar
             ),
           ],
         ),
@@ -124,20 +125,24 @@ class _SignUpPageState extends State<SignUpPage> {
                     children: [
                       const Text(
                         'Créez votre compte',
-                        style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                            fontSize: 24, fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 20),
                       const Text('Nom d\'utilisateur',
-                          style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                          style: TextStyle(
+                              fontSize: 14, fontWeight: FontWeight.bold)),
                       const SizedBox(height: 10),
                       TextFormField(
                         controller: _usernameController,
                         decoration: InputDecoration(
                           hintText: 'Votre nom d\'utilisateur',
-                          hintStyle: TextStyle(color: const Color(0xFF888888).withOpacity(0.5)),
+                          hintStyle: TextStyle(
+                              color: const Color(0xFF888888).withOpacity(0.5)),
                           fillColor: Colors.grey[100],
                           filled: true,
-                          contentPadding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 10.0),
+                          contentPadding: const EdgeInsets.symmetric(
+                              vertical: 10.0, horizontal: 10.0),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(10.0),
                             borderSide: BorderSide.none,
@@ -152,23 +157,28 @@ class _SignUpPageState extends State<SignUpPage> {
                       ),
                       const SizedBox(height: 20),
                       const Text('Email',
-                          style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                          style: TextStyle(
+                              fontSize: 14, fontWeight: FontWeight.bold)),
                       const SizedBox(height: 10),
                       TextFormField(
                         controller: _emailController,
                         decoration: InputDecoration(
                           hintText: 'tcg@gmail.com',
-                          hintStyle: TextStyle(color: const Color(0xFF888888).withOpacity(0.5)),
+                          hintStyle: TextStyle(
+                              color: const Color(0xFF888888).withOpacity(0.5)),
                           fillColor: Colors.grey[100],
                           filled: true,
-                          contentPadding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 10.0),
+                          contentPadding: const EdgeInsets.symmetric(
+                              vertical: 10.0, horizontal: 10.0),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(10.0),
                             borderSide: BorderSide.none,
                           ),
                         ),
                         validator: (value) {
-                          if (value == null || value.isEmpty || !value.contains('@')) {
+                          if (value == null ||
+                              value.isEmpty ||
+                              !value.contains('@')) {
                             return 'Veuillez entrer un email valide';
                           }
                           return null;
@@ -176,16 +186,19 @@ class _SignUpPageState extends State<SignUpPage> {
                       ),
                       const SizedBox(height: 20),
                       const Text('Mot de passe',
-                          style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                          style: TextStyle(
+                              fontSize: 14, fontWeight: FontWeight.bold)),
                       const SizedBox(height: 10),
                       TextFormField(
                         controller: _passwordController,
                         decoration: InputDecoration(
                           hintText: '*******',
-                          hintStyle: TextStyle(color: const Color(0xFF888888).withOpacity(0.5)),
+                          hintStyle: TextStyle(
+                              color: const Color(0xFF888888).withOpacity(0.5)),
                           fillColor: Colors.grey[100],
                           filled: true,
-                          contentPadding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 10.0),
+                          contentPadding: const EdgeInsets.symmetric(
+                              vertical: 10.0, horizontal: 10.0),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(10.0),
                             borderSide: BorderSide.none,
@@ -193,7 +206,9 @@ class _SignUpPageState extends State<SignUpPage> {
                         ),
                         obscureText: true,
                         validator: (value) {
-                          if (value == null || value.isEmpty || value.length < 6) {
+                          if (value == null ||
+                              value.isEmpty ||
+                              value.length < 6) {
                             return 'Le mot de passe doit contenir au moins 6 caractères';
                           }
                           return null;
@@ -201,16 +216,19 @@ class _SignUpPageState extends State<SignUpPage> {
                       ),
                       const SizedBox(height: 20),
                       const Text('Confirmer le mot de passe',
-                          style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                          style: TextStyle(
+                              fontSize: 14, fontWeight: FontWeight.bold)),
                       const SizedBox(height: 10),
                       TextFormField(
                         controller: _confirmPasswordController,
                         decoration: InputDecoration(
                           hintText: '*******',
-                          hintStyle: TextStyle(color: const Color(0xFF888888).withOpacity(0.5)),
+                          hintStyle: TextStyle(
+                              color: const Color(0xFF888888).withOpacity(0.5)),
                           fillColor: Colors.grey[100],
                           filled: true,
-                          contentPadding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 10.0),
+                          contentPadding: const EdgeInsets.symmetric(
+                              vertical: 10.0, horizontal: 10.0),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(10.0),
                             borderSide: BorderSide.none,
@@ -226,35 +244,35 @@ class _SignUpPageState extends State<SignUpPage> {
                       ),
                       const SizedBox(height: 20),
                       // add button for validate the terms and conditions
-                  Row(
-                    children: <Widget>[
-                      Checkbox(
-                        value: _acceptTermsAndConditions,
-                        onChanged: (bool? value) {
-                          setState(() {
-                            _acceptTermsAndConditions = value!;
-                          });
-                        },
-                      ),
-                      Flexible(
-                        child: GestureDetector(
-                          onTap: () {
-                            // Ouvrir la page des terms & policy
-                            Navigator.pushNamed(context, '/terms');
-                          },
-                          child: const Text(
-                            'J\'accepte les terms & policy',
-                            style: TextStyle(fontSize: 14, decoration: TextDecoration.underline),
+                      Row(
+                        children: <Widget>[
+                          Checkbox(
+                            value: _acceptTermsAndConditions,
+                            onChanged: (bool? value) {
+                              setState(() {
+                                _acceptTermsAndConditions = value!;
+                              });
+                            },
                           ),
-                        ),
+                          Flexible(
+                            child: GestureDetector(
+                              onTap: () {
+                                // Ouvrir la page des terms & policy
+                                Navigator.pushNamed(context, '/terms');
+                              },
+                              child: const Text(
+                                'J\'ai lu et j\'accepte les termes et conditions',
+                                style: TextStyle(
+                                    fontSize: 14,
+                                    decoration: TextDecoration.underline),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
                       ElevatedButton(
                         onPressed: _signUp,
                         style: ElevatedButton.styleFrom(
-                          foregroundColor: Colors.white,
-                          backgroundColor: const Color(0xFFFF933D),
                           minimumSize: const Size(double.infinity, 45),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
@@ -262,14 +280,18 @@ class _SignUpPageState extends State<SignUpPage> {
                         ),
                         child: const Text(
                           'S\'inscrire',
-                          style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold),
                         ),
                       ),
                       const SizedBox(height: 10),
                       const Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: <Widget>[
-                          Flexible(  // Rend le texte flexible pour éviter le débordement
+                          Flexible(
+                            // Rend le texte flexible pour éviter le débordement
                             child: Text(
                               'ou connectez-vous avec',
                               style: TextStyle(fontSize: 14),
@@ -301,11 +323,13 @@ class _SignUpPageState extends State<SignUpPage> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: <Widget>[
-                          const Flexible(  // Rend le texte flexible pour éviter le débordement
+                          const Flexible(
+                            // Rend le texte flexible pour éviter le débordement
                             child: Text(
                               'Vous avez déjà un compte ?',
                               style: TextStyle(fontSize: 14),
-                              overflow: TextOverflow.ellipsis,  // Ajoute des points de suspension si le texte est trop long
+                              overflow: TextOverflow
+                                  .ellipsis, // Ajoute des points de suspension si le texte est trop long
                             ),
                           ),
                           TextButton(
@@ -314,7 +338,10 @@ class _SignUpPageState extends State<SignUpPage> {
                             },
                             child: const Text(
                               'Connectez-vous',
-                              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFFFF933D),
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFFFF933D),
                               ),
                             ),
                           ),
