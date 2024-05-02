@@ -43,7 +43,7 @@ func (h *GameHandler) GetAllGames(c *gin.Context) {
 
 	}
 
-	trendyGames, allGames, err := h.GameService.GetAll(filterParams, gameParams)
+	trendyGames, allGames, err := h.GameService.GetAll(filterParams, gameParams, "Media")
 
 	if err != nil {
 		c.JSON(err.Code(), err)

@@ -21,26 +21,30 @@ func NewGameService(db *gorm.DB) *GameService {
 	}
 }
 
-func (s *GameService) GetAll(filterParams FilterParams, gameParams GameParams) (trendyGames []models.Game, allGames []models.Game, err errors.IError) {
+func (s *GameService) GetAll(filterParams FilterParams, gameParams GameParams, preloads ...string) (trendyGames []models.Game, allGames []models.Game, err errors.IError) {
+	query := s.db
 
+	for _, preload := range preloads {
+		query = query.Preload(preload)
+	}
 	// search if in query string there is a parameter with_trendy
 	// games who the tounraments are the most recent
 	if gameParams.WithTrendy {
 
-		err := s.db.Joins("JOIN tournaments ON tournaments.game_id = games.id").Group("games.id").Order("tournaments.start_date DESC").Limit(8).Find(&trendyGames).Error
+		err := query.Joins("JOIN tournaments ON tournaments.game_id = games.id").Group("games.id").Order("tournaments.start_date DESC").Limit(8).Find(&trendyGames).Error
 		if err != nil {
 			return nil, nil, errors.NewErrorResponse(500, err.Error())
 		}
 
 		// search in db all games
-		err = s.db.Find(&allGames).Error
+		err = query.Find(&allGames).Error
 
 		if err != nil {
 			return nil, nil, errors.NewErrorResponse(500, err.Error())
 		}
 	} else {
 		// search in db all games
-		err := s.db.Find(&allGames).Error
+		err := query.Find(&allGames).Error
 
 		if err != nil {
 			return nil, nil, errors.NewErrorResponse(500, err.Error())
