@@ -14,7 +14,7 @@ func SetupRouter(db *gorm.DB) *gin.Engine {
 	// handlers are like controllers
 	authHandler := handlers.NewAuthHandler(services.NewAuthService(db), services.NewUserService(db))
 	userHandler := handlers.UserHandler{UserService: services.NewUserService(db), FileService: services.NewFileService(db)}
-	tournamentHandler := handlers.NewTournamentHandler(services.NewTournamentService(db))
+	tournamentHandler := handlers.NewTournamentHandler(services.NewTournamentService(db), services.NewFileService(db))
 	tagHandler := handlers.NewTagHandler(services.NewTagService(db))
 	gameHandler := handlers.NewGameHandler(services.NewGameService(db))
 	uploadFileHandler := handlers.NewUploadHandler(services.NewFileService(db))

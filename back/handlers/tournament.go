@@ -13,33 +13,66 @@ import (
 
 type TournamentHandler struct {
 	TounamentService *services.TournamentService
+	FileService      *services.FileService
 }
 
-func NewTournamentHandler(tournamentService *services.TournamentService) *TournamentHandler {
-	return &TournamentHandler{TounamentService: tournamentService}
+func NewTournamentHandler(tournamentService *services.TournamentService, fileService *services.FileService) *TournamentHandler {
+	return &TournamentHandler{TounamentService: tournamentService, FileService: fileService}
 }
 
 // CreateTournament godoc
 // @Summary Create a new tournament
 // @Description Create a new tournament
 // @Tags tournament
-// @Accept json
+// @Accept mpfd
 // @Produce json
-// @Param tournament body models.NewTournamentPayload true "Tournament object"
+// @Param name formData string true "Tournament name" Example(s) : "My Tournament"
+// @Param description formData string true "Tournament description" Example(s) : "Description of my tournament"
+// @Param start_date formData string true "Tournament start date" Example(s) : "2024-04-12T00:00:00Z"
+// @Param end_date formData string true "Tournament end date" Example(s) : "2024-04-15T00:00:00Z"
+// @Param organizer_id formData int true "Organizer ID" Example(s) : 1
+// @Param game_id formData int true "Game ID" Example(s) : 1
+// @Param rounds formData int true "Number of rounds" Example(s) : 3
+// @Param tagsIDs[] formData []int true "Array of tag IDs" Example(s) : 1, 2, 3
+// @Param image formData file true "Image file" Example(s) : <path_to_image_file>
 // @Success 200 {object} models.Tournament
-// @Failure 400 {object} errors.ErrorResponse
-// @Failure 500 {object} errors.ErrorResponse
+// @Failure 400
+// @Failure 500
 // @Security BearerAuth
 // @Param Authorization header string true "Insert your access token" default(Bearer <Add access token here>)
 // @Router /tournaments [post]
 func (h *TournamentHandler) CreateTournament(c *gin.Context) {
-	payload := models.CreateTournamentPayload{}
+	file, err := c.FormFile("image")
+	tagsIDsStr := c.PostFormArray("tagsIDs")
+	var tagsIDs []uint
 
-	if err := c.ShouldBindJSON(&payload); err != nil {
+	for _, idStr := range tagsIDsStr {
+		id, err := strconv.ParseUint(idStr, 10, 32)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, errors.NewBadRequestError("Invalid tag ID", err).ToGinH())
+			return
+		}
+		tagsIDs = append(tagsIDs, uint(id))
+	}
+	if err != nil {
+		c.JSON(http.StatusBadRequest, errors.NewBadRequestError("Something went wrong with the file", err).ToGinH())
+		return
+	}
+
+	var payload models.CreateTournamentPayload
+	if err := c.ShouldBind(&payload); err != nil {
 		c.JSON(http.StatusBadRequest, errors.NewBadRequestError("Invalid request", err).ToGinH())
 		return
 	}
 
+	// Upload de l'image
+	mediaModel, _, errUpload := h.FileService.UploadMedia(file)
+	if errUpload != nil {
+		c.JSON(http.StatusBadRequest, errors.NewBadRequestError("Invalid request", errUpload).ToGinH())
+		return
+	}
+
+	// Ajouter l'image au modèle de tournoi
 	tournament := models.Tournament{
 		Name:        payload.Name,
 		Description: payload.Description,
@@ -51,7 +84,9 @@ func (h *TournamentHandler) CreateTournament(c *gin.Context) {
 		Rounds:      payload.Rounds,
 	}
 
-	tags, err := h.TounamentService.GetTagsByIDs(payload.TagsIDs)
+	tournament.MediaModel.Media = mediaModel
+
+	tags, err := h.TounamentService.GetTagsByIDs(tagsIDs)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, errors.NewErrorResponse(500, err.Error()).ToGinH())
 		return

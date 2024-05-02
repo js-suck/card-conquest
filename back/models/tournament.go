@@ -1,6 +1,8 @@
 package models
 
-import "time"
+import (
+	"time"
+)
 
 const (
 	TournamentStatusOpened   = "opened"
@@ -21,15 +23,16 @@ type GameReadTournament struct {
 }
 
 type CreateTournamentPayload struct {
-	Name        string `json:"name" validate:"required"`
-	Description string `json:"description" validate:"required"`
-	Location    string `json:"location"`
-	UserID      uint   `json:"organizer_id" `
-	GameID      uint   `json:"game_id" validate:"required"`
-	StartDate   string `json:"start_date" validate:"required"`
-	EndDate     string `json:"end_date" validate:"required"`
-	Rounds      int    `json:"rounds" validate:"required"`
-	TagsIDs     []uint `json:"tags_ids" validate:"required"`
+	Name        string `form:"name" json:"name" validate:"required"`
+	Description string `form:"description" json:"description" validate:"required"`
+	Location    string `form:"location" json:"location"`
+	UserID      uint   `form:"organizer_id" json:"organizer_id"`
+	GameID      uint   `form:"game_id" json:"game_id" validate:"required"`
+	StartDate   string `form:"start_date" json:"start_date" validate:"required"`
+	EndDate     string `form:"end_date" json:"end_date" validate:"required"`
+	Rounds      int    `form:"rounds" json:"rounds" validate:"required"`
+	TagsIDs     []uint `form:"tags_ids" json:"tags_ids" validate:"required"`
+	Image       []byte `gorm:"type:longblob" json:"-"`
 }
 
 type Tournament struct {
@@ -62,15 +65,15 @@ type TournamentRead struct {
 }
 
 type NewTournamentPayload struct {
-	Name        string            `json:"name" validate:"required" example:"Tournament 1" `
-	Description string            `json:"description" example:"Tournament 1 description" validate:"required"`
-	Location    string            `json:"location" example:"New York"`
-	UserID      uint              `json:"organizer_id" example:"1" validate:"required"`
-	GameID      uint              `json:"game_id" example:"1" validate:"required"`
-	StartDate   time.Time         `json:"start_date" validate:"required" example:"2024-04-12T00:00:00Z" format:"date-time"`
-	EndDate     time.Time         `json:"end_date" validate:"required" example:"2024-05-12T00:00:00Z" format:"date-time"`
-	Rounds      int               `json:"rounds" validate:"required" example:"3"`
-	Tags        map[string]string `json:"tags" validate:"required"`
+	Name        string    `json:"name" validate:"required" example:"Tournament 1" `
+	Description string    `json:"description" example:"Tournament 1 description" validate:"required"`
+	Location    string    `json:"location" example:"New York"`
+	UserID      uint      `json:"organizer_id" example:"1" validate:"required"`
+	GameID      uint      `json:"game_id" example:"1" validate:"required"`
+	StartDate   time.Time `json:"start_date" validate:"required" example:"2024-04-12T00:00:00Z" format:"date-time"`
+	EndDate     time.Time `json:"end_date" validate:"required" example:"2024-05-12T00:00:00Z" format:"date-time"`
+	Rounds      int       `json:"rounds" validate:"required" example:"3"`
+	TagsIDs     []uint    `json:"tags_idss" validate:"required"`
 }
 
 func (t Tournament) GetTableName() string {

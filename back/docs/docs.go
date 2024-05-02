@@ -467,7 +467,7 @@ const docTemplate = `{
                 ],
                 "description": "Create a new tournament",
                 "consumes": [
-                    "application/json"
+                    "multipart/form-data"
                 ],
                 "produces": [
                     "application/json"
@@ -478,13 +478,75 @@ const docTemplate = `{
                 "summary": "Create a new tournament",
                 "parameters": [
                     {
-                        "description": "Tournament object",
-                        "name": "tournament",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/models.NewTournamentPayload"
-                        }
+                        "type": "string",
+                        "example": "s",
+                        "description": "Tournament name",
+                        "name": "name",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "s",
+                        "description": "Tournament description",
+                        "name": "description",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "s",
+                        "description": "Tournament start date",
+                        "name": "start_date",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "s",
+                        "description": "Tournament end date",
+                        "name": "end_date",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Organizer ID",
+                        "name": "organizer_id",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Game ID",
+                        "name": "game_id",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Number of rounds",
+                        "name": "rounds",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "Array of tag IDs",
+                        "name": "tagsIDs[]",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "Image file",
+                        "name": "image",
+                        "in": "formData",
+                        "required": true
                     },
                     {
                         "type": "string",
@@ -503,16 +565,10 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/errors.ErrorResponse"
-                        }
+                        "description": "Bad Request"
                     },
                     "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/errors.ErrorResponse"
-                        }
+                        "description": "Internal Server Error"
                     }
                 }
             }
@@ -1154,61 +1210,6 @@ const docTemplate = `{
                 },
                 "updated_at": {
                     "type": "string"
-                }
-            }
-        },
-        "models.NewTournamentPayload": {
-            "type": "object",
-            "required": [
-                "description",
-                "end_date",
-                "game_id",
-                "name",
-                "organizer_id",
-                "rounds",
-                "start_date",
-                "tags"
-            ],
-            "properties": {
-                "description": {
-                    "type": "string",
-                    "example": "Tournament 1 description"
-                },
-                "end_date": {
-                    "type": "string",
-                    "format": "date-time",
-                    "example": "2024-05-12T00:00:00Z"
-                },
-                "game_id": {
-                    "type": "integer",
-                    "example": 1
-                },
-                "location": {
-                    "type": "string",
-                    "example": "New York"
-                },
-                "name": {
-                    "type": "string",
-                    "example": "Tournament 1"
-                },
-                "organizer_id": {
-                    "type": "integer",
-                    "example": 1
-                },
-                "rounds": {
-                    "type": "integer",
-                    "example": 3
-                },
-                "start_date": {
-                    "type": "string",
-                    "format": "date-time",
-                    "example": "2024-04-12T00:00:00Z"
-                },
-                "tags": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    }
                 }
             }
         },

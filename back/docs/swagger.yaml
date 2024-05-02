@@ -60,48 +60,6 @@ definitions:
       updated_at:
         type: string
     type: object
-  models.NewTournamentPayload:
-    properties:
-      description:
-        example: Tournament 1 description
-        type: string
-      end_date:
-        example: "2024-05-12T00:00:00Z"
-        format: date-time
-        type: string
-      game_id:
-        example: 1
-        type: integer
-      location:
-        example: New York
-        type: string
-      name:
-        example: Tournament 1
-        type: string
-      organizer_id:
-        example: 1
-        type: integer
-      rounds:
-        example: 3
-        type: integer
-      start_date:
-        example: "2024-04-12T00:00:00Z"
-        format: date-time
-        type: string
-      tags:
-        additionalProperties:
-          type: string
-        type: object
-    required:
-    - description
-    - end_date
-    - game_id
-    - name
-    - organizer_id
-    - rounds
-    - start_date
-    - tags
-    type: object
   models.NewUserPayload:
     properties:
       address:
@@ -527,15 +485,61 @@ paths:
       - tournament
     post:
       consumes:
-      - application/json
+      - multipart/form-data
       description: Create a new tournament
       parameters:
-      - description: Tournament object
-        in: body
-        name: tournament
+      - description: Tournament name
+        example: s
+        in: formData
+        name: name
         required: true
-        schema:
-          $ref: '#/definitions/models.NewTournamentPayload'
+        type: string
+      - description: Tournament description
+        example: s
+        in: formData
+        name: description
+        required: true
+        type: string
+      - description: Tournament start date
+        example: s
+        in: formData
+        name: start_date
+        required: true
+        type: string
+      - description: Tournament end date
+        example: s
+        in: formData
+        name: end_date
+        required: true
+        type: string
+      - description: Organizer ID
+        in: formData
+        name: organizer_id
+        required: true
+        type: integer
+      - description: Game ID
+        in: formData
+        name: game_id
+        required: true
+        type: integer
+      - description: Number of rounds
+        in: formData
+        name: rounds
+        required: true
+        type: integer
+      - collectionFormat: csv
+        description: Array of tag IDs
+        in: formData
+        items:
+          type: integer
+        name: tagsIDs[]
+        required: true
+        type: array
+      - description: Image file
+        in: formData
+        name: image
+        required: true
+        type: file
       - default: Bearer <Add access token here>
         description: Insert your access token
         in: header
@@ -551,12 +555,8 @@ paths:
             $ref: '#/definitions/models.Tournament'
         "400":
           description: Bad Request
-          schema:
-            $ref: '#/definitions/errors.ErrorResponse'
         "500":
           description: Internal Server Error
-          schema:
-            $ref: '#/definitions/errors.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Create a new tournament
