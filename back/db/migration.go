@@ -12,9 +12,24 @@ const FirstTournamentName = "Test"
 func gameMigration(db *gorm.DB) (*models.Game, error) {
 	err := db.AutoMigrate(&models.Game{})
 
+	media := models.Media{
+		BaseModel:     models.BaseModel{},
+		FileName:      "lorcana.jpg",
+		FileExtension: "jpg",
+	}
+
+	db.Create(&media)
+
 	// create a game
 	game := models.Game{
 		Name: "Test",
+	}
+
+	game.MediaModel.Media = &media
+
+	if err != nil {
+		fmt.Println(err.Error())
+		return nil, err
 	}
 
 	db.Create(&game)
@@ -73,6 +88,25 @@ func registrationsTournamentMigrations(db *gorm.DB) {
 
 }
 
+func mediaMigration(db *gorm.DB) (*models.Media, error) {
+	err := db.AutoMigrate(&models.Media{})
+
+	media := models.Media{
+		BaseModel:     models.BaseModel{},
+		FileName:      "test.jpg",
+		FileExtension: "jpg",
+	}
+
+	db.Create(&media)
+
+	if err != nil {
+		fmt.Println(err.Error())
+		return nil, err
+
+	}
+
+	return &media, nil
+}
 func matchMigration(db *gorm.DB, tournament *models.Tournament) (*models.Match, error) {
 	err := db.AutoMigrate(&models.Match{})
 
@@ -127,6 +161,7 @@ func MigrateDatabase(db *gorm.DB) error {
 
 	err = db.AutoMigrate(&models.User{})
 	err = db.AutoMigrate(&models.TournamentStep{})
+	err = db.AutoMigrate(&models.Tag{})
 	err = db.AutoMigrate(&models.Tournament{})
 	err = db.AutoMigrate(&models.Game{})
 	err = db.AutoMigrate(&models.Match{})
@@ -134,6 +169,8 @@ func MigrateDatabase(db *gorm.DB) error {
 	var user models.User
 
 	db.First(&user, "username = ?", "user")
+	_, err = mediaMigration(db)
+
 	if user.ID == 0 {
 		user = models.User{Username: "user", Password: "password", Email: "test@example.com", Role: "admin"}
 		db.Create(&user)

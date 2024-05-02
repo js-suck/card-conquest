@@ -258,9 +258,6 @@ func (h *UserHandler) UploadPicture(c *gin.Context) {
 		c.JSON(errUpload.Code(), errUpload.Error())
 		return
 	}
-
-	// ajout de la photo de profil à l'utilisateur
-
 	idStr := c.Param("id")
 
 	idInt, err := strconv.Atoi(idStr)

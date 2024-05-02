@@ -21,8 +21,8 @@ type BaseModel struct {
 }
 
 type MediaModel struct {
-	MediaID *uint `json:"media_id"`
-	Media   Media `json:"media" gorm:"foreignKey:MediaID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
+	MediaID *uint  `json:"media_id"`
+	Media   *Media `json:"media" gorm:"foreignKey:MediaID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 }
 
 type User struct {

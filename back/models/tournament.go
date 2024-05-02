@@ -1,9 +1,11 @@
 package models
 
-import "time"
+import (
+	"time"
+)
 
 const (
-	TournamentStatusCreated  = "created"
+	TournamentStatusOpened   = "opened"
 	TournamentStatusStarted  = "started"
 	TournamentStatusFinished = "finished"
 	TournamentStatusCanceled = "canceled"
@@ -20,6 +22,19 @@ type GameReadTournament struct {
 	Name string `json:"name"`
 }
 
+type CreateTournamentPayload struct {
+	Name        string `form:"name" json:"name" validate:"required"`
+	Description string `form:"description" json:"description" validate:"required"`
+	Location    string `form:"location" json:"location"`
+	UserID      uint   `form:"organizer_id" json:"organizer_id"`
+	GameID      uint   `form:"game_id" json:"game_id" validate:"required"`
+	StartDate   string `form:"start_date" json:"start_date" validate:"required"`
+	EndDate     string `form:"end_date" json:"end_date" validate:"required"`
+	Rounds      int    `form:"rounds" json:"rounds" validate:"required"`
+	TagsIDs     []uint `form:"tags_ids" json:"tags_ids" validate:"required"`
+	Image       []byte `gorm:"type:longblob" json:"-"`
+}
+
 type Tournament struct {
 	BaseModel
 	MediaModel
@@ -32,8 +47,9 @@ type Tournament struct {
 	Game        Game    `gorm:"foreignKey:GameID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 	StartDate   string  `json:"start_date" validate:"required"`
 	EndDate     string  `json:"end_date" validate:"required"`
-	Status      string  `json:"status" gorm:"default:created"`
+	Status      string  `json:"status" gorm:"default:opened"`
 	Users       []*User `gorm:"many2many:user_tournaments;"`
+	Tags        []*Tag  `json:"tags" gorm:"many2many:tag_tournaments;"`
 	Rounds      int     `json:"rounds" validate:"required"`
 }
 
@@ -57,6 +73,7 @@ type NewTournamentPayload struct {
 	StartDate   time.Time `json:"start_date" validate:"required" example:"2024-04-12T00:00:00Z" format:"date-time"`
 	EndDate     time.Time `json:"end_date" validate:"required" example:"2024-05-12T00:00:00Z" format:"date-time"`
 	Rounds      int       `json:"rounds" validate:"required" example:"3"`
+	TagsIDs     []uint    `json:"tags_idss" validate:"required"`
 }
 
 func (t Tournament) GetTableName() string {
