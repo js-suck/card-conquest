@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:front/main_screen.dart';
+import 'package:front/orga_new_tournament.dart';
 import 'package:front/pages/games_screen.dart';
 import 'package:front/home_screen.dart';
 import 'package:front/auth/login_screen.dart';
@@ -15,4 +16,5 @@ var routes = <String, WidgetBuilder>{
   '/profile': (context) => const ProfilePage(),
   '/settings': (context) => const SettingsPage(),
   '/games': (context) => const GamesPage(),
+  '/orga/tounament': (context) => const OrgaPage(),
 };
