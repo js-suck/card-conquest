@@ -26,7 +26,7 @@ func SetupRouter(db *gorm.DB) *gin.Engine {
 	}
 	publicRoutes.GET("/images/:filename", func(c *gin.Context) {
 		filename := c.Param("filename")
-		c.File("./uploads/" + filename)
+		c.File("./back/uploads/" + filename)
 	})
 
 	protectedRoutes.Use(middlewares.AuthenticationMiddleware(), middlewares.PermissionMiddleware(db))

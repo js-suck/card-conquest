@@ -47,7 +47,7 @@ func (f *FileService) UploadMedia(file *multipart.FileHeader) (*models.Media, st
 	}
 
 	media := models.Media{
-		FileName:      filePath,
+		FileName:      file.Filename,
 		FileExtension: file.Header.Get("Content-Type"),
 	}
 
