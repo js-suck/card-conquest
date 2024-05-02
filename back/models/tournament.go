@@ -62,6 +62,7 @@ type TournamentRead struct {
 	Game        GameReadTournament `json:"game"`
 	StartDate   time.Time          `json:"start_date"`
 	EndDate     time.Time          `json:"end_date"`
+	Media       *Media             `json:"media, omitempty"`
 }
 
 type NewTournamentPayload struct {
@@ -85,7 +86,7 @@ func (t Tournament) GetID() uint {
 }
 
 func (t Tournament) ToRead() TournamentRead {
-	return TournamentRead{
+	obj := TournamentRead{
 		ID:          t.ID,
 		Name:        t.Name,
 		Location:    t.Location,
@@ -102,4 +103,13 @@ func (t Tournament) ToRead() TournamentRead {
 			Email: t.User.Email,
 		},
 	}
+
+	if t.MediaModel.Media != nil {
+		obj.Media = &Media{FileName: t.MediaModel.Media.FileName, FileExtension: t.MediaModel.Media.FileExtension, BaseModel: BaseModel{
+			ID: t.MediaModel.Media.GetID(),
+		}}
+	}
+
+	return obj
+
 }
