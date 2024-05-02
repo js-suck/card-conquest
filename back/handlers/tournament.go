@@ -125,7 +125,7 @@ func (h *TournamentHandler) GetTournament(c *gin.Context) {
 
 	tournament := models.Tournament{}
 
-	errService := h.TounamentService.Get(&tournament, uint(idInt), "User", "Game")
+	errService := h.TounamentService.Get(&tournament, uint(idInt), "User", "Game", "Media")
 
 	if err != nil {
 		c.JSON(errService.Code(), err)
@@ -164,7 +164,7 @@ func (h *TournamentHandler) GetTournaments(c *gin.Context) {
 		return
 	}
 
-	err := h.TounamentService.GetAll(&tournaments, filterParams, "User", "Game")
+	err := h.TounamentService.GetAll(&tournaments, filterParams, "User", "Game", "Media")
 
 	// use toRead method to convert the model to the read model
 	for i, tournament := range tournaments {
