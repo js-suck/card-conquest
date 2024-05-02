@@ -4,10 +4,11 @@ import (
 	"authentication-api/errors"
 	"authentication-api/models"
 	"authentication-api/services"
+	"encoding/json"
 	"github.com/gin-gonic/gin"
+	"log"
 	"net/http"
 	"strconv"
-	"time"
 )
 
 type TournamentHandler struct {
@@ -32,28 +33,30 @@ func NewTournamentHandler(tournamentService *services.TournamentService) *Tourna
 // @Param Authorization header string true "Insert your access token" default(Bearer <Add access token here>)
 // @Router /tournaments [post]
 func (h *TournamentHandler) CreateTournament(c *gin.Context) {
-	tournament := models.Tournament{}
+	payload := models.CreateTournamentPayload{}
 
-	if err := c.ShouldBindJSON(&tournament); err != nil {
+	if err := c.ShouldBindJSON(&payload); err != nil {
 		c.JSON(http.StatusBadRequest, errors.NewBadRequestError("Invalid request", err).ToGinH())
 		return
 	}
 
-	startDate, err := time.Parse(time.RFC3339, tournament.StartDate)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, "Error on parsing start date")
+	tournament := models.Tournament{
+		Name:        payload.Name,
+		Description: payload.Description,
+		StartDate:   payload.StartDate,
+		EndDate:     payload.EndDate,
+		Location:    payload.Location,
+		UserID:      payload.UserID,
+		GameID:      payload.GameID,
+		Rounds:      payload.Rounds,
 	}
 
-	endDate, err := time.Parse(time.RFC3339, tournament.EndDate)
+	tags, err := h.TounamentService.GetTagsByIDs(payload.TagsIDs)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, "Error on parsing end date")
-	}
-
-	if endDate.Before(startDate) {
-		c.JSON(http.StatusBadRequest, errors.NewBadRequestError("End date must be after start date", nil).ToGinH())
+		c.JSON(http.StatusInternalServerError, errors.NewErrorResponse(500, err.Error()).ToGinH())
 		return
-
 	}
+	tournament.Tags = tags
 
 	errorCreated := h.TounamentService.Create(&tournament)
 	if errorCreated != nil {
@@ -98,12 +101,17 @@ func (h *TournamentHandler) GetTournament(c *gin.Context) {
 
 }
 
+type TournamentsParams struct {
+	WithRecents bool `form:"WithRecents"`
+}
+
 // GetTournaments godoc
 // @Summary Get all tournaments
 // @Description Get all tournaments
 // @Tags tournament
 // @Accept json
 // @Produce json
+// @Param WithRecents query bool false "Add recent tournaments to the response"
 // @Success 200 {object} string
 // @Failure 500 {object} errors.ErrorResponse
 // @Security BearerAuth
@@ -111,14 +119,21 @@ func (h *TournamentHandler) GetTournament(c *gin.Context) {
 // @Router /tournaments [get]
 func (h *TournamentHandler) GetTournaments(c *gin.Context) {
 	var tournaments []models.Tournament
-	var formattedResponse []models.TournamentRead
+	var recentTournaments []models.Tournament
+	var formattedTournaments []models.TournamentRead
 	var filterParams services.FilterParams
+	var tournamentsParams TournamentsParams
+
+	if err := c.ShouldBindQuery(&tournamentsParams); err != nil {
+		c.JSON(http.StatusBadRequest, errors.NewBadRequestError("Invalid request", err).ToGinH())
+		return
+	}
 
 	err := h.TounamentService.GetAll(&tournaments, filterParams, "User", "Game")
 
 	// use toRead method to convert the model to the read model
 	for i, tournament := range tournaments {
-		formattedResponse = append(formattedResponse, tournament.ToRead())
+		formattedTournaments = append(formattedTournaments, tournament.ToRead())
 		tournaments[i] = tournament
 	}
 
@@ -127,7 +142,34 @@ func (h *TournamentHandler) GetTournaments(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, formattedResponse)
+	if tournamentsParams.WithRecents {
+		err = h.TounamentService.GetRecentsTournaments(&recentTournaments)
+
+		if err != nil {
+			c.JSON(err.Code(), err)
+			return
+		}
+
+		for i, tournament := range recentTournaments {
+			formattedTournaments = append(formattedTournaments, tournament.ToRead())
+			recentTournaments[i] = tournament
+		}
+
+		jsonResponse, err := json.Marshal(gin.H{
+			"allTournaments":    formattedTournaments,
+			"recentTournaments": recentTournaments,
+		})
+		if err != nil {
+			log.Printf("Error marshalling JSON: %v", err)
+		} else {
+			log.Printf("JSON Response: %s", jsonResponse)
+		}
+
+		c.JSON(http.StatusOK, jsonResponse)
+
+	}
+
+	c.JSON(http.StatusOK, formattedTournaments)
 }
 
 // RegisterUser godoc

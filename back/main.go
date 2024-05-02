@@ -75,7 +75,7 @@ func main() {
 		},
 	)
 
-	db, err := gorm.Open(sqlite.Open("test.db?_foreign_keys=on"), &gorm.Config{
+	db, err := gorm.Open(sqlite.Open("card.db?_foreign_keys=on"), &gorm.Config{
 		Logger: newLogger,
 	})
 	if err != nil {

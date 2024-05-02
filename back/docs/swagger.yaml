@@ -7,6 +7,24 @@ definitions:
       message:
         type: string
     type: object
+  handlers.GameWithTrendy:
+    properties:
+      allGames:
+        items:
+          $ref: '#/definitions/models.Game'
+        type: array
+      trendyGames:
+        items:
+          $ref: '#/definitions/models.Game'
+        type: array
+    type: object
+  models.CreateTagPayload:
+    properties:
+      label:
+        type: string
+    required:
+    - label
+    type: object
   models.Game:
     properties:
       created_at:
@@ -70,6 +88,10 @@ definitions:
         example: "2024-04-12T00:00:00Z"
         format: date-time
         type: string
+      tags:
+        additionalProperties:
+          type: string
+        type: object
     required:
     - description
     - end_date
@@ -78,6 +100,7 @@ definitions:
     - organizer_id
     - rounds
     - start_date
+    - tags
     type: object
   models.NewUserPayload:
     properties:
@@ -95,6 +118,27 @@ definitions:
       username:
         example: username
         type: string
+    type: object
+  models.Tag:
+    properties:
+      created_at:
+        type: string
+      games:
+        items:
+          $ref: '#/definitions/models.Game'
+        type: array
+      id:
+        type: integer
+      name:
+        type: string
+      tournaments:
+        items:
+          $ref: '#/definitions/models.Tournament'
+        type: array
+      updated_at:
+        type: string
+    required:
+    - name
     type: object
   models.Tournament:
     properties:
@@ -126,6 +170,10 @@ definitions:
         type: string
       status:
         type: string
+      tags:
+        items:
+          $ref: '#/definitions/models.Tag'
+        type: array
       updated_at:
         type: string
       user:
@@ -135,6 +183,7 @@ definitions:
           $ref: '#/definitions/models.User'
         type: array
     required:
+    - description
     - end_date
     - game_id
     - name
@@ -224,8 +273,14 @@ paths:
     get:
       consumes:
       - application/json
-      description: Get all games
+      description: Get all games. If the 'WithTrendy' query parameter is true, the
+        response will be a 'GameWithTrendy' object. Otherwise, the response will be
+        an array of 'models.Game'.
       parameters:
+      - description: Add trendy games to the response
+        in: query
+        name: WithTrendy
+        type: boolean
       - default: Bearer <Add access token here>
         description: Insert your access token
         in: header
@@ -238,7 +293,7 @@ paths:
         "200":
           description: OK
           schema:
-            type: string
+            $ref: '#/definitions/handlers.GameWithTrendy'
         "500":
           description: Internal Server Error
           schema:
@@ -375,12 +430,79 @@ paths:
       summary: Register
       tags:
       - Auth
+  /tags:
+    get:
+      consumes:
+      - application/json
+      description: Get all tags.
+      parameters:
+      - description: Add trendy games to the response
+        in: query
+        name: WithTrendy
+        type: boolean
+      - default: Bearer <Add access token here>
+        description: Insert your access token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get all tags
+      tags:
+      - Tag
+    post:
+      consumes:
+      - application/json
+      description: Create a tag
+      parameters:
+      - description: Tag object that needs to be created
+        in: body
+        name: tag
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreateTagPayload'
+      - default: Bearer <Add access token here>
+        description: Insert your access token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Tag'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create a tag
+      tags:
+      - Tag
   /tournaments:
     get:
       consumes:
       - application/json
       description: Get all tournaments
       parameters:
+      - description: Add recent tournaments to the response
+        in: query
+        name: WithRecents
+        type: boolean
       - default: Bearer <Add access token here>
         description: Insert your access token
         in: header

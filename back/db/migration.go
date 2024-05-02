@@ -127,6 +127,7 @@ func MigrateDatabase(db *gorm.DB) error {
 
 	err = db.AutoMigrate(&models.User{})
 	err = db.AutoMigrate(&models.TournamentStep{})
+	err = db.AutoMigrate(&models.Tag{})
 	err = db.AutoMigrate(&models.Tournament{})
 	err = db.AutoMigrate(&models.Game{})
 	err = db.AutoMigrate(&models.Match{})

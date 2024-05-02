@@ -75,7 +75,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Get all games",
+                "description": "Get all games. If the 'WithTrendy' query parameter is true, the response will be a 'GameWithTrendy' object. Otherwise, the response will be an array of 'models.Game'.",
                 "consumes": [
                     "application/json"
                 ],
@@ -87,6 +87,12 @@ const docTemplate = `{
                 ],
                 "summary": "Get all games",
                 "parameters": [
+                    {
+                        "type": "boolean",
+                        "description": "Add trendy games to the response",
+                        "name": "WithTrendy",
+                        "in": "query"
+                    },
                     {
                         "type": "string",
                         "default": "Bearer \u003cAdd access token here\u003e",
@@ -100,7 +106,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/handlers.GameWithTrendy"
                         }
                     },
                     "500": {
@@ -306,6 +312,104 @@ const docTemplate = `{
                 }
             }
         },
+        "/tags": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get all tags.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tag"
+                ],
+                "summary": "Get all tags",
+                "parameters": [
+                    {
+                        "type": "boolean",
+                        "description": "Add trendy games to the response",
+                        "name": "WithTrendy",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "default": "Bearer \u003cAdd access token here\u003e",
+                        "description": "Insert your access token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/errors.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Create a tag",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tag"
+                ],
+                "summary": "Create a tag",
+                "parameters": [
+                    {
+                        "description": "Tag object that needs to be created",
+                        "name": "tag",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.CreateTagPayload"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "default": "Bearer \u003cAdd access token here\u003e",
+                        "description": "Insert your access token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.Tag"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/errors.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/tournaments": {
             "get": {
                 "security": [
@@ -325,6 +429,12 @@ const docTemplate = `{
                 ],
                 "summary": "Get all tournaments",
                 "parameters": [
+                    {
+                        "type": "boolean",
+                        "description": "Add recent tournaments to the response",
+                        "name": "WithRecents",
+                        "in": "query"
+                    },
                     {
                         "type": "string",
                         "default": "Bearer \u003cAdd access token here\u003e",
@@ -965,6 +1075,34 @@ const docTemplate = `{
                 }
             }
         },
+        "handlers.GameWithTrendy": {
+            "type": "object",
+            "properties": {
+                "allGames": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Game"
+                    }
+                },
+                "trendyGames": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Game"
+                    }
+                }
+            }
+        },
+        "models.CreateTagPayload": {
+            "type": "object",
+            "required": [
+                "label"
+            ],
+            "properties": {
+                "label": {
+                    "type": "string"
+                }
+            }
+        },
         "models.Game": {
             "type": "object",
             "properties": {
@@ -1028,7 +1166,8 @@ const docTemplate = `{
                 "name",
                 "organizer_id",
                 "rounds",
-                "start_date"
+                "start_date",
+                "tags"
             ],
             "properties": {
                 "description": {
@@ -1064,6 +1203,12 @@ const docTemplate = `{
                     "type": "string",
                     "format": "date-time",
                     "example": "2024-04-12T00:00:00Z"
+                },
+                "tags": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
                 }
             }
         },
@@ -1091,9 +1236,42 @@ const docTemplate = `{
                 }
             }
         },
+        "models.Tag": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "games": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Game"
+                    }
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "tournaments": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Tournament"
+                    }
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
         "models.Tournament": {
             "type": "object",
             "required": [
+                "description",
                 "end_date",
                 "game_id",
                 "name",
@@ -1142,6 +1320,12 @@ const docTemplate = `{
                 },
                 "status": {
                     "type": "string"
+                },
+                "tags": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Tag"
+                    }
                 },
                 "updated_at": {
                     "type": "string"
