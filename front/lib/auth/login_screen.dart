@@ -24,12 +24,8 @@ Future<void> login(BuildContext context, String username, String password) async
 
     // Store the token in secure storage
     await storage.write(key: 'jwt_token', value: token);
-
-<<<<<<< HEAD
     Navigator.pushReplacementNamed(context, '/user');
-=======
-    Navigator.of(context).pushReplacementNamed('/main');
->>>>>>> f2d7ee0a43c190b9b70c1da33ef7f73c885adb6e
+
   } else {
     // Handle error in login
     throw Exception('Failed to log in');

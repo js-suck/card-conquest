@@ -44,13 +44,9 @@ class HomePage extends StatelessWidget {
             ),
             ElevatedButton(
               onPressed: () {
-<<<<<<< HEAD
-                // Logique pour continuer en tant qu'invité
-                Navigator.pushReplacementNamed(context, '/user');
-=======
+
                 // Naviguer vers la page principale
                 Navigator.pushNamed(context, '/main');
->>>>>>> f2d7ee0a43c190b9b70c1da33ef7f73c885adb6e
               },
               child: Text('Continuer en tant qu\'Invité'),
             ),
