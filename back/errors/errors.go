@@ -7,8 +7,13 @@ import (
 )
 
 type ErrorResponse struct {
-	Message string `json:"message"`
-	Code    int    `json:"code"`
+	ErrorMessage string `json:"message"`
+	ErrorCode    int    `json:"code"`
+}
+
+type IError interface {
+	error
+	Code() int
 }
 
 func (e *ErrorResponse) Error() string {
@@ -17,9 +22,9 @@ func (e *ErrorResponse) Error() string {
 }
 
 type ValidationError struct {
-	Message string `json:"message"`
-	Code    int    `json:"code"`
-	Field   string `json:"field"`
+	ErrorMessage string `json:"message"`
+	ErrorCode    int    `json:"code"`
+	Field        string `json:"field"`
 }
 
 func (e *ValidationError) Error() string {
@@ -28,25 +33,33 @@ func (e *ValidationError) Error() string {
 }
 
 func (e *ValidationError) ToGinH() gin.H {
-	return gin.H{"error": e.Message, "code": e.Code, "field": e.Field}
+	return gin.H{"error": e.ErrorMessage, "code": e.ErrorCode, "field": e.Field}
+}
+
+func (e *ValidationError) Code() int {
+	return e.ErrorCode
+}
+
+func (e *ErrorResponse) Code() int {
+	return e.ErrorCode
 }
 
 func (e *ErrorResponse) ToGinH() gin.H {
-	return gin.H{"error": e.Message, "code": e.Code}
+	return gin.H{"error": e.ErrorMessage, "code": e.ErrorCode}
 }
 
 func NewErrorResponse(code int, message string) *ErrorResponse {
 	return &ErrorResponse{
-		Message: message,
-		Code:    code,
+		ErrorMessage: message,
+		ErrorCode:    code,
 	}
 }
 
 func NewValidationError(message string, field string) *ValidationError {
 	return &ValidationError{
-		Message: message,
-		Code:    http.StatusUnprocessableEntity,
-		Field:   field,
+		ErrorMessage: message,
+		ErrorCode:    http.StatusBadRequest,
+		Field:        field,
 	}
 }
 

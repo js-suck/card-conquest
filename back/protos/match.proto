@@ -1,0 +1,22 @@
+  syntax = "proto3";
+
+  package protos;
+  option go_package = "github.com/lailacha/authentication-api";
+
+  // Le service gRPC pour les matches
+  service MatchService {
+    // RPC pour s'abonner aux mises à jour de match
+    rpc SubscribeMatchUpdates(MatchRequest) returns (stream MatchResponse);
+  }
+
+  // La demande pour recevoir des mises à jour
+  message MatchRequest {
+    int32 match_id = 1;
+  }
+
+  // La réponse qui contient l'état du match
+  message MatchResponse {
+    int32 match_id = 1;
+    string status = 2;
+    string detail = 3;
+  }
