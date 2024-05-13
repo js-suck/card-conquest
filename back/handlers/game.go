@@ -17,8 +17,8 @@ func NewGameHandler(gameService *services.GameService) *GameHandler {
 }
 
 type GameWithTrendy struct {
-	TrendyGames []models.Game `json:"trendyGames"`
-	AllGames    []models.Game `json:"allGames"`
+	TrendyGames []models.GameRead `json:"trendyGames"`
+	AllGames    []models.GameRead `json:"allGames"`
 }
 
 // GetAllGames godoc
@@ -34,17 +34,14 @@ type GameWithTrendy struct {
 // @Param Authorization header string true "Insert your access token" default(Bearer <Add access token here>)
 // @Router /games [get]
 func (h *GameHandler) GetAllGames(c *gin.Context) {
-	var filterParams services.FilterParams
 	var gameParams services.GameParams
 
 	if err := c.ShouldBindQuery(&gameParams); err != nil {
 		c.JSON(400, gin.H{"error": "Invalid data"})
 		return
-
 	}
 
-	trendyGames, allGames, err := h.GameService.GetAll(filterParams, gameParams, "Media")
-
+	trendyGames, allGames, err := h.GameService.GetAll(services.FilterParams{}, gameParams, "Media")
 	if err != nil {
 		c.JSON(err.Code(), err)
 		return
@@ -52,12 +49,18 @@ func (h *GameHandler) GetAllGames(c *gin.Context) {
 
 	if gameParams.WithTrendy {
 		c.JSON(200, gin.H{
-			"trendyGames": trendyGames,
-			"allGames":    allGames,
+			"trendyGames": convertToReadable(trendyGames),
+			"allGames":    convertToReadable(allGames),
 		})
-		return
 	} else {
-		c.JSON(200, allGames)
-		return
+		c.JSON(200, convertToReadable(allGames))
 	}
+}
+
+func convertToReadable(games []models.Game) []models.GameRead {
+	readableGames := make([]models.GameRead, len(games))
+	for i, game := range games {
+		readableGames[i] = game.ToRead()
+	}
+	return readableGames
 }
