@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+package protos;
+option go_package = "github.com/lailacha/authentication-api";
+
+message Player {
+  string username = 1;
+  string userId = 2;
+  int32 score = 3;
+}
+
+message Match {
+  int32 position = 1;
+  Player player_one = 2;
+  Player player_two = 3;
+  string status = 4;
+  int32 winner_id = 5;
+}
+
+message TournamentStep {
+  int32 step = 1;
+  repeated Match matches = 2;
+}
+
+message TournamentResponse {
+  int32 tournament_id = 1;
+  string tournament_name = 2;
+  string tournament_status = 3;
+  repeated TournamentStep tournament_steps = 4;
+}
+
+message TournamentRequest {
+  int32 tournament_id = 1;
+}
+
+service TournamentService {
+  rpc SuscribeTournamentUpdate(TournamentRequest) returns (stream TournamentResponse);
+}

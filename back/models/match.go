@@ -5,12 +5,12 @@ import (
 )
 
 type Match struct {
-	BaseModel
+	BaseModel        ``
 	TournamentID     uint
 	Tournament       Tournament `gorm:"foreignKey:TournamentID"`
 	PlayerOneID      uint
 	PlayerOne        User `gorm:"foreignKey:PlayerOneID"`
-	PlayerTwoID      uint
+	PlayerTwoID      *uint
 	PlayerTwo        User `gorm:"foreignKey:PlayerTwoID"`
 	StartTime        time.Time
 	EndTime          time.Time
@@ -20,6 +20,7 @@ type Match struct {
 	Scores           []Score `gorm:"foreignKey:MatchID"`
 	TournamentStepID uint
 	TournamentStep   TournamentStep `gorm:"foreignKey:TournamentStepID"`
+	MatchPosition    int            `gorm:"default:0"`
 }
 
 func (m Match) GetID() uint {
