@@ -14,7 +14,8 @@ func SetupRouter(db *gorm.DB) *gin.Engine {
 	// handlers are like controllers
 	authHandler := handlers.NewAuthHandler(services.NewAuthService(db), services.NewUserService(db))
 	userHandler := handlers.UserHandler{UserService: services.NewUserService(db), FileService: services.NewFileService(db)}
-	tournamentHandler := handlers.NewTournamentHandler(services.NewTournamentService(db))
+	tournamentHandler := handlers.NewTournamentHandler(services.NewTournamentService(db), services.NewFileService(db))
+	tagHandler := handlers.NewTagHandler(services.NewTagService(db))
 	gameHandler := handlers.NewGameHandler(services.NewGameService(db))
 	uploadFileHandler := handlers.NewUploadHandler(services.NewFileService(db))
 
@@ -25,7 +26,7 @@ func SetupRouter(db *gorm.DB) *gin.Engine {
 	}
 	publicRoutes.GET("/images/:filename", func(c *gin.Context) {
 		filename := c.Param("filename")
-		c.File("./uploads/" + filename)
+		c.File("./back/uploads/" + filename)
 	})
 
 	protectedRoutes.Use(middlewares.AuthenticationMiddleware(), middlewares.PermissionMiddleware(db))
@@ -50,6 +51,9 @@ func SetupRouter(db *gorm.DB) *gin.Engine {
 		protectedRoutes.POST("/matches/:id/finish", tournamentHandler.FinishMatch)
 
 		protectedRoutes.GET(("/games"), gameHandler.GetAllGames)
+
+		protectedRoutes.GET("/tags", tagHandler.GetAllTags)
+		protectedRoutes.POST("/tags", tagHandler.CreateTag)
 
 	}
 

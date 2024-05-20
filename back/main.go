@@ -65,7 +65,19 @@ func (s *server) SubscribeMatchUpdates(req *authentication_api.MatchRequest, str
 // @externalDocs.description  OpenAPI
 // @externalDocs.url          https://swagger.io/resources/open-api/
 func main() {
+	if len(os.Args) > 1 && os.Args[1] == "migrate" {
+		fmt.Println("Migrating the database...")
+		//// Migrate the schema
+		err := dbService.MigrateDatabase()
+		if err != nil {
+			return
+		}
 
+		os.Exit(0)
+
+	} else {
+		fmt.Println("Aucun argument fourni.")
+	}
 	newLogger := logger.New(
 		log.New(os.Stdout, "\r\n", log.LstdFlags),
 		logger.Config{
@@ -75,26 +87,16 @@ func main() {
 		},
 	)
 
-	db, err := gorm.Open(sqlite.Open("test.db?_foreign_keys=on"), &gorm.Config{
+	db, err := gorm.Open(sqlite.Open("./back/card.db?_foreign_keys=on"), &gorm.Config{
 		Logger: newLogger,
 	})
+
 	if err != nil {
 		panic("failed to connect database")
 	}
 
 	docs.SwaggerInfo.BasePath = "/api/v1"
 
-	if len(os.Args) > 1 && os.Args[1] == "migrate" {
-		fmt.Println("Migrating the database...")
-		//// Migrate the schema
-		err := dbService.MigrateDatabase(db)
-		if err != nil {
-			return
-		}
-
-	} else {
-		fmt.Println("Aucun argument fourni.")
-	}
 	go func() {
 		lis, err := net.Listen("tcp", ":50051")
 		if err != nil {

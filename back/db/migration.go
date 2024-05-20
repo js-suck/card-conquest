@@ -3,6 +3,7 @@ package db
 import (
 	"authentication-api/models"
 	"fmt"
+	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"time"
 )
@@ -17,6 +18,11 @@ func gameMigration(db *gorm.DB) (*models.Game, error) {
 		game := models.Game{
 			Name: fmt.Sprintf("Test%d", i),
 		}
+    
+    if err != nil {
+		  fmt.Println(err.Error())
+		  return nil, err
+	  }
 
 		db.Create(&game)
 	}
@@ -60,6 +66,14 @@ func tournamentMigration(db *gorm.DB, game *models.Game) (*models.Tournament, er
 
 func registrationsTournamentMigrations(db *gorm.DB) {
 
+	media := models.Media{
+		BaseModel:     models.BaseModel{},
+		FileName:      "yugiho.webp",
+		FileExtension: "webp",
+	}
+
+	db.Create(&media)
+
 	for i := 0; i < 10; i++ {
 		user := models.User{
 			Username: fmt.Sprintf("Test%d", i),
@@ -75,6 +89,7 @@ func registrationsTournamentMigrations(db *gorm.DB) {
 		db.First(&tournament, "name = ?", FirstTournamentName)
 
 		tournament.Users = append(tournament.Users, &user)
+		tournament.MediaModel.Media = &media
 
 		db.Save(&tournament)
 
@@ -82,6 +97,25 @@ func registrationsTournamentMigrations(db *gorm.DB) {
 
 }
 
+func mediaMigration(db *gorm.DB) (*models.Media, error) {
+	err := db.AutoMigrate(&models.Media{})
+
+	media := models.Media{
+		BaseModel:     models.BaseModel{},
+		FileName:      "test.jpg",
+		FileExtension: "jpg",
+	}
+
+	db.Create(&media)
+
+	if err != nil {
+		fmt.Println(err.Error())
+		return nil, err
+
+	}
+
+	return &media, nil
+}
 func matchMigration(db *gorm.DB, tournament *models.Tournament) (*models.Match, error) {
 	err := db.AutoMigrate(&models.Match{})
 
@@ -120,10 +154,10 @@ func matchMigration(db *gorm.DB, tournament *models.Tournament) (*models.Match, 
 	return &match, nil
 }
 
-func MigrateDatabase(db *gorm.DB) error {
-
+func MigrateDatabase() error {
+	db, err := gorm.Open(sqlite.Open("./card.db?_foreign_keys=on"))
 	// remove the old database
-	err := db.Migrator().DropTable(&models.User{})
+	err = db.Migrator().DropTable(&models.User{})
 	err = db.Migrator().DropTable(&models.Tournament{})
 	err = db.Migrator().DropTable(&models.Game{})
 	err = db.Migrator().DropTable(&models.Media{})
@@ -136,6 +170,7 @@ func MigrateDatabase(db *gorm.DB) error {
 
 	err = db.AutoMigrate(&models.User{})
 	err = db.AutoMigrate(&models.TournamentStep{})
+	err = db.AutoMigrate(&models.Tag{})
 	err = db.AutoMigrate(&models.Tournament{})
 	err = db.AutoMigrate(&models.Game{})
 	err = db.AutoMigrate(&models.Match{})
@@ -143,6 +178,8 @@ func MigrateDatabase(db *gorm.DB) error {
 	var user models.User
 
 	db.First(&user, "username = ?", "user")
+	_, err = mediaMigration(db)
+
 	if user.ID == 0 {
 		user = models.User{Username: "user", Password: "password", Email: "test@example.com", Role: "admin"}
 		db.Create(&user)

@@ -15,14 +15,14 @@ type ForeignKeyChecker interface {
 
 type BaseModel struct {
 	ID        uint       `gorm:"primarykey" json:"id"`
-	CreatedAt time.Time  `json:"created_at"`
-	UpdatedAt time.Time  `json:"updated_at"`
+	CreatedAt time.Time  `json:"created_at, omitempty"`
+	UpdatedAt time.Time  `json:"updated_at, omitempty"`
 	DeletedAt *time.Time `gorm:"index" json:"-"`
 }
 
 type MediaModel struct {
-	MediaID *uint `json:"media_id"`
-	Media   Media `json:"media" gorm:"foreignKey:MediaID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
+	MediaID *uint  `json:"media_id"`
+	Media   *Media `json:"media" gorm:"foreignKey:MediaID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 }
 
 type User struct {

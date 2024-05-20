@@ -2,8 +2,8 @@ package models
 
 type Media struct {
 	BaseModel
-	FileName      string
-	FileExtension string
+	FileName      string `json:"file_name, omitempty"`
+	FileExtension string `json:"file_extension, omitempty"`
 }
 
 func (m Media) GetID() uint {

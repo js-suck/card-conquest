@@ -204,3 +204,26 @@ func (s TournamentService) FinishMatch(matchID uint, winnderID uint) errors.IErr
 	return nil
 
 }
+
+// GetRecentsTournaments godoc
+func (s TournamentService) GetRecentsTournaments(tournaments *[]models.Tournament) errors.IError {
+	db := s.db.Preload("User")
+	err := db.Order("start_date desc").Limit(8).Find(&tournaments).Error
+	if err != nil {
+		return errors.NewErrorResponse(500, err.Error())
+	}
+	return nil
+}
+
+func (s *TournamentService) GetTagsByIDs(tagIDs []uint) ([]*models.Tag, error) {
+	var tags []*models.Tag
+	for _, tagID := range tagIDs {
+		var tag models.Tag
+		result := s.db.First(&tag, tagID)
+		if result.Error != nil {
+			return nil, result.Error
+		}
+		tags = append(tags, &tag)
+	}
+	return tags, nil
+}
