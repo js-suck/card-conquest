@@ -266,6 +266,47 @@ const docTemplate = `{
                 }
             }
         },
+        "/matchs": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get all matchs.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Match"
+                ],
+                "summary": "Get all matchs",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "default": "Bearer \u003cAdd access token here\u003e",
+                        "description": "Insert your access token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/errors.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/register": {
             "post": {
                 "description": "Register",
@@ -550,6 +591,21 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
+                        "example": "s",
+                        "description": "Location",
+                        "name": "location",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Maximum number of players",
+                        "name": "max_players",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
                         "default": "Bearer \u003cAdd access token here\u003e",
                         "description": "Insert your access token",
                         "name": "Authorization",
@@ -717,6 +773,63 @@ const docTemplate = `{
                         "type": "integer",
                         "description": "User ID",
                         "name": "userID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "default": "Bearer \u003cAdd access token here\u003e",
+                        "description": "Insert your access token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/errors.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/errors.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/tournaments/{id}/start": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth ini": []
+                    }
+                ],
+                "description": "Start a tournament",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tournament"
+                ],
+                "summary": "Start a tournament",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Tournament ID",
+                        "name": "id",
                         "in": "path",
                         "required": true
                     },
@@ -1137,13 +1250,13 @@ const docTemplate = `{
                 "allGames": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/models.Game"
+                        "$ref": "#/definitions/models.GameRead"
                     }
                 },
                 "trendyGames": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/models.Game"
+                        "$ref": "#/definitions/models.GameRead"
                     }
                 }
             }
@@ -1182,6 +1295,20 @@ const docTemplate = `{
                 }
             }
         },
+        "models.GameRead": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "media": {
+                    "$ref": "#/definitions/models.Media"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
         "models.LoginPayload": {
             "type": "object",
             "properties": {
@@ -1199,10 +1326,10 @@ const docTemplate = `{
                 "created_at": {
                     "type": "string"
                 },
-                "fileExtension": {
+                "file_extension": {
                     "type": "string"
                 },
-                "fileName": {
+                "file_name": {
                     "type": "string"
                 },
                 "id": {
@@ -1275,6 +1402,7 @@ const docTemplate = `{
                 "description",
                 "end_date",
                 "game_id",
+                "maxPlayers",
                 "name",
                 "rounds",
                 "start_date"
@@ -1300,6 +1428,10 @@ const docTemplate = `{
                 },
                 "location": {
                     "type": "string"
+                },
+                "maxPlayers": {
+                    "type": "integer",
+                    "example": 32
                 },
                 "media": {
                     "$ref": "#/definitions/models.Media"
