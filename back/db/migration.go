@@ -76,6 +76,13 @@ func registrationsTournamentMigrations(db *gorm.DB) {
 
 		tournament.Users = append(tournament.Users, &user)
 
+		tournamentStep := models.TournamentStep{
+			TournamentID: tournament.ID,
+			Name:         "First step",
+			Sequence:     1,
+		}
+
+		db.Create(&tournamentStep)
 		db.Save(&tournament)
 
 	}
