@@ -14,6 +14,8 @@ void main() {
     child: const MyApp(),
     ),
   );
+  WidgetsFlutterBinding.ensureInitialized();
+  runApp(const MyApp());
 }
 
 class ThemeColors {

@@ -12,6 +12,8 @@ import 'package:front/pages/scoreboard_screen.dart';
 import 'package:front/settings_screen.dart';
 import 'package:front/pages/home_user_screen.dart';
 
+import '../grpc/tournament_update_screen.dart';
+
 var routes = <String, WidgetBuilder>{
   '/': (context) => const HomePage(),
   '/main': (context) => const MainPage(),
