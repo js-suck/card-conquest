@@ -13,27 +13,26 @@ const FirstTournamentName = "Test"
 func gameMigration(db *gorm.DB) (*models.Game, error) {
 	err := db.AutoMigrate(&models.Game{})
 
-	media := models.Media{
-		BaseModel:     models.BaseModel{},
-		FileName:      "lorcana.jpg",
-		FileExtension: "jpg",
-	}
+	// create multiple games at once
+	for i := 1; i < 25; i++ {
+		game := models.Game{
+			Name: fmt.Sprintf("Test%d", i),
+		}
+    
+    if err != nil {
+		  fmt.Println(err.Error())
+		  return nil, err
+	  }
 
-	db.Create(&media)
+		db.Create(&game)
+	}
 
 	// create a game
 	game := models.Game{
 		Name: "Test",
 	}
 
-	game.MediaModel.Media = &media
-
-	if err != nil {
-		fmt.Println(err.Error())
-		return nil, err
-	}
-
-	db.Create(&game)
+	db.Create(&game) // create a game
 
 	if err != nil {
 		fmt.Println(err.Error())
