@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:front/pages/games_screen.dart';
-import 'package:front/home_screen.dart';
+import 'package:front/pages/home_user_screen.dart';
 import 'package:front/pages/tournaments_screen.dart';
 import 'package:front/pages/user_profile_screen.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
@@ -17,7 +17,7 @@ class _BottomBarState extends State<BottomBar> {
   int _selectedIndex = 0;
 
   final List<Widget> _pages = [
-    const HomePage(),
+    const HomeUserPage(),
     const TournamentsPage(),
     const GamesPage(),
     const UserProfilePage(),
@@ -68,7 +68,7 @@ class _BottomBarState extends State<BottomBar> {
 }
 
 class SelectedPageModel extends ChangeNotifier {
-  Widget _selectedPage = const HomePage();
+  Widget _selectedPage = const HomeUserPage();
   int _selectedIndex = 0;
 
   Widget get selectedPage => _selectedPage;

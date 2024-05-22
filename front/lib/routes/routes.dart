@@ -10,6 +10,7 @@ import 'package:front/pages/player_screen.dart';
 import 'package:front/pages/profile_screen.dart';
 import 'package:front/pages/scoreboard_screen.dart';
 import 'package:front/settings_screen.dart';
+import 'package:front/pages/home_user_screen.dart';
 
 var routes = <String, WidgetBuilder>{
   '/': (context) => const HomePage(),
@@ -23,4 +24,5 @@ var routes = <String, WidgetBuilder>{
   '/match': (context) => MatchPage(),
   '/player': (context) => PlayerPage(),
   '/scoreboard': (context) => const ScoreboardPage(),
+  '/home_user': (context) => const HomeUserPage(),
 };

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
+import '../home_screen.dart';
+
 Future<void> signUp(BuildContext context, String username, String email,
     String password) async {
   final response = await http.post(
