@@ -38,6 +38,7 @@ type User struct {
 	VerificationToken string        `gorm:"type:varchar(255);default:null" json:"-"`
 	IsVerified        bool          `gorm:"default:false" json:"is_verified"`
 	Tournaments       []*Tournament `gorm:"many2many:user_tournaments;"`
+	Matches           []Match       `gorm:"foreignKey:PlayerOneID;references:ID"`
 }
 
 type LoginPayload struct {

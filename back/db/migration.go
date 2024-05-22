@@ -3,8 +3,11 @@ package db
 import (
 	"authentication-api/models"
 	"fmt"
-	"gorm.io/driver/sqlite"
+	"github.com/joho/godotenv"
+	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"log"
+	"os"
 	"time"
 )
 
@@ -46,12 +49,13 @@ func tournamentMigration(db *gorm.DB, game *models.Game) (*models.Tournament, er
 
 	// create a tournament
 	tournament := models.Tournament{
-		Name:      FirstTournamentName,
-		Location:  "",
-		UserID:    uint(1),
-		GameID:    game.ID,
-		StartDate: "2024-04-12T00:00:00Z",
-		EndDate:   "2024-05-12T00:00:00Z",
+		Name:       FirstTournamentName,
+		Location:   "",
+		UserID:     uint(1),
+		GameID:     game.ID,
+		StartDate:  "2024-04-12T00:00:00Z",
+		EndDate:    "2024-05-12T00:00:00Z",
+		MaxPlayers: 32,
 	}
 
 	if err != nil {
@@ -91,6 +95,13 @@ func registrationsTournamentMigrations(db *gorm.DB) {
 		tournament.Users = append(tournament.Users, &user)
 		tournament.MediaModel.Media = &media
 
+		tournamentStep := models.TournamentStep{
+			TournamentID: tournament.ID,
+			Name:         "First step",
+			Sequence:     1,
+		}
+
+		db.Create(&tournamentStep)
 		db.Save(&tournament)
 
 	}
@@ -116,18 +127,12 @@ func mediaMigration(db *gorm.DB) (*models.Media, error) {
 
 	return &media, nil
 }
-func matchMigration(db *gorm.DB, tournament *models.Tournament) (*models.Match, error) {
+func matchMigration(db *gorm.DB, tournament *models.Tournament, user *models.User) (*models.Match, error) {
 	err := db.AutoMigrate(&models.Match{})
 
 	// create tournament step
 
-	tournamentStep := models.TournamentStep{
-		TournamentID: tournament.ID,
-		Name:         "First step",
-		Sequence:     1,
-	}
-
-	db.Create(&tournamentStep)
+	playerTwoId := uint(2)
 
 	// create a match
 	match := models.Match{
@@ -136,12 +141,11 @@ func matchMigration(db *gorm.DB, tournament *models.Tournament) (*models.Match, 
 		Tournament:       models.Tournament{},
 		TournamentStepID: 1,
 		PlayerOneID:      1,
-		PlayerTwoID:      2,
+		PlayerTwoID:      &playerTwoId,
 		StartTime:        time.Time{},
 		EndTime:          time.Time{},
 		Status:           "started",
-		WinnerID:         nil,
-		Winner:           models.User{},
+		WinnerID:         &user.ID,
 		Scores:           nil,
 	}
 
@@ -151,11 +155,26 @@ func matchMigration(db *gorm.DB, tournament *models.Tournament) (*models.Match, 
 	}
 
 	db.Create(&match)
+
+	// add score
+
 	return &match, nil
 }
 
 func MigrateDatabase() error {
-	db, err := gorm.Open(sqlite.Open("./card.db?_foreign_keys=on"))
+	err := godotenv.Load(".env")
+	if err != nil {
+		log.Fatalf("Erreur lors du chargement du fichier .env: %v", err)
+	}
+
+	dbHost := os.Getenv("DATABASE_HOST")
+	dbPort := os.Getenv("DATABASE_PORT")
+	dbUser := os.Getenv("DATABASE_USERNAME")
+	dbPassword := os.Getenv("DATABASE_PASSWORD")
+	dbName := os.Getenv("DATABASE_NAME")
+
+	dsn := fmt.Sprintf("user=%s password=%s dbname=%s host=%s port=%s sslmode=disable TimeZone=Asia/Shanghai", dbUser, dbPassword, dbName, dbHost, dbPort)
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	// remove the old database
 	err = db.Migrator().DropTable(&models.User{})
 	err = db.Migrator().DropTable(&models.Tournament{})
@@ -163,6 +182,7 @@ func MigrateDatabase() error {
 	err = db.Migrator().DropTable(&models.Media{})
 	err = db.Migrator().DropTable(&models.TournamentStep{})
 	err = db.Migrator().DropTable(&models.Match{})
+	err = db.Migrator().DropTable(&models.Score{})
 
 	if err != nil {
 		return err
@@ -175,6 +195,8 @@ func MigrateDatabase() error {
 	err = db.AutoMigrate(&models.Game{})
 	err = db.AutoMigrate(&models.Match{})
 	err = db.AutoMigrate(&models.Media{})
+	err = db.AutoMigrate(&models.Score{})
+
 	var user models.User
 
 	db.First(&user, "username = ?", "user")
@@ -187,10 +209,10 @@ func MigrateDatabase() error {
 
 	game, err := gameMigration(db)
 
-	t, err := tournamentMigration(db, game)
+	_, err = tournamentMigration(db, game)
 
 	registrationsTournamentMigrations(db)
-	_, err = matchMigration(db, t)
+	//_, err = matchMigration(db, t, &user)
 
 	if err != nil {
 		fmt.Println(err.Error())
