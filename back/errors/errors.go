@@ -28,8 +28,7 @@ type ValidationError struct {
 }
 
 func (e *ValidationError) Error() string {
-	//TODO implement me
-	panic("implement me")
+	return e.ErrorMessage
 }
 
 func (e *ValidationError) ToGinH() gin.H {

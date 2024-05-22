@@ -11,11 +11,11 @@ definitions:
     properties:
       allGames:
         items:
-          $ref: '#/definitions/models.Game'
+          $ref: '#/definitions/models.GameRead'
         type: array
       trendyGames:
         items:
-          $ref: '#/definitions/models.Game'
+          $ref: '#/definitions/models.GameRead'
         type: array
     type: object
   models.CreateTagPayload:
@@ -40,6 +40,15 @@ definitions:
       updated_at:
         type: string
     type: object
+  models.GameRead:
+    properties:
+      id:
+        type: integer
+      media:
+        $ref: '#/definitions/models.Media'
+      name:
+        type: string
+    type: object
   models.LoginPayload:
     properties:
       password:
@@ -51,9 +60,9 @@ definitions:
     properties:
       created_at:
         type: string
-      fileExtension:
+      file_extension:
         type: string
-      fileName:
+      file_name:
         type: string
       id:
         type: integer
@@ -114,6 +123,9 @@ definitions:
         type: integer
       location:
         type: string
+      maxPlayers:
+        example: 32
+        type: integer
       media:
         $ref: '#/definitions/models.Media'
       media_id:
@@ -144,6 +156,7 @@ definitions:
     - description
     - end_date
     - game_id
+    - maxPlayers
     - name
     - rounds
     - start_date
@@ -358,6 +371,32 @@ paths:
       summary: Finish a match
       tags:
       - tournament
+  /matchs:
+    get:
+      consumes:
+      - application/json
+      description: Get all matchs.
+      parameters:
+      - default: Bearer <Add access token here>
+        description: Insert your access token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get all matchs
+      tags:
+      - Match
   /register:
     post:
       consumes:
@@ -540,6 +579,17 @@ paths:
         name: image
         required: true
         type: file
+      - description: Location
+        example: s
+        in: formData
+        name: location
+        required: true
+        type: string
+      - description: Maximum number of players
+        in: formData
+        name: max_players
+        required: true
+        type: integer
       - default: Bearer <Add access token here>
         description: Insert your access token
         in: header
@@ -676,6 +726,43 @@ paths:
       security:
       - BearerAuth: []
       summary: Register a user to a tournament
+      tags:
+      - tournament
+  /tournaments/{id}/start:
+    post:
+      consumes:
+      - application/json
+      description: Start a tournament
+      parameters:
+      - description: Tournament ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - default: Bearer <Add access token here>
+        description: Insert your access token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+      security:
+      - BearerAuth ini: []
+      summary: Start a tournament
       tags:
       - tournament
   /users:

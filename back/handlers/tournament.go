@@ -14,10 +14,11 @@ import (
 type TournamentHandler struct {
 	TounamentService *services.TournamentService
 	FileService      *services.FileService
+	MatchService     *services.MatchService
 }
 
-func NewTournamentHandler(tournamentService *services.TournamentService, fileService *services.FileService) *TournamentHandler {
-	return &TournamentHandler{TounamentService: tournamentService, FileService: fileService}
+func NewTournamentHandler(tournamentService *services.TournamentService, fileService *services.FileService, matchService *services.MatchService) *TournamentHandler {
+	return &TournamentHandler{TounamentService: tournamentService, FileService: fileService, MatchService: matchService}
 }
 
 // CreateTournament godoc
@@ -35,6 +36,8 @@ func NewTournamentHandler(tournamentService *services.TournamentService, fileSer
 // @Param rounds formData int true "Number of rounds" Example(s) : 3
 // @Param tagsIDs[] formData []int true "Array of tag IDs" Example(s) : 1, 2, 3
 // @Param image formData file true "Image file" Example(s) : <path_to_image_file>
+// @Param location formData string true "Location" Example(s) : "New York"
+// @Param max_players formData int true "Maximum number of players" Example(s) : 32
 // @Success 200 {object} models.Tournament
 // @Failure 400
 // @Failure 500
@@ -82,6 +85,7 @@ func (h *TournamentHandler) CreateTournament(c *gin.Context) {
 		UserID:      payload.UserID,
 		GameID:      payload.GameID,
 		Rounds:      payload.Rounds,
+		MaxPlayers:  payload.MaxPlayers,
 	}
 
 	tournament.MediaModel.Media = mediaModel
@@ -93,9 +97,9 @@ func (h *TournamentHandler) CreateTournament(c *gin.Context) {
 	}
 	tournament.Tags = tags
 
-	errorCreated := h.TounamentService.Create(&tournament)
+	errorCreated := h.TounamentService.CreateTournament(&tournament)
 	if errorCreated != nil {
-		c.JSON(errorCreated.Code(), err)
+		c.JSON(errorCreated.Code(), errorCreated.Error())
 		return
 	}
 
@@ -125,7 +129,7 @@ func (h *TournamentHandler) GetTournament(c *gin.Context) {
 
 	tournament := models.Tournament{}
 
-	errService := h.TounamentService.Get(&tournament, uint(idInt), "User", "Game")
+	errService := h.TounamentService.Get(&tournament, uint(idInt), "User", "Game", "Media")
 
 	if err != nil {
 		c.JSON(errService.Code(), err)
@@ -164,7 +168,7 @@ func (h *TournamentHandler) GetTournaments(c *gin.Context) {
 		return
 	}
 
-	err := h.TounamentService.GetAll(&tournaments, filterParams, "User", "Game")
+	err := h.TounamentService.GetAll(&tournaments, filterParams, "User", "Game", "Media")
 
 	// use toRead method to convert the model to the read model
 	for i, tournament := range tournaments {
@@ -264,7 +268,7 @@ func (h *TournamentHandler) GenerateMatches(context *gin.Context) {
 		return
 	}
 
-	errService := h.TounamentService.GenerateMatches(uint(tournamentID))
+	errService := h.MatchService.GenerateMatches(uint(tournamentID))
 	if errService != nil {
 		context.JSON(errService.Code(), errService)
 		return
@@ -273,33 +277,62 @@ func (h *TournamentHandler) GenerateMatches(context *gin.Context) {
 	context.JSON(http.StatusOK, "Matches generated successfully")
 }
 
-// FinishMatch godoc
-// @Summary Finish a match
-// @Description Finish a match
+//// FinishMatch godoc
+//// @Summary Finish a match
+//// @Description Finish a match
+//// @Tags tournament
+//// @Accept json
+//// @Produce json
+//// @Param id path int true "Match ID"
+//// @Param winnerId query int true "Winner ID"
+//// @Success 200 {object} string
+//// @Failure 400 {object} errors.ErrorResponse
+//// @Failure 500 {object} errors.ErrorResponse
+//// @Security BearerAuth
+//// @Param Authorization header string true "Insert your access token" default(Bearer <Add access token here>)
+//// @Router /matches/{id}/finish [post]
+//func (h *TournamentHandler) FinishMatch(context *gin.Context) {
+//	matchID, err := strconv.Atoi(context.Param("id"))
+//	winnerId, err := strconv.Atoi(context.Query("winnerId"))
+//	if err != nil {
+//		context.JSON(http.StatusBadRequest, errors.NewBadRequestError("Invalid ID", err).ToGinH())
+//		return
+//	}
+//
+//	errService := h.TounamentService.FinishMatch(uint(matchID), uint(winnerId))
+//	if errService != nil {
+//		context.JSON(errService.Code(), errService)
+//		return
+//	}
+//
+//	context.JSON(http.StatusOK, "Match finished successfully")
+//}
+
+// StartTournament godoc
+// @Summary Start a tournament
+// @Description Start a tournament
 // @Tags tournament
 // @Accept json
 // @Produce json
-// @Param id path int true "Match ID"
-// @Param winnerId query int true "Winner ID"
+// @Param id path int true "Tournament ID"
 // @Success 200 {object} string
 // @Failure 400 {object} errors.ErrorResponse
 // @Failure 500 {object} errors.ErrorResponse
-// @Security BearerAuth
+// @Security BearerAuth ini
 // @Param Authorization header string true "Insert your access token" default(Bearer <Add access token here>)
-// @Router /matches/{id}/finish [post]
-func (h *TournamentHandler) FinishMatch(context *gin.Context) {
-	matchID, err := strconv.Atoi(context.Param("id"))
-	winnerId, err := strconv.Atoi(context.Query("winnerId"))
+// @Router /tournaments/{id}/start [post]
+func (h *TournamentHandler) StartTournament(context *gin.Context) {
+	tournamentID, err := strconv.Atoi(context.Param("id"))
 	if err != nil {
 		context.JSON(http.StatusBadRequest, errors.NewBadRequestError("Invalid ID", err).ToGinH())
 		return
 	}
 
-	errService := h.TounamentService.FinishMatch(uint(matchID), uint(winnerId))
+	errService := h.TounamentService.StartTournament(uint(tournamentID))
 	if errService != nil {
 		context.JSON(errService.Code(), errService)
 		return
 	}
 
-	context.JSON(http.StatusOK, "Match finished successfully")
+	context.JSON(http.StatusOK, "Tournament started successfully")
 }

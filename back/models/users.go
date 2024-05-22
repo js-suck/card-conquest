@@ -15,8 +15,8 @@ type ForeignKeyChecker interface {
 
 type BaseModel struct {
 	ID        uint       `gorm:"primarykey" json:"id"`
-	CreatedAt time.Time  `json:"created_at"`
-	UpdatedAt time.Time  `json:"updated_at"`
+	CreatedAt time.Time  `json:"created_at, omitempty"`
+	UpdatedAt time.Time  `json:"updated_at, omitempty"`
 	DeletedAt *time.Time `gorm:"index" json:"-"`
 }
 
@@ -38,6 +38,7 @@ type User struct {
 	VerificationToken string        `gorm:"type:varchar(255);default:null" json:"-"`
 	IsVerified        bool          `gorm:"default:false" json:"is_verified"`
 	Tournaments       []*Tournament `gorm:"many2many:user_tournaments;"`
+	Matches           []Match       `gorm:"foreignKey:PlayerOneID;references:ID"`
 }
 
 type LoginPayload struct {

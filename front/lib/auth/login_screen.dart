@@ -147,8 +147,6 @@ class _LoginPageState extends State<LoginPage> {
                       ElevatedButton(
                         onPressed: _login,
                         style: ElevatedButton.styleFrom(
-                          foregroundColor: Colors.white,
-                          backgroundColor: const Color(0xFFFF933D),
                           minimumSize: const Size(double.infinity, 45),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
@@ -211,9 +209,10 @@ class _LoginPageState extends State<LoginPage> {
                             child: const Text(
                               'Inscrivez-vous',
                               style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFFFF933D)),
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFFFF933D),
+                              ),
                             ),
                           ),
                         ],
