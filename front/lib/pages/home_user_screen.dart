@@ -1,43 +1,104 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:io';
-import 'package:front/widget/app_bar.dart';
-import 'package:front/pages/games_screen.dart';
+import 'package:front/pages/tournaments_registration_screen.dart';
 import 'package:front/pages/tournaments_screen.dart';
+import 'package:front/pages/games_screen.dart';
+import 'package:front/auth/login_screen.dart';
+import 'package:front/widget/app_bar.dart';
+
 
 
 class Tournament {
-  // id, title, date, time, imageUrl, status, tags
-  final String title;
-  final String date;
-  final String time;
+  final int id;
+  final String name;
+  final String description;
+  final String location;
+  final String startDate;
+  final String endDate;
   final String imageUrl;
-  final String status;
-  final List<String> tags;
+  final int maxPlayers;
+  final Organizer organizer;
+  final Game game;
+  final List<String> tags ;
 
   Tournament({
-    required this.title,
-    required this.date,
-    required this.time,
+    required this.id,
+    required this.name,
+    required this.description,
+    required this.location,
+    required this.startDate,
+    required this.endDate,
     required this.imageUrl,
-    required this.status,
+    required this.maxPlayers,
+    required this.organizer,
+    required this.game,
     required this.tags,
   });
+
+  factory Tournament.fromJson(Map<String, dynamic> json) {
+    return Tournament(
+      id: json['id'],
+      name: json['name'],
+      description: json['description'],
+      location: json['location'],
+      startDate: json['start_date'],
+      endDate: json['end_date'],
+      // imageUrl: 'http://10.0.2.2:8080/uploads/${json['media']['file_name']}',
+      imageUrl: 'assets/images/img.png',
+      maxPlayers: json['max_players'],
+      organizer: Organizer.fromJson(json['organizer']),
+      game: Game.fromJson(json['game']),
+      tags: [...json['tags']],
+    );
+  }
+}
+
+class Organizer {
+  final int id;
+  final String name;
+  final String email;
+
+  Organizer({
+    required this.id,
+    required this.name,
+    required this.email,
+  });
+
+  factory Organizer.fromJson(Map<String, dynamic> json) {
+    return Organizer(
+      id: json['ID'],
+      name: json['name'],
+      email: json['email'],
+    );
+  }
 }
 
 class Game {
-  final String title;
+  final int id;
+  final String name;
   final String category;
   final String imageUrl;
 
   Game({
-    required this.title,
+    required this.id,
+    required this.name,
     required this.category,
     required this.imageUrl,
   });
-}
 
+  factory Game.fromJson(Map<String, dynamic> json) {
+    return Game(
+      id: json['ID'],
+      name: json['name'],
+      category: json['category'],
+      // imageUrl: 'http://10.0.2.2:8080/uploads/${json['media']['file_name']}',
+      imageUrl: 'assets/images/img.png',
+    );
+  }
+}
 
 class HomeUserPage extends StatefulWidget {
   const HomeUserPage({Key? key}) : super(key: key);
@@ -47,9 +108,11 @@ class HomeUserPage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomeUserPage> {
+  final storage = const FlutterSecureStorage();
   List<Tournament> recentTournaments = [];
   List<Tournament> allTournaments = [];
   List<Game> games = [];
+
 
   @override
   void initState() {
@@ -57,99 +120,219 @@ class _HomePageState extends State<HomeUserPage> {
     _fetchData();
   }
 
+  /*Future<void> _fetchData() async {
+    final recentTournamentsResponse = await http.get(Uri.parse('http://10.0.2.2:8080/api/tournaments'));
+    final allTournamentsResponse = await http.get(Uri.parse('http://10.0.2.2:8080/api/v1/tournaments'));
+    final gamesResponse = await http.get(Uri.parse('http://10.0.2.2:8080/api/v1/games'));
+
+    if (recentTournamentsResponse.statusCode == 200 && allTournamentsResponse.statusCode == 200 && gamesResponse.statusCode == 200) {
+      setState(() {
+        recentTournaments = (jsonDecode(recentTournamentsResponse.body) as List)
+            .map((data) => Tournament.fromJson(data))
+            .toList();
+
+        allTournaments = (jsonDecode(allTournamentsResponse.body) as List)
+            .map((data) => Tournament.fromJson(data))
+            .toList();
+
+        games = (jsonDecode(gamesResponse.body) as List)
+            .map((data) => Game.fromJson(data))
+            .toList();
+      });
+    } else {
+      throw Exception('Failed to load data');
+    }
+  } */
+
   Future<void> _fetchData() async {
     // Utilisez des données d'exemple pour l'instant
     setState(() {
       recentTournaments = [
         Tournament(
-          title: 'Heartstone cup #2',
-          date: '05.05.23',
-          time: '19:00',
+          id: 1,
+          name: 'Tournoi des 4',
+          description: 'Tournoi de 4 équipes',
+          location: 'Paris',
+          startDate: '2023-05-05T15:00:00',
+          endDate: '2023-05-05T18:00:00',
           imageUrl: 'assets/images/img.png',
-          status: 'create',
-          tags: ['1v1', 'Casual'],
-        ),
-        Tournament(
-          title: 'Tournoi des douze',
-          date: '05.05.23',
-          time: '15:00',
-          imageUrl: 'assets/images/img.png',
-          status: 'create',
+          maxPlayers: 16,
+          organizer: Organizer(
+            id: 1,
+            name: 'Organizer 1',
+            email: ' [email protected]',
+          ),
+          game: Game(
+            id: 1,
+            name: 'Game 1',
+            category: 'Category 1',
+            imageUrl: 'assets/images/img.png',
+          ),
           tags: ['3v3', 'Cashprice'],
         ),
         Tournament(
-          title: 'Heartstone cup #2',
-          date: '05.05.23',
-          time: '19:00',
+          id: 2,
+          name: 'Tournoi des 2',
+          description: 'Tournoi de 2 équipes',
+          location: 'Lyon',
+          startDate: '2023-05-05T15:00:00',
+          endDate: '2023-05-05T18:00:00',
           imageUrl: 'assets/images/img.png',
-          status: 'create',
+          maxPlayers: 8,
+          organizer: Organizer(
+            id: 2,
+            name: 'Organizer 2',
+            email: ' [email protected]',
+          ),
+          game: Game(
+            id: 2,
+            name: 'Game 2',
+            category: 'Category 2',
+            imageUrl: 'assets/images/img.png',
+          ),
           tags: ['1v1', 'Casual'],
         ),
-        Tournament(
-          title: 'Tournoi des douze',
-          date: '05.05.23',
-          time: '15:00',
-          imageUrl: 'assets/images/img.png',
-          status: 'create',
-          tags: ['3v3', 'Cashprice'],
-        ),
-        // Ajoutez d'autres tournois récents ici
+
       ];
 
       allTournaments = [
         Tournament(
-          title: 'Tournoi des douze',
-          date: '05.05.23',
-          time: '15:00',
+          id: 1,
+          name: 'Tournoi des 4',
+          description: 'Tournoi de 4 équipes',
+          location: 'Paris',
+          startDate: '2023-05-05T15:00:00',
+          endDate: '2023-05-05T18:00:00',
           imageUrl: 'assets/images/img.png',
-          status: 'create',
+          maxPlayers: 16,
+          organizer: Organizer(
+            id: 1,
+            name: 'Organizer 1',
+            email: ' [email protected]',
+          ),
+          game: Game(
+            id: 1,
+            name: 'Game 1',
+            category: 'Category 1',
+            imageUrl: 'assets/images/img.png',
+          ),
           tags: ['3v3', 'Cashprice'],
         ),
         Tournament(
-          title: 'Heartstone cup #2',
-          date: '05.05.23',
-          time: '19:00',
+          id: 2,
+          name: 'Tournoi des 2',
+          description: 'Tournoi de 2 équipes',
+          location: 'Lyon',
+          startDate: '2023-05-05T15:00:00',
+          endDate: '2023-05-05T18:00:00',
           imageUrl: 'assets/images/img.png',
-          status: 'create',
+          maxPlayers: 8,
+          organizer: Organizer(
+            id: 2,
+            name: 'Organizer 2',
+            email: ' [email protected]',
+          ),
+          game: Game(
+            id: 2,
+            name: 'Game 2',
+            category: 'Category 2',
+            imageUrl: 'assets/images/img.png',
+          ),
           tags: ['1v1', 'Casual'],
         ),
         Tournament(
-          title: 'Tournoi des douze',
-          date: '05.05.23',
-          time: '15:00',
+          id: 3,
+          name: 'Tournoi des 3',
+          description: 'Tournoi de 3 équipes',
+          location: 'Marseille',
+          startDate: '2023-05-05T15:00:00',
+          endDate: '2023-05-05T18:00:00',
           imageUrl: 'assets/images/img.png',
-          status: 'create',
-          tags: ['3v3', 'Cashprice'],
+          maxPlayers: 12,
+          organizer: Organizer(
+            id: 3,
+            name: 'Organizer 3',
+            email: ' [email protected]',
+          ),
+          game: Game(
+            id: 3,
+            name: 'Game 3',
+            category: 'Category 3',
+            imageUrl: 'assets/images/img.png',
+          ),
+          tags: ['2v2', 'Ranked'],
         ),
         Tournament(
-          title: 'Heartstone cup #2',
-          date: '05.05.23',
-          time: '19:00',
+          id: 4,
+          name: 'Tournoi des 5zebgfezbfdezbdgf',
+          description: 'Tournoi de 5 équipes',
+          location: 'Bordeaux',
+          startDate: '2023-05-05T15:00:00',
+          endDate: '2023-05-05T18:00:00',
           imageUrl: 'assets/images/img.png',
-          status: 'create',
-          tags: ['1v1', 'Casual'],
+          maxPlayers: 20,
+          organizer: Organizer(
+            id: 4,
+            name: 'Organizer 4',
+            email: ' [email protected]',
+          ),
+          game: Game(
+            id: 4,
+            name: 'Game 4',
+            category: 'Category 4',
+            imageUrl: 'assets/images/img.png',
+          ),
+          tags: ['4v4', 'Ranked'],
         ),
+        Tournament(
+          id: 9,
+          name: 'Tournoi des 6',
+          description: 'Tournoi de 5 équipes',
+          location: 'Bordeaux',
+          startDate: '2023-05-05T15:00:00',
+          endDate: '2023-05-05T18:00:00',
+          imageUrl: 'assets/images/img.png',
+          maxPlayers: 20,
+          organizer: Organizer(
+            id: 4,
+            name: 'Organizer 4',
+            email: ' [email protected]',
+          ),
+          game: Game(
+            id: 4,
+            name: 'Game 4',
+            category: 'Category 4',
+            imageUrl: 'assets/images/img.png',
+          ),
+          tags: ['4v4', 'Ranked'],
+        ),
+
+
         // Ajoutez d'autres tournois ici
       ];
 
       games = [
         Game(
-          title: 'Waven',
+          id: 1,
+          name: 'Waven',
           category: 'Aventure - MMORPG',
           imageUrl: 'assets/images/img.png',
         ),
         Game(
-          title: 'Hearthstone',
+          id: 2,
+          name: 'Hearthstone',
           category: 'Cartes - Stratégie',
           imageUrl: 'assets/images/img.png',
         ),
         Game(
-          title: 'League of Legends',
+          id: 3,
+          name: 'League of Legends',
           category: 'MOBA',
           imageUrl: 'assets/images/img.png',
         ),
         Game(
-          title: 'Valorant',
+          id: 4,
+          name: 'Valorant',
           category: 'FPS',
           imageUrl: 'assets/images/img.png',
         ),
@@ -158,26 +341,38 @@ class _HomePageState extends State<HomeUserPage> {
     });
   }
 
+  Future<void> _onTournamentTapped(int id) async {
+    String? token = await storage.read(key: 'jwt_token');
+    if (token != null) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => RegistrationPage(tournamentId: id)),
+      );
+    } else {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => LoginPage()),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: TopAppBar(title: 'Accueil', isAvatar: true, isPage: false),
+      appBar: TopAppBar( title: 'Accueil', isAvatar: true, isPage: false),
       body: SingleChildScrollView(
         child: Column(
           children: [
             _buildSectionTitle('Tournois récent'),
             _buildHorizontalList(recentTournaments),
             _buildSectionTitleWithButton('Les tournois', 'Voir les tournois', () {
-              // Naviguez vers la page des tournois avec la bottom navigation bar
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => TournamentsPage()),
               );
-
             }),
-            _buildVerticalList(allTournaments),
+            _buildVerticalList(allTournaments.take(4).toList()), // Limiter à 4 tournois
             _buildSectionTitleWithButton('Les jeux', 'Tous les jeux', () {
-              // Naviguez vers la page des jeux
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => GamesPage()),
@@ -222,7 +417,7 @@ class _HomePageState extends State<HomeUserPage> {
     );
   }
 
-  Widget _buildHorizontalList(List<dynamic> items) {
+  Widget _buildHorizontalList(List<Tournament> items) {
     return Container(
       height: 200,
       child: ListView.builder(
@@ -230,37 +425,41 @@ class _HomePageState extends State<HomeUserPage> {
         itemCount: items.length,
         itemBuilder: (context, index) {
           var item = items[index];
-          return Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Container(
-              width: 280,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
-                image: DecorationImage(
-                  image: AssetImage(item.imageUrl),
-                  fit: BoxFit.cover,
-                ),
-              ),
-              child: Stack(
-                children: [
-                  Positioned(
-                    bottom: 10,
-                    left: 10,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          item.title,
-                          style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
-                        ),
-                        Text(
-                          "${item.date} - ${item.time}",
-                          style: const TextStyle(color: Colors.white, fontSize: 14),
-                        ),
-                      ],
-                    ),
+          return GestureDetector(
+            onTap: () => _onTournamentTapped(item.id),
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Container(
+                width: 280,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  image: DecorationImage(
+                    //image: NetworkImage(item.imageUrl),
+                    image: AssetImage(item.imageUrl),
+                    fit: BoxFit.cover,
                   ),
-                ],
+                ),
+                child: Stack(
+                  children: [
+                    Positioned(
+                      bottom: 10,
+                      left: 10,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            item.name,
+                            style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                          ),
+                          Text(
+                            "${item.startDate.split('T')[0]} - ${item.startDate.split('T')[1].substring(0, 5)}",
+                            style: const TextStyle(color: Colors.white, fontSize: 14),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           );
@@ -269,7 +468,7 @@ class _HomePageState extends State<HomeUserPage> {
     );
   }
 
-  Widget _buildHorizontalListGames(List<dynamic> items) {
+  Widget _buildHorizontalListGames(List<Game> items) {
     return Container(
       height: 200,
       child: ListView.builder(
@@ -284,6 +483,7 @@ class _HomePageState extends State<HomeUserPage> {
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(12),
                 image: DecorationImage(
+                  //image: NetworkImage(item.imageUrl),
                   image: AssetImage(item.imageUrl),
                   fit: BoxFit.cover,
                 ),
@@ -297,11 +497,11 @@ class _HomePageState extends State<HomeUserPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          item.title,
+                          item.name,
                           style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
                         ),
                         Text(
-                          "${item.category}",
+                          item.category,
                           style: const TextStyle(color: Colors.white, fontSize: 14),
                         ),
                       ],
@@ -318,81 +518,85 @@ class _HomePageState extends State<HomeUserPage> {
 
   Widget _buildVerticalList(List<Tournament> items) {
     return Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: GridView.builder(
-          shrinkWrap: true,
-          physics: NeverScrollableScrollPhysics(),
-          itemCount: items.length,
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+      padding: const EdgeInsets.all(8.0),
+      child: GridView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        itemCount: items.length,
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,
           crossAxisSpacing: 10,
           mainAxisSpacing: 10,
           childAspectRatio: 0.67,
-          ),
-          itemBuilder: (context, index) {
+        ),
+        itemBuilder: (context, index) {
           var item = items[index];
-    return Container(
-    width: 180,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.5),
-            spreadRadius: 1,
-            blurRadius: 5,
-            offset: Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Container(
-            height: 180,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
-              image: DecorationImage(
-                image: AssetImage(item.imageUrl),
-                fit: BoxFit.cover,
+          return GestureDetector(
+            onTap: () => _onTournamentTapped(item.id),
+            child: Container(
+              width: 180,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                color: Colors.white,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.5),
+                    spreadRadius: 1,
+                    blurRadius: 5,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
+              ),
+              child: Column(
+                children: [
+                  Container(
+                    height: 180,
+                    decoration: BoxDecoration(
+                      borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                      image: DecorationImage(
+                        //image: NetworkImage(item.imageUrl),
+                        image: AssetImage(item.imageUrl),
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(4.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          item.name,
+                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          "${item.startDate.split('T')[0]} - ${item.startDate.split('T')[1].substring(0, 5)}",
+                          style: const TextStyle(fontSize: 14, color: Colors.grey),
+                        ),
+                        const SizedBox(height: 2),
+                        Wrap(
+                          spacing: 2,
+                          children: item.tags.map((tag) => Chip(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(5),
+                              side: BorderSide(color: Colors.transparent),
+                            ),
+                            padding: EdgeInsets.zero,
+                            label: Text(tag, style: const TextStyle(color: Colors.white)),
+                            backgroundColor: Colors.orange,
+                          )).toList(),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(4.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  item.title,
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-                SizedBox(height: 2),
-                Text(
-                  "${item.date} - ${item.time}",
-                  style: TextStyle(fontSize: 14, color: Colors.grey),
-                ),
-                SizedBox(height: 2),
-                Wrap(
-                  spacing: 2,
-                  children: item.tags.map((tag) => Chip(
-                    // no line on border
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(5),
-                      side: BorderSide(color: Colors.transparent),
-                    ),
-                    padding: EdgeInsets.zero,
-                    label: Text(tag, style: TextStyle(color: Colors.white)),
-                    backgroundColor: Colors.orange,
-                  )).toList(),
-                ),
-              ],
-            ),
-          ),
-        ],
+          );
+        },
       ),
-    );
-    },
-    ),
     );
   }
 }
