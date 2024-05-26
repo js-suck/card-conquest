@@ -1,13 +1,16 @@
-import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
-Future<void> login(BuildContext context, String username, String password) async {
+import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:front/extension/theme_extension.dart';
+import 'package:http/http.dart' as http;
+
+Future<void> login(
+    BuildContext context, String username, String password) async {
   final storage =
       new FlutterSecureStorage(); // Create instance of secure storage
   final response = await http.post(
-    Uri.parse('http://10.0.2.2:8080/api/v1/login'),
+    Uri.parse('http://192.168.0.45:8080/api/v1/login'),
     headers: <String, String>{
       'Content-Type': 'application/json; charset=UTF-8',
     },
@@ -24,7 +27,7 @@ Future<void> login(BuildContext context, String username, String password) async
     // Store the token in secure storage
     await storage.write(key: 'jwt_token', value: token);
 
-    Navigator.of(context).pushReplacementNamed('/main');
+    Navigator.of(context).pushReplacementNamed('/bracket');
   } else {
     // Handle error in login
     throw Exception('Failed to log in');
@@ -90,6 +93,8 @@ class _LoginPageState extends State<LoginPage> {
                       const SizedBox(height: 10),
                       TextFormField(
                         controller: _usernameController,
+                        style: TextStyle(
+                            color: context.themeColors.backgroundColor),
                         decoration: InputDecoration(
                           hintText: 'username',
                           hintStyle: TextStyle(
@@ -117,6 +122,8 @@ class _LoginPageState extends State<LoginPage> {
                       const SizedBox(height: 10),
                       TextFormField(
                         controller: _passwordController,
+                        style: TextStyle(
+                            color: context.themeColors.backgroundColor),
                         decoration: InputDecoration(
                           hintText: '*******',
                           hintStyle: TextStyle(

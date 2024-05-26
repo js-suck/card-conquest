@@ -1,47 +1,28 @@
 import 'package:flutter/material.dart';
+import 'package:front/generated/tournament.pb.dart' as tournament;
 
 class Scoreboard extends StatelessWidget {
-  Scoreboard({super.key, this.isTounament = true});
+  Scoreboard({super.key, this.isTournament = true});
 
-  final bool isTounament;
+  final bool isTournament;
 
-  final List<Player> players = [
-    Player(
-      nom: 'Roger Federer',
-      matchsJoues: 20,
-      victoires: 15,
-      defaites: 5,
-      points: 1500,
-      age: 40,
-      classement: 1,
+  final List<tournament.Player> players = [
+    tournament.Player(
+      username: 'Federer R',
+      userId: '3',
     ),
-    Player(
-      nom: 'Rafael Nadal',
-      matchsJoues: 22,
-      victoires: 18,
-      defaites: 4,
-      points: 1600,
-      age: 35,
-      classement: 2,
+    tournament.Player(
+      username: 'Nadal R',
+      userId: '7',
     ),
-    Player(
-      nom: 'Novak Djokovic',
-      matchsJoues: 24,
-      victoires: 20,
-      defaites: 4,
-      points: 1700,
-      age: 33,
-      classement: 3,
+    tournament.Player(
+      username: 'Djokovic N',
+      userId: '9',
     ),
-    Player(
-      nom: 'Carlos Alcaraz',
-      matchsJoues: 18,
-      victoires: 14,
-      defaites: 4,
-      points: 1400,
-      age: 18,
-      classement: 4,
-    )
+    tournament.Player(
+      username: 'Shapovalov D',
+      userId: '12',
+    ),
     // Ajoute d'autres joueurs ou équipes au besoin
   ];
 
@@ -60,21 +41,21 @@ class Scoreboard extends StatelessWidget {
               // Naviguer vers la page du joueur
               Navigator.pushNamed(context, '/player', arguments: {
                 'player': player,
-                'isTournament': isTounament,
+                'isTournament': isTournament,
               });
             },
             leading: ClipRRect(
                 borderRadius: BorderRadius.circular(30),
                 child: CircleAvatar(
                     child: Image.asset('assets/images/avatar.png'))),
-            title: Text('${player.nom} (${player.classement})'),
-            subtitle: Text('Matchs joués: ${player.matchsJoues}'),
-            trailing: Column(
+            title: Text('${player.username} (player.classement)'),
+            subtitle: const Text('Matchs joués: player.matchsJoues'),
+            trailing: const Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Text('Victoires: ${player.victoires}'),
-                Text('Défaites: ${player.defaites}'),
-                Text('Points: ${player.points}'),
+                Text('Victoires: player.victoires'),
+                Text('Défaites: player.defaites'),
+                Text('Points: player.points'),
               ],
             ),
           );
