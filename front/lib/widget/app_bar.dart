@@ -1,6 +1,4 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 
 class TopAppBar extends StatelessWidget implements PreferredSizeWidget {
   const TopAppBar({
@@ -17,7 +15,7 @@ class TopAppBar extends StatelessWidget implements PreferredSizeWidget {
   final bool isSettings;
 
   @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight + 20);
 
   @override
   Widget build(BuildContext context) {
@@ -27,6 +25,7 @@ class TopAppBar extends StatelessWidget implements PreferredSizeWidget {
         bottomRight: Radius.circular(30),
       ),
       child: AppBar(
+        toolbarHeight: kToolbarHeight + 20,
         title: Builder(builder: (context) {
           if (isPage) {
             return Text(
@@ -79,24 +78,25 @@ class TopAppBar extends StatelessWidget implements PreferredSizeWidget {
         leadingWidth: isPage ? 64 : 1000,
         leading: Builder(builder: (context) {
           if (isAvatar) {
-            return Expanded(
-              child: Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(left: 4, top: 4, bottom: 4),
-                    child: GestureDetector(
-                      onTap: () {
-                        Navigator.of(context).pushNamed('/profile');
-                      },
-                      child: const CircleAvatar(
-                        radius: 30,
-                        backgroundImage: AssetImage('assets/images/avatar.png'),
-                      ),
+            return Row(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(left: 4, top: 4, bottom: 4),
+                  child: GestureDetector(
+                    onTap: () {
+                      Navigator.of(context).pushNamed('/profile');
+                    },
+                    child: const CircleAvatar(
+                      radius: 30,
+                      backgroundImage: AssetImage('assets/images/avatar.png'),
                     ),
                   ),
-                  Builder(builder: (context) {
-                    if (!isPage) {
-                      return const Column(
+                ),
+                Builder(builder: (context) {
+                  if (!isPage) {
+                    return const Padding(
+                      padding: EdgeInsets.only(left: 8.0),
+                      child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -113,16 +113,15 @@ class TopAppBar extends StatelessWidget implements PreferredSizeWidget {
                                 fontWeight: FontWeight.w400,
                               )),
                         ],
-                      );
-                    } else {
-                      return const Text('');
-                    }
-                  }),
-                ],
-              ),
+                      ),
+                    );
+                  } else {
+                    return const Text('');
+                  }
+                }),
+              ],
             );
           } else {
-            // Retourne un bouton de retour par défaut
             return IconButton(
               icon: const Icon(Icons.arrow_back),
               onPressed: () {

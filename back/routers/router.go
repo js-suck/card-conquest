@@ -14,9 +14,11 @@ func SetupRouter(db *gorm.DB) *gin.Engine {
 	// handlers are like controllers
 	authHandler := handlers.NewAuthHandler(services.NewAuthService(db), services.NewUserService(db))
 	userHandler := handlers.UserHandler{UserService: services.NewUserService(db), FileService: services.NewFileService(db)}
-	tournamentHandler := handlers.NewTournamentHandler(services.NewTournamentService(db))
+	tournamentHandler := handlers.NewTournamentHandler(services.NewTournamentService(db), services.NewFileService(db), services.NewMatchService(db))
+	tagHandler := handlers.NewTagHandler(services.NewTagService(db))
 	gameHandler := handlers.NewGameHandler(services.NewGameService(db))
 	uploadFileHandler := handlers.NewUploadHandler(services.NewFileService(db))
+	matchHandler := handlers.NewMatchHandler(services.NewMatchService(db))
 
 	publicRoutes := r.Group("/api/v1")
 	protectedRoutes := r.Group("/api/v1")
@@ -25,7 +27,7 @@ func SetupRouter(db *gorm.DB) *gin.Engine {
 	}
 	publicRoutes.GET("/images/:filename", func(c *gin.Context) {
 		filename := c.Param("filename")
-		c.File("./uploads/" + filename)
+		c.File("./back/uploads/" + filename)
 	})
 
 	protectedRoutes.Use(middlewares.AuthenticationMiddleware(), middlewares.PermissionMiddleware(db))
@@ -43,13 +45,20 @@ func SetupRouter(db *gorm.DB) *gin.Engine {
 
 		protectedRoutes.POST("/tournaments", tournamentHandler.CreateTournament)
 		protectedRoutes.GET("/tournaments", tournamentHandler.GetTournaments)
+		protectedRoutes.POST("/tournaments/:id/start", tournamentHandler.StartTournament)
 		protectedRoutes.GET("/tournaments/:id", tournamentHandler.GetTournament)
 		protectedRoutes.POST("/tournaments/:id/register/:userID", tournamentHandler.RegisterUser)
 		protectedRoutes.POST("/tournaments/:id/generate-matches", tournamentHandler.GenerateMatches)
 
-		protectedRoutes.POST("/matches/:id/finish", tournamentHandler.FinishMatch)
+		//protectedRoutes.POST("/matches/:id/finish", tournamentHandler.FinishMatch)
+		protectedRoutes.POST("/matches/update/score", matchHandler.UpdateScore)
 
 		protectedRoutes.GET(("/games"), gameHandler.GetAllGames)
+
+		protectedRoutes.GET(("/matchs"), matchHandler.GetAllMatchs)
+
+		protectedRoutes.GET("/tags", tagHandler.GetAllTags)
+		protectedRoutes.POST("/tags", tagHandler.CreateTag)
 
 	}
 
