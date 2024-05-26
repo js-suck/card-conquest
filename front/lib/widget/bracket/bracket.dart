@@ -1,14 +1,26 @@
 import 'package:flutter/material.dart';
+import 'package:front/generated/tournament.pb.dart' as tournament_grpc;
 import 'package:front/main.dart';
 import 'package:front/widget/bracket/bracket_match.dart';
 import 'package:provider/provider.dart';
 
-class Bracket extends StatelessWidget {
-  Bracket({super.key});
+import '../../generated/tournament.pb.dart';
 
-  final List<List<Match>> tournament = [
+class Bracket extends StatefulWidget {
+  final AsyncSnapshot<tournament_grpc.TournamentResponse> tournamentStream;
+
+  final int tournamentSize = 4;
+
+  const Bracket(this.tournamentStream, {super.key});
+
+  @override
+  State<Bracket> createState() => _BracketState();
+}
+
+class _BracketState extends State<Bracket> {
+  final List<List<Matcha>> tournament = [
     [
-      Match(
+      Matcha(
         player1: 'Alcaraz C. (1)',
         player2: 'Medvedev D. (5)',
         playerOneId: 1,
@@ -20,7 +32,7 @@ class Bracket extends StatelessWidget {
         time: '',
         tournament: 'US Open',
       ),
-      Match(
+      Matcha(
         player1: 'Federer R. (3)',
         player2: 'Nadal R. (7)',
         playerOneId: 3,
@@ -32,7 +44,7 @@ class Bracket extends StatelessWidget {
         time: '',
         tournament: 'US Open',
       ),
-      Match(
+      Matcha(
         player1: 'Djokovic N. (9)',
         player2: 'Shapovalov D. (12)',
         playerOneId: 9,
@@ -44,7 +56,7 @@ class Bracket extends StatelessWidget {
         time: '',
         tournament: 'US Open',
       ),
-      Match(
+      Matcha(
         player1: 'Auger-Aliassime F. (14)',
         player2: 'Monfils G. (16)',
         playerOneId: 14,
@@ -56,7 +68,7 @@ class Bracket extends StatelessWidget {
         time: '',
         tournament: 'US Open',
       ),
-      Match(
+      Matcha(
         player1: 'Rublev A. (6)',
         player2: 'Sinner J. (2)',
         playerOneId: 13,
@@ -68,36 +80,36 @@ class Bracket extends StatelessWidget {
         time: '',
         tournament: 'US Open',
       ),
-      Match(
+      Matcha(
         player1: 'Ruud C. (4)',
         player2: '',
         playerOneId: 4,
         playerTwoId: null,
-        status: 'not started',
+        status: 'Created',
         time: '',
         tournament: 'US Open',
       ),
-      Match(
+      Matcha(
         player1: '',
         player2: '',
         playerOneId: null,
         playerTwoId: null,
-        status: 'not started',
+        status: 'Created',
         time: '',
         tournament: 'US Open',
       ),
-      Match(
+      Matcha(
         player1: '',
         player2: '',
         playerOneId: null,
         playerTwoId: null,
-        status: 'not started',
+        status: 'Created',
         time: '',
         tournament: 'US Open',
       ),
     ],
     [
-      Match(
+      Matcha(
         player1: 'Alcaraz C. (1)',
         player2: 'Federer R. (3)',
         playerOneId: 1,
@@ -109,32 +121,32 @@ class Bracket extends StatelessWidget {
         time: '',
         tournament: 'US Open',
       ),
-      Match(
+      Matcha(
         player1: 'Monfils G. (16)',
         player2: 'Djokovic N. (9)',
         playerOneId: 16,
         playerTwoId: 9,
-        status: 'in progress',
+        status: 'started',
         score1: '0',
         score2: '1',
         time: '',
         tournament: 'US Open',
       ),
-      Match(
+      Matcha(
         player1: '',
         player2: 'Sinner J. (2)',
         playerOneId: null,
         playerTwoId: 21,
-        status: 'not started',
+        status: 'Created',
         time: '',
         tournament: 'US Open',
       ),
-      Match(
+      Matcha(
         player1: '',
         player2: '',
         playerOneId: null,
         playerTwoId: null,
-        status: 'not started',
+        status: 'Created',
         score1: '',
         score2: '',
         time: '',
@@ -142,35 +154,35 @@ class Bracket extends StatelessWidget {
       ),
     ],
     [
-      Match(
+      Matcha(
         player1: 'Djokovic N. (9)',
         player2: 'Federer R. (3)',
         playerOneId: 9,
         playerTwoId: 3,
-        status: 'not started',
+        status: 'Created',
         score1: '',
         score2: '',
         winnerId: null,
         time: '18:00',
         tournament: 'US Open',
       ),
-      Match(
+      Matcha(
         player1: '',
         player2: '',
         playerOneId: null,
         playerTwoId: null,
-        status: 'not started',
+        status: 'Created',
         time: '',
         tournament: 'US Open',
       ),
     ],
     [
-      Match(
+      Matcha(
         player1: '',
         player2: '',
         playerOneId: null,
         playerTwoId: null,
-        status: 'not started',
+        status: 'Created',
         score1: '',
         score2: '',
         winnerId: null,
@@ -190,14 +202,40 @@ class Bracket extends StatelessWidget {
     const Tab(text: 'FINALE'),
   ];
 
-  List<Widget> generateStep(List<Match> matches) {
+  List<Widget> generateStep(TournamentStep step) {
     List<Widget> listViewBuilders = [];
+    final tournamentData = widget.tournamentStream.data!;
+    int matchesInThisRound = (1 << (widget.tournamentSize - 1));
 
+    final tournamentSteps = tournamentData.tournamentSteps.length;
+    while (tournamentData.tournamentSteps.length < widget.tournamentSize) {
+      tournamentData.tournamentSteps.add(TournamentStep());
+    }
+
+    for (var step in tournamentData.tournamentSteps) {
+      while (step.matches.length < matchesInThisRound) {
+        step.matches.add(tournament_grpc.Match(position: 999));
+      }
+      matchesInThisRound = (matchesInThisRound / 2).ceil();
+    }
+
+    // retrieve all matches from all steps
+    /*
+    final List<tournament_grpc.Match> matchesStream = [];
+    for (var tournamentStep in tournamentData.tournamentSteps) {
+      debugPrint('matches ${tournamentStep.matches}');
+      matchesStream.add(tournamentStep.matches as tournament_grpc.Match);
+    }
+    debugPrint('bracket ${matchesStream}');
+     */
+    for (var step in tournamentData.tournamentSteps) {
+      step.matches.sort((a, b) => a.position.compareTo(b.position));
+    }
     listViewBuilders.add(
       ListView.builder(
-        itemCount: matches.length,
+        itemCount: step.matches.length,
         itemBuilder: (context, index) {
-          var match = matches[index];
+          var match = step.matches[index];
           return Column(
             children: [
               SizedBox(height: index == 0 ? 16 : 0),
@@ -239,7 +277,7 @@ class Bracket extends StatelessWidget {
   }
 }
 
-class Match {
+class Matcha {
   String? player1 = '';
   String? player2 = '';
   int? playerOneId;
@@ -253,7 +291,7 @@ class Match {
   String? location = '';
   String? tournament = '';
 
-  Match({
+  Matcha({
     this.player1,
     this.player2,
     this.playerOneId,

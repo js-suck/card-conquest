@@ -22,6 +22,8 @@ var routes = <String, WidgetBuilder>{
   '/profile': (context) => const ProfilePage(),
   '/settings': (context) => const SettingsPage(),
   '/games': (context) => const GamesPage(),
+  '/tournamentUpdatesDemo': (context) =>
+      TournamentUpdateScreen(tournamentID: 1),
   '/bracket': (context) => const BracketPage(),
   '/match': (context) => MatchPage(),
   '/player': (context) => PlayerPage(),
