@@ -75,8 +75,20 @@ func registrationsTournamentMigrations(db *gorm.DB) {
 		FileName:      "yugiho.webp",
 		FileExtension: "webp",
 	}
+	tournament := models.Tournament{}
+
+	db.First(&tournament, "name = ?", FirstTournamentName)
+
+	tournament.MediaModel.Media = &media
 
 	db.Create(&media)
+	tournamentStep := models.TournamentStep{
+		TournamentID: tournament.ID,
+		Name:         "First step",
+		Sequence:     1,
+	}
+
+	db.Create(&tournamentStep)
 
 	for i := 0; i < 10; i++ {
 		user := models.User{
@@ -87,21 +99,8 @@ func registrationsTournamentMigrations(db *gorm.DB) {
 		}
 
 		db.Create(&user)
-
-		tournament := models.Tournament{}
-
-		db.First(&tournament, "name = ?", FirstTournamentName)
-
 		tournament.Users = append(tournament.Users, &user)
-		tournament.MediaModel.Media = &media
 
-		tournamentStep := models.TournamentStep{
-			TournamentID: tournament.ID,
-			Name:         "First step",
-			Sequence:     1,
-		}
-
-		db.Create(&tournamentStep)
 		db.Save(&tournament)
 
 	}
