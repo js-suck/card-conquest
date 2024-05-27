@@ -17,7 +17,7 @@ class Calendar extends StatelessWidget {
         userId: '5',
         score: 0,
       ),
-      status: 'Created',
+      status: 'created',
     ),
     tournament.Match(
       playerOne: tournament.Player(
@@ -30,7 +30,7 @@ class Calendar extends StatelessWidget {
         userId: '7',
         score: 0,
       ),
-      status: 'Created',
+      status: 'created',
     ),
     tournament.Match(
       playerOne: tournament.Player(
@@ -43,7 +43,7 @@ class Calendar extends StatelessWidget {
         userId: '12',
         score: 0,
       ),
-      status: 'Created',
+      status: 'created',
     ),
     tournament.Match(
       playerOne: tournament.Player(
@@ -56,7 +56,7 @@ class Calendar extends StatelessWidget {
         userId: '16',
         score: 0,
       ),
-      status: 'Created',
+      status: 'created',
     ),
     tournament.Match(
       playerOne: tournament.Player(
@@ -69,7 +69,7 @@ class Calendar extends StatelessWidget {
         userId: '10',
         score: 0,
       ),
-      status: 'Created',
+      status: 'created',
     ),
     tournament.Match(
       playerOne: tournament.Player(
@@ -82,7 +82,7 @@ class Calendar extends StatelessWidget {
         userId: '2',
         score: 0,
       ),
-      status: 'Created',
+      status: 'created',
     ),
   ];
 

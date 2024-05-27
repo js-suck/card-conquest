@@ -10,7 +10,7 @@ Future<void> login(
   final storage =
       new FlutterSecureStorage(); // Create instance of secure storage
   final response = await http.post(
-    Uri.parse('http://192.168.0.45:8080/api/v1/login'),
+    Uri.parse('http://10.33.0.66:8080/api/v1/login'),
     headers: <String, String>{
       'Content-Type': 'application/json; charset=UTF-8',
     },
@@ -94,7 +94,7 @@ class _LoginPageState extends State<LoginPage> {
                       TextFormField(
                         controller: _usernameController,
                         style: TextStyle(
-                            color: context.themeColors.backgroundColor),
+                            color: context.themeColors.invertedBackgroundColor),
                         decoration: InputDecoration(
                           hintText: 'username',
                           hintStyle: TextStyle(
@@ -123,7 +123,7 @@ class _LoginPageState extends State<LoginPage> {
                       TextFormField(
                         controller: _passwordController,
                         style: TextStyle(
-                            color: context.themeColors.backgroundColor),
+                            color: context.themeColors.invertedBackgroundColor),
                         decoration: InputDecoration(
                           hintText: '*******',
                           hintStyle: TextStyle(

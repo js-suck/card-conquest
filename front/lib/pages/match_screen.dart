@@ -36,6 +36,12 @@ class MatchPage extends StatelessWidget {
     classement: 2,
   );
 
+  final status = {
+    'created': 'Créé',
+    'started': 'En cours',
+    'finished': 'Terminé',
+  };
+
   @override
   Widget build(BuildContext context) {
     final tournament.Match match =
@@ -130,7 +136,7 @@ class MatchPage extends StatelessWidget {
                               ),
                             ),
                             const SizedBox(height: 4),
-                            Text(match.status,
+                            Text(status[match.status]!,
                                 style: TextStyle(
                                     fontSize: 16,
                                     color: match.status == 'started'

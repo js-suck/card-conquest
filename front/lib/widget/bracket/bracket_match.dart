@@ -14,7 +14,16 @@ class BracketMatch extends StatelessWidget {
     final isDarkMode = Provider.of<ThemeNotifier>(context).isDarkMode;
     return GestureDetector(
       onTap: () {
-        Navigator.pushNamed(context, '/match', arguments: match);
+        if (match.status != '') {
+          Navigator.pushNamed(context, '/match', arguments: match);
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Il n\'y a pas de match'),
+              duration: Duration(seconds: 1),
+            ),
+          );
+        }
       },
       child: Column(
         children: [
@@ -114,7 +123,7 @@ class BracketMatch extends StatelessWidget {
                         );
                       } else {
                         return Text(
-                          '18:00',
+                          match.status != '' ? '18:00' : '',
                           style: TextStyle(
                             fontSize: 16,
                             color: isDarkMode ? Colors.white : Colors.black,
