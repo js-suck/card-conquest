@@ -9,6 +9,8 @@ import '../../generated/tournament.pb.dart';
 class Bracket extends StatefulWidget {
   final AsyncSnapshot<tournament_grpc.TournamentResponse> tournamentStream;
 
+  final int tournamentSize = 4;
+
   const Bracket(this.tournamentStream, {super.key});
 
   @override
@@ -203,6 +205,13 @@ class _BracketState extends State<Bracket> {
   List<Widget> generateStep(TournamentStep step) {
     List<Widget> listViewBuilders = [];
     final tournamentData = widget.tournamentStream.data!;
+    final int matchesInThisRound = (1 << (widget.tournamentSize - 1));
+
+    final tournamentSteps = tournamentData.tournamentSteps.length;
+    while (tournamentData.tournamentSteps.length < widget.tournamentSize) {
+      tournamentData.tournamentSteps.add(TournamentStep());
+    }
+
     // retrieve all matches from all steps
     /*
     final List<tournament_grpc.Match> matchesStream = [];
@@ -212,8 +221,9 @@ class _BracketState extends State<Bracket> {
     }
     debugPrint('bracket ${matchesStream}');
      */
-    tournamentData.tournamentSteps[9].matches
-        .sort((a, b) => a.position.compareTo(b.position));
+    for (var step in tournamentData.tournamentSteps) {
+      step.matches.sort((a, b) => a.position.compareTo(b.position));
+    }
     listViewBuilders.add(
       ListView.builder(
         itemCount: step.matches.length,
@@ -237,9 +247,14 @@ class _BracketState extends State<Bracket> {
   Widget build(BuildContext context) {
     final isDarkMode = Provider.of<ThemeNotifier>(context).isDarkMode;
     final tournamentData = widget.tournamentStream.data;
+    final tournamentSteps = tournamentData!.tournamentSteps;
+    // generate empty matches
+    for (int i = 0; i < widget.tournamentSize; i++) {
+      tournament_grpc.Player player = tournament_grpc.Player();
+    }
     return DefaultTabController(
       initialIndex: 0,
-      length: 1,
+      length: 4,
       child: Scaffold(
         appBar: PreferredSize(
           preferredSize: const Size.fromHeight(kToolbarHeight),
@@ -247,15 +262,13 @@ class _BracketState extends State<Bracket> {
             isScrollable: true,
             unselectedLabelColor: isDarkMode ? Colors.white : Colors.black,
             // Retrieve the last n tabs
-            tabs: tabs.sublist(tabs.length - 1, tabs.length),
+            tabs: tabs.sublist(tabs.length - 4, tabs.length),
           ),
         ),
         body: TabBarView(
           children: [
-            /*for (var step in tournamentData.tournamentSteps)
-              ...generateStep(step),
-             */
-            ...generateStep(tournamentData!.tournamentSteps[9])
+            for (int step = 0; step < widget.tournamentSize; step++)
+              ...generateStep(tournamentSteps[step]),
           ],
         ),
       ),
