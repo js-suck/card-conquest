@@ -205,22 +205,11 @@ class _BracketState extends State<Bracket> {
   List<Widget> generateStep(TournamentStep step) {
     List<Widget> listViewBuilders = [];
     final tournamentData = widget.tournamentStream.data!;
-    int matchesInThisRound = (1 << (widget.tournamentSize - 1));
+    final int matchesInThisRound = (1 << (widget.tournamentSize - 1));
 
     final tournamentSteps = tournamentData.tournamentSteps.length;
     while (tournamentData.tournamentSteps.length < widget.tournamentSize) {
       tournamentData.tournamentSteps.add(TournamentStep());
-    }
-
-    for (var step in tournamentData.tournamentSteps) {
-      step.matches.sort((a, b) => a.position.compareTo(b.position));
-    }
-
-    for (var step in tournamentData.tournamentSteps) {
-      while (step.matches.length < matchesInThisRound) {
-        step.matches.add(Match(position: 999));
-      }
-      matchesInThisRound = (matchesInThisRound / 2).ceil();
     }
 
     // retrieve all matches from all steps
@@ -232,7 +221,9 @@ class _BracketState extends State<Bracket> {
     }
     debugPrint('bracket ${matchesStream}');
      */
-
+    for (var step in tournamentData.tournamentSteps) {
+      step.matches.sort((a, b) => a.position.compareTo(b.position));
+    }
     listViewBuilders.add(
       ListView.builder(
         itemCount: step.matches.length,
