@@ -114,8 +114,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(12),
                 image: DecorationImage(
-                  //image: NetworkImage('http://10.0.2.2:8080/uploads/${tournamentData['media']['file_name']}'),
-                  image: const AssetImage('assets/images/img.png'),
+                  image: NetworkImage('http://10.0.2.2:8080/api/v1/images/${tournamentData['media']['file_name']}'),
                   fit: BoxFit.cover,
                 ),
               ),

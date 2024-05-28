@@ -2,15 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'dart:io';
 import 'package:front/pages/tournaments_registration_screen.dart';
 import 'package:front/pages/tournaments_screen.dart';
 import 'package:front/pages/games_screen.dart';
 import 'package:front/auth/login_screen.dart';
 import 'package:front/widget/app_bar.dart';
 import 'package:front/widget/bottom_bar.dart';
-
-
 
 class Tournament {
   final int id;
@@ -23,7 +20,7 @@ class Tournament {
   final int maxPlayers;
   final Organizer organizer;
   final Game game;
-  final List<String> tags ;
+  final List<String> tags;
 
   Tournament({
     required this.id,
@@ -41,18 +38,19 @@ class Tournament {
 
   factory Tournament.fromJson(Map<String, dynamic> json) {
     return Tournament(
-      id: json['id'],
-      name: json['name'],
-      description: json['description'],
-      location: json['location'],
-      startDate: json['start_date'],
-      endDate: json['end_date'],
-      // imageUrl: 'http://10.0.2.2:8080/uploads/${json['media']['file_name']}',
-      imageUrl: 'assets/images/img.png',
-      maxPlayers: json['max_players'],
-      organizer: Organizer.fromJson(json['organizer']),
-      game: Game.fromJson(json['game']),
-      tags: [...json['tags']],
+      id: json['id'] ?? 0,
+      name: json['name'] ?? '',
+      description: json['description'] ?? '',
+      location: json['location'] ?? '',
+      startDate: json['start_date'] ?? '',
+      endDate: json['end_date'] ?? '',
+      imageUrl: json['media'] != null
+          ? 'http://10.0.2.2:8080/api/v1/images/${json['media']['file_name']}'
+          : 'http://10.0.2.2:8080/api/v1/images/yugiho.webp',
+      maxPlayers: json['max_players'] ?? 0,
+      organizer: Organizer.fromJson(json['Organizer'] ?? {}),
+      game: Game.fromJson(json['game'] ?? {}),
+      tags: json['tags'] != null ? List<String>.from(json['tags']) : [],
     );
   }
 }
@@ -70,9 +68,9 @@ class Organizer {
 
   factory Organizer.fromJson(Map<String, dynamic> json) {
     return Organizer(
-      id: json['ID'],
-      name: json['name'],
-      email: json['email'],
+      id: json['ID'] ?? 0,
+      name: json['username'] ?? '',
+      email: json['email'] ?? '',
     );
   }
 }
@@ -80,23 +78,21 @@ class Organizer {
 class Game {
   final int id;
   final String name;
-  final String category;
   final String imageUrl;
 
   Game({
     required this.id,
     required this.name,
-    required this.category,
     required this.imageUrl,
   });
 
   factory Game.fromJson(Map<String, dynamic> json) {
     return Game(
-      id: json['ID'],
-      name: json['name'],
-      category: json['category'],
-      // imageUrl: 'http://10.0.2.2:8080/uploads/${json['media']['file_name']}',
-      imageUrl: 'assets/images/img.png',
+      id: json['id'] ?? 0,
+      name: json['name'] ?? '',
+      imageUrl: json['media'] != null
+          ? 'http://10.0.2.2:8080/api/v1/images/${json['media']['file_name']}'
+          : 'http://10.0.2.2:8080/api/v1/images/yugiho.webp',
     );
   }
 }
@@ -114,232 +110,47 @@ class _HomePageState extends State<HomeUserPage> {
   List<Tournament> allTournaments = [];
   List<Game> games = [];
 
-
   @override
   void initState() {
     super.initState();
     _fetchData();
   }
 
-  /*Future<void> _fetchData() async {
-    final recentTournamentsResponse = await http.get(Uri.parse('http://10.0.2.2:8080/api/v1/tournaments'));
-    final allTournamentsResponse = await http.get(Uri.parse('http://10.0.2.2:8080/api/v1/tournaments'));
-    final gamesResponse = await http.get(Uri.parse('http://10.0.2.2:8080/api/v1/games'));
+  Future<void> _fetchData() async {
+    String? token = await storage.read(key: 'jwt_token');
+    final recentTournamentsResponse = await http.get(
+      Uri.parse('http://10.0.2.2:8080/api/v1/tournaments?WithRecents=true'),
+      headers: {
+        'Authorization': '$token',
+      },
+    );
+    final gamesResponse = await http.get(
+      Uri.parse('http://10.0.2.2:8080/api/v1/games?WithTrendy=false'),
+      headers: {
+        'Authorization': '$token',
+      },
+    );
 
-    if (recentTournamentsResponse.statusCode == 200 && allTournamentsResponse.statusCode == 200 && gamesResponse.statusCode == 200) {
+    if (recentTournamentsResponse.statusCode == 200 && gamesResponse.statusCode == 200) {
+      final responseData = jsonDecode(recentTournamentsResponse.body);
+
       setState(() {
-        recentTournaments = (jsonDecode(recentTournamentsResponse.body) as List)
+        recentTournaments = (responseData['recentTournaments'] as List)
             .map((data) => Tournament.fromJson(data))
             .toList();
 
-        allTournaments = (jsonDecode(allTournamentsResponse.body) as List)
+        allTournaments = (responseData['allTournaments'] as List)
             .map((data) => Tournament.fromJson(data))
             .toList();
 
         games = (jsonDecode(gamesResponse.body) as List)
             .map((data) => Game.fromJson(data))
+            .take(10)
             .toList();
       });
     } else {
       throw Exception('Failed to load data');
     }
-  }*/
-
-  Future<void> _fetchData() async {
-    // Utilisez des données d'exemple pour l'instant
-    setState(() {
-      recentTournaments = [
-        Tournament(
-          id: 1,
-          name: 'Tournoi des 4',
-          description: 'Tournoi de 4 équipes',
-          location: 'Paris',
-          startDate: '2023-05-05T15:00:00',
-          endDate: '2023-05-05T18:00:00',
-          imageUrl: 'assets/images/img.png',
-          maxPlayers: 16,
-          organizer: Organizer(
-            id: 1,
-            name: 'Organizer 1',
-            email: ' [email protected]',
-          ),
-          game: Game(
-            id: 1,
-            name: 'Game 1',
-            category: 'Category 1',
-            imageUrl: 'assets/images/img.png',
-          ),
-          tags: ['3v3', 'Cashprice'],
-        ),
-        Tournament(
-          id: 2,
-          name: 'Tournoi des 2',
-          description: 'Tournoi de 2 équipes',
-          location: 'Lyon',
-          startDate: '2023-05-05T15:00:00',
-          endDate: '2023-05-05T18:00:00',
-          imageUrl: 'assets/images/img.png',
-          maxPlayers: 8,
-          organizer: Organizer(
-            id: 2,
-            name: 'Organizer 2',
-            email: ' [email protected]',
-          ),
-          game: Game(
-            id: 2,
-            name: 'Game 2',
-            category: 'Category 2',
-            imageUrl: 'assets/images/img.png',
-          ),
-          tags: ['1v1', 'Casual'],
-        ),
-
-      ];
-
-      allTournaments = [
-        Tournament(
-          id: 1,
-          name: 'Tournoi des 4',
-          description: 'Tournoi de 4 équipes',
-          location: 'Paris',
-          startDate: '2023-05-05T15:00:00',
-          endDate: '2023-05-05T18:00:00',
-          imageUrl: 'assets/images/img.png',
-          maxPlayers: 16,
-          organizer: Organizer(
-            id: 1,
-            name: 'Organizer 1',
-            email: ' [email protected]',
-          ),
-          game: Game(
-            id: 1,
-            name: 'Game 1',
-            category: 'Category 1',
-            imageUrl: 'assets/images/img.png',
-          ),
-          tags: ['3v3', 'Cashprice'],
-        ),
-        Tournament(
-          id: 2,
-          name: 'Tournoi des 2',
-          description: 'Tournoi de 2 équipes',
-          location: 'Lyon',
-          startDate: '2023-05-05T15:00:00',
-          endDate: '2023-05-05T18:00:00',
-          imageUrl: 'assets/images/img.png',
-          maxPlayers: 8,
-          organizer: Organizer(
-            id: 2,
-            name: 'Organizer 2',
-            email: ' [email protected]',
-          ),
-          game: Game(
-            id: 2,
-            name: 'Game 2',
-            category: 'Category 2',
-            imageUrl: 'assets/images/img.png',
-          ),
-          tags: ['1v1', 'Casual'],
-        ),
-        Tournament(
-          id: 3,
-          name: 'Tournoi des 3',
-          description: 'Tournoi de 3 équipes',
-          location: 'Marseille',
-          startDate: '2023-05-05T15:00:00',
-          endDate: '2023-05-05T18:00:00',
-          imageUrl: 'assets/images/img.png',
-          maxPlayers: 12,
-          organizer: Organizer(
-            id: 3,
-            name: 'Organizer 3',
-            email: ' [email protected]',
-          ),
-          game: Game(
-            id: 3,
-            name: 'Game 3',
-            category: 'Category 3',
-            imageUrl: 'assets/images/img.png',
-          ),
-          tags: ['2v2', 'Ranked'],
-        ),
-        Tournament(
-          id: 4,
-          name: 'Tournoi des 5zebgfezbfdezbdgf',
-          description: 'Tournoi de 5 équipes',
-          location: 'Bordeaux',
-          startDate: '2023-05-05T15:00:00',
-          endDate: '2023-05-05T18:00:00',
-          imageUrl: 'assets/images/img.png',
-          maxPlayers: 20,
-          organizer: Organizer(
-            id: 4,
-            name: 'Organizer 4',
-            email: ' [email protected]',
-          ),
-          game: Game(
-            id: 4,
-            name: 'Game 4',
-            category: 'Category 4',
-            imageUrl: 'assets/images/img.png',
-          ),
-          tags: ['4v4', 'Ranked'],
-        ),
-        Tournament(
-          id: 9,
-          name: 'Tournoi des 6',
-          description: 'Tournoi de 5 équipes',
-          location: 'Bordeaux',
-          startDate: '2023-05-05T15:00:00',
-          endDate: '2023-05-05T18:00:00',
-          imageUrl: 'assets/images/img.png',
-          maxPlayers: 20,
-          organizer: Organizer(
-            id: 4,
-            name: 'Organizer 4',
-            email: ' [email protected]',
-          ),
-          game: Game(
-            id: 4,
-            name: 'Game 4',
-            category: 'Category 4',
-            imageUrl: 'assets/images/img.png',
-          ),
-          tags: ['4v4', 'Ranked'],
-        ),
-
-
-        // Ajoutez d'autres tournois ici
-      ];
-
-      games = [
-        Game(
-          id: 1,
-          name: 'Waven',
-          category: 'Aventure - MMORPG',
-          imageUrl: 'assets/images/img.png',
-        ),
-        Game(
-          id: 2,
-          name: 'Hearthstone',
-          category: 'Cartes - Stratégie',
-          imageUrl: 'assets/images/img.png',
-        ),
-        Game(
-          id: 3,
-          name: 'League of Legends',
-          category: 'MOBA',
-          imageUrl: 'assets/images/img.png',
-        ),
-        Game(
-          id: 4,
-          name: 'Valorant',
-          category: 'FPS',
-          imageUrl: 'assets/images/img.png',
-        ),
-        // Ajoutez d'autres jeux ici
-      ];
-    });
   }
 
   Future<void> _onTournamentTapped(int id) async {
@@ -360,11 +171,11 @@ class _HomePageState extends State<HomeUserPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: TopAppBar( title: 'Accueil', isAvatar: true, isPage: false),
+      appBar: TopAppBar(title: 'Accueil', isAvatar: true, isPage: false),
       body: SingleChildScrollView(
         child: Column(
           children: [
-            _buildSectionTitle('Tournois récent'),
+            _buildSectionTitle('Tournois récents'),
             _buildHorizontalList(recentTournaments),
             _buildSectionTitleWithButton('Les tournois', 'Voir les tournois', () {
               Navigator.push(
@@ -436,8 +247,7 @@ class _HomePageState extends State<HomeUserPage> {
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(12),
                   image: DecorationImage(
-                    //image: NetworkImage(item.imageUrl),
-                    image: AssetImage(item.imageUrl),
+                    image: NetworkImage(item.imageUrl),
                     fit: BoxFit.cover,
                   ),
                 ),
@@ -485,8 +295,7 @@ class _HomePageState extends State<HomeUserPage> {
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(12),
                 image: DecorationImage(
-                  //image: NetworkImage(item.imageUrl),
-                  image: AssetImage(item.imageUrl),
+                  image: NetworkImage(item.imageUrl),
                   fit: BoxFit.cover,
                 ),
               ),
@@ -501,10 +310,6 @@ class _HomePageState extends State<HomeUserPage> {
                         Text(
                           item.name,
                           style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
-                        ),
-                        Text(
-                          item.category,
-                          style: const TextStyle(color: Colors.white, fontSize: 14),
                         ),
                       ],
                     ),
@@ -556,8 +361,7 @@ class _HomePageState extends State<HomeUserPage> {
                     decoration: BoxDecoration(
                       borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
                       image: DecorationImage(
-                        //image: NetworkImage(item.imageUrl),
-                        image: AssetImage(item.imageUrl),
+                        image: NetworkImage(item.imageUrl),
                         fit: BoxFit.cover,
                       ),
                     ),
@@ -583,7 +387,7 @@ class _HomePageState extends State<HomeUserPage> {
                           children: item.tags.map((tag) => Chip(
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(5),
-                              side: BorderSide(color: Colors.transparent),
+                              side: const BorderSide(color: Colors.transparent),
                             ),
                             padding: EdgeInsets.zero,
                             label: Text(tag, style: const TextStyle(color: Colors.white)),

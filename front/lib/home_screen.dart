@@ -15,7 +15,6 @@ class HomePage extends StatelessWidget {
       Future.microtask(() => _showVerificationDialog(context));
     }
     return Scaffold(
-      appBar: const TopAppBar(title: 'Accueil', isAvatar: true, isPage: false),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -46,7 +45,7 @@ class HomePage extends StatelessWidget {
               onPressed: () {
 
                 // Naviguer vers la page principale
-                Navigator.pushNamed(context, '/main');
+                Navigator.pushNamed(context, '/home_user');
               },
               child: Text('Continuer en tant qu\'Invité'),
             ),
