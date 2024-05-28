@@ -1,25 +1,25 @@
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:grpc/grpc.dart';
 
-import './../generated/tournament.pbgrpc.dart';
+import '../generated/match.pbgrpc.dart';
 
-class TournamentClient {
+class MatchClient {
   late ClientChannel channel;
-  late TournamentServiceClient stub;
+  late MatchServiceClient stub;
 
-  TournamentClient() {
+  MatchClient() {
     channel = ClientChannel(
       dotenv.env['API_IP'].toString(),
       // Utilisez localhost si vous êtes sur le même appareil, sinon utilisez l'IP de votre serveur
       port: 50051,
       options: const ChannelOptions(credentials: ChannelCredentials.insecure()),
     );
-    stub = TournamentServiceClient(channel);
+    stub = MatchServiceClient(channel);
   }
 
-  Stream<TournamentResponse> subscribeTournamentUpdate(int tournamentId) {
-    var request = TournamentRequest(tournamentId: tournamentId);
-    return stub.suscribeTournamentUpdate(request);
+  ResponseStream<MatchResponse> subscribeMatchUpdate(int matchId) {
+    var request = MatchRequest(matchId: matchId);
+    return stub.subscribeMatchUpdates(request);
   }
 
   void shutdown() async {

@@ -68,9 +68,7 @@ func SetupRouter(db *gorm.DB) *gin.Engine {
 		protectedRoutes.GET(("/matchs"), matchHandler.GetAllMatchs)
 		protectedRoutes.GET(("/matchs/:id"), matchHandler.GetMatch)
 		protectedRoutes.PUT(("/matchs/:id"), matchHandler.UpdateMatch)
-
-		protectedRoutes.GET(("/matchs"), matchHandler.GetAllMatchs)
-
+		
 		protectedRoutes.GET("/tags", tagHandler.GetAllTags)
 		protectedRoutes.POST("/tags", tagHandler.CreateTag)
 

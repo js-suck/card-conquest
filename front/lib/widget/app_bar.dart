@@ -78,6 +78,9 @@ class _TopAppBarState extends State<TopAppBar> {
       ),
       child: AppBar(
         toolbarHeight: kToolbarHeight + 20,
+        iconTheme: const IconThemeData(
+          color: Colors.white,
+        ),
         title: Builder(builder: (context) {
           if (widget.isPage) {
             return Text(

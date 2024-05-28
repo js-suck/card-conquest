@@ -37,6 +37,7 @@ const Match$json = {
     {'1': 'player_two', '3': 3, '4': 1, '5': 11, '6': '.protos.Player', '10': 'playerTwo'},
     {'1': 'status', '3': 4, '4': 1, '5': 9, '10': 'status'},
     {'1': 'winner_id', '3': 5, '4': 1, '5': 5, '10': 'winnerId'},
+    {'1': 'match_id', '3': 6, '4': 1, '5': 5, '10': 'matchId'},
   ],
 };
 
@@ -45,7 +46,7 @@ final $typed_data.Uint8List matchDescriptor = $convert.base64Decode(
     'CgVNYXRjaBIaCghwb3NpdGlvbhgBIAEoBVIIcG9zaXRpb24SLQoKcGxheWVyX29uZRgCIAEoCz'
     'IOLnByb3Rvcy5QbGF5ZXJSCXBsYXllck9uZRItCgpwbGF5ZXJfdHdvGAMgASgLMg4ucHJvdG9z'
     'LlBsYXllclIJcGxheWVyVHdvEhYKBnN0YXR1cxgEIAEoCVIGc3RhdHVzEhsKCXdpbm5lcl9pZB'
-    'gFIAEoBVIId2lubmVySWQ=');
+    'gFIAEoBVIId2lubmVySWQSGQoIbWF0Y2hfaWQYBiABKAVSB21hdGNoSWQ=');
 
 @$core.Deprecated('Use tournamentStepDescriptor instead')
 const TournamentStep$json = {

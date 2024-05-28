@@ -7,6 +7,7 @@ const Color backgroundColor = Color(0xff1E1E36);
 const Color invertedBackgroundColor = Colors.white;
 const Color accentBackgroundColor = Color(0xff000000);
 const Color secondaryAccentBackgroundColor = Color(0xff000000);
+const Color secondaryBackgroundAccentActiveColor = Color(0xFF000F3D);
 const Color accentColor = Color(0xffFF5500);
 
 // Définissez votre thème dans un fichier séparé

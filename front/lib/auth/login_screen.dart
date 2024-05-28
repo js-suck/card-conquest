@@ -2,8 +2,8 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:front/extension/theme_extension.dart';
 import 'package:http/http.dart' as http;
 
 Future<void> login(
@@ -11,7 +11,7 @@ Future<void> login(
   final storage =
       new FlutterSecureStorage(); // Create instance of secure storage
   final response = await http.post(
-    Uri.parse('http://192.168.0.45:8080/api/v1/login'),
+    Uri.parse('${dotenv.env['API_URL']}login'),
     headers: <String, String>{
       'Content-Type': 'application/json; charset=UTF-8',
     },
@@ -31,6 +31,12 @@ Future<void> login(
 
   } else {
     // Handle error in login
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Erreur de connexion'),
+        duration: Duration(seconds: 1),
+      ),
+    );
     throw Exception('Failed to log in');
   }
 }
@@ -96,8 +102,7 @@ class _LoginPageState extends State<LoginPage> {
                       const SizedBox(height: 10),
                       TextFormField(
                         controller: _usernameController,
-                        style: TextStyle(
-                            color: context.themeColors.invertedBackgroundColor),
+                        style: const TextStyle(color: Colors.black),
                         decoration: InputDecoration(
                           hintText: 'username',
                           hintStyle: TextStyle(
@@ -125,8 +130,7 @@ class _LoginPageState extends State<LoginPage> {
                       const SizedBox(height: 10),
                       TextFormField(
                         controller: _passwordController,
-                        style: TextStyle(
-                            color: context.themeColors.invertedBackgroundColor),
+                        style: const TextStyle(color: Colors.black),
                         decoration: InputDecoration(
                           hintText: '*******',
                           hintStyle: TextStyle(

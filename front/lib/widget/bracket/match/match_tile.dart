@@ -1,29 +1,112 @@
 import 'package:flutter/material.dart';
 import 'package:front/extension/theme_extension.dart';
-import 'package:front/widget/bracket/bracket.dart';
+import 'package:front/models/match/match.dart';
+import 'package:front/models/match/score.dart';
 
 class MatchTile extends StatelessWidget {
   const MatchTile(
       {super.key,
       required this.match,
       required this.isPast,
-      required this.isLastMatches});
+      required this.isLastMatches,
+      this.isSecond = false,
+      this.matchId,
+      this.playerId = 0});
 
   final Match match;
   final bool isPast;
   final bool isLastMatches;
+  final bool isSecond;
+  final matchId;
+  final int playerId;
 
   @override
   Widget build(BuildContext context) {
+    String? playerOneUsername = match.playerOne.name?.split(' ')[0] ?? '';
+    String? playerTwoUsername = match.playerTwo.name?.split(' ')[0] ?? '';
+    Color playerOneColor = context.themeColors.fontColor;
+    Color playerTwoColor = context.themeColors.fontColor;
+    Color playerOneScoreColor = context.themeColors.fontColor;
+    Color playerTwoScoreColor = context.themeColors.fontColor;
+    Color tileColor = context.themeColors.secondaryBackgroundAccentColor;
+    Color matchWinningStatusColor;
+    String matchWinningStatus;
+    FontWeight playerOneFontWeight = FontWeight.normal;
+    FontWeight playerTwoFontWeight = FontWeight.normal;
+    String playerOneScore = match.scores!
+        .firstWhere((s) => s.playerId == match.playerOne.id,
+            orElse: () => Score(score: 0, playerId: match.playerOne.id))
+        .score
+        .toString();
+    String playerTwoScore = match.scores!
+        .firstWhere((s) => s.playerId == match.playerTwo.id,
+            orElse: () => Score(score: 0, playerId: match.playerTwo.id))
+        .score
+        .toString();
+    if (match.winner.id != null) {
+      if (match.playerOne.id == match.winner.id) {
+        playerOneScoreColor = Colors.green;
+        playerTwoScoreColor = Colors.red;
+        playerOneFontWeight = FontWeight.bold;
+      } else {
+        playerOneScoreColor = Colors.red;
+        playerTwoScoreColor = Colors.green;
+        playerTwoFontWeight = FontWeight.bold;
+      }
+    } else {
+      playerOneScoreColor = Colors.redAccent;
+      playerTwoScoreColor = Colors.redAccent;
+    }
+    if (match.playerOne.name == '') {
+      playerOneUsername = 'Bye';
+      playerOneColor = Colors.grey;
+      playerOneScore = '';
+      playerTwoScore = '';
+    } else {
+      playerOneColor = context.themeColors.fontColor;
+    }
+    if (match.playerTwo.name == '') {
+      playerTwoUsername = 'Bye';
+      playerTwoColor = Colors.grey;
+      playerTwoScore = '';
+      playerOneScore = '';
+    } else {
+      playerTwoColor = context.themeColors.fontColor;
+    }
+    if (matchId != null && matchId == match.id) {
+      tileColor = context.themeColors.secondaryBackgroundAccentActiveColor;
+    }
+    matchWinningStatus = playerId == match.winner.id ? 'V' : 'D';
+    matchWinningStatusColor =
+        playerId == match.winner.id ? Colors.green : Colors.red;
+
     return GestureDetector(
       onTap: () {
-        Navigator.pushNamed(context, '/match', arguments: match);
+        if (matchId != null && matchId == match.id) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                'Ce match est déjà sélectionné',
+              ),
+            ),
+          );
+          return;
+        }
+        if (match.playerOne.name != '' && match.playerTwo.name != '') {
+          Navigator.pushNamed(context, '/match', arguments: match.id);
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                'Il n\'y a pas de match',
+              ),
+            ),
+          );
+        }
       },
       child: Container(
         width: double.infinity,
-        color: match.status == 'in progress'
-            ? Colors.redAccent
-            : context.themeColors.secondaryBackgroundAccentColor,
+        color: tileColor,
         child: Padding(
           padding: const EdgeInsets.all(10.0),
           child: Row(
@@ -32,44 +115,46 @@ class MatchTile extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('04.05.'),
+                  Text(
+                      '${match.startTime.day.toString().padLeft(2, '0')}.${match.startTime.month.toString().padLeft(2, '0')}.'),
                   const SizedBox(width: 10),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
                         children: [
-                          const CircleAvatar(
+                          CircleAvatar(
                             radius: 10,
-                            backgroundImage:
-                                AssetImage('assets/images/avatar.png'),
+                            backgroundColor: Colors.transparent,
+                            backgroundImage: match.playerOne.name == ''
+                                ? null
+                                : const AssetImage('assets/images/avatar.png'),
                           ),
                           const SizedBox(width: 5),
                           Text(
-                            match.player1!,
+                            playerOneUsername,
                             style: TextStyle(
-                              fontWeight: match.winnerId == match.playerOneId
-                                  ? FontWeight.bold
-                                  : FontWeight.normal,
-                            ),
+                                color: playerOneColor,
+                                fontWeight: playerOneFontWeight),
                           ),
                         ],
                       ),
                       const SizedBox(height: 10),
                       Row(
                         children: [
-                          const CircleAvatar(
+                          CircleAvatar(
                             radius: 10,
-                            backgroundImage:
-                                AssetImage('assets/images/avatar.png'),
+                            backgroundColor: Colors.transparent,
+                            backgroundImage: match.playerTwo.name == ''
+                                ? null
+                                : const AssetImage('assets/images/avatar.png'),
                           ),
                           const SizedBox(width: 5),
                           Text(
-                            match.player2!,
+                            playerTwoUsername!,
                             style: TextStyle(
-                              fontWeight: match.winnerId == match.playerTwoId
-                                  ? FontWeight.bold
-                                  : FontWeight.normal,
+                              color: playerTwoColor,
+                              fontWeight: playerTwoFontWeight,
                             ),
                           ),
                         ],
@@ -82,7 +167,7 @@ class MatchTile extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   Builder(builder: (context) {
-                    if (isPast) {
+                    if (match.status != 'created') {
                       return Builder(builder: (context) {
                         if (isLastMatches) {
                           return Row(
@@ -91,19 +176,13 @@ class MatchTile extends StatelessWidget {
                             children: [
                               Column(
                                 children: [
-                                  Text(match.score1!,
+                                  Text(playerOneScore,
                                       style: TextStyle(
-                                          color: match.winnerId ==
-                                                  match.playerOneId
-                                              ? Colors.green
-                                              : Colors.red)),
+                                          color: playerOneScoreColor)),
                                   const SizedBox(height: 10),
-                                  Text(match.score2!,
+                                  Text(playerTwoScore,
                                       style: TextStyle(
-                                          color: match.winnerId ==
-                                                  match.playerTwoId
-                                              ? Colors.green
-                                              : Colors.red)),
+                                          color: playerTwoScoreColor)),
                                 ],
                               ),
                               Container(
@@ -112,15 +191,11 @@ class MatchTile extends StatelessWidget {
                                 padding: const EdgeInsets.all(2),
                                 margin: const EdgeInsets.only(left: 10),
                                 decoration: BoxDecoration(
-                                  color: match.playerOneId == match.winnerId
-                                      ? Colors.green
-                                      : Colors.red,
+                                  color: matchWinningStatusColor,
                                   borderRadius: BorderRadius.circular(5),
                                 ),
                                 child: Text(
-                                  match.playerOneId == match.winnerId
-                                      ? 'V'
-                                      : 'D',
+                                  matchWinningStatus,
                                   textAlign: TextAlign.center,
                                   style: const TextStyle(
                                     color: Colors.white,
@@ -133,17 +208,11 @@ class MatchTile extends StatelessWidget {
                         } else {
                           return Column(
                             children: [
-                              Text(match.score1!,
-                                  style: TextStyle(
-                                      color: match.winnerId == match.playerOneId
-                                          ? Colors.green
-                                          : Colors.red)),
+                              Text(playerOneScore,
+                                  style: TextStyle(color: playerOneScoreColor)),
                               const SizedBox(height: 10),
-                              Text(match.score2!,
-                                  style: TextStyle(
-                                      color: match.winnerId == match.playerTwoId
-                                          ? Colors.green
-                                          : Colors.red)),
+                              Text(playerTwoScore,
+                                  style: TextStyle(color: playerTwoScoreColor)),
                             ],
                           );
                         }
@@ -152,7 +221,8 @@ class MatchTile extends StatelessWidget {
                       return Row(
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
-                          Text(match.time!),
+                          Text(
+                              '${match.startTime.hour.toString().padLeft(2, '0')}:${match.startTime.minute.toString().padLeft(2, '0')}'),
                         ],
                       );
                     }

@@ -98,6 +98,7 @@ class Match extends $pb.GeneratedMessage {
     Player? playerTwo,
     $core.String? status,
     $core.int? winnerId,
+    $core.int? matchId,
   }) {
     final $result = create();
     if (position != null) {
@@ -115,6 +116,9 @@ class Match extends $pb.GeneratedMessage {
     if (winnerId != null) {
       $result.winnerId = winnerId;
     }
+    if (matchId != null) {
+      $result.matchId = matchId;
+    }
     return $result;
   }
   Match._() : super();
@@ -127,6 +131,7 @@ class Match extends $pb.GeneratedMessage {
     ..aOM<Player>(3, _omitFieldNames ? '' : 'playerTwo', subBuilder: Player.create)
     ..aOS(4, _omitFieldNames ? '' : 'status')
     ..a<$core.int>(5, _omitFieldNames ? '' : 'winnerId', $pb.PbFieldType.O3)
+    ..a<$core.int>(6, _omitFieldNames ? '' : 'matchId', $pb.PbFieldType.O3)
     ..hasRequiredFields = false
   ;
 
@@ -199,6 +204,15 @@ class Match extends $pb.GeneratedMessage {
   $core.bool hasWinnerId() => $_has(4);
   @$pb.TagNumber(5)
   void clearWinnerId() => clearField(5);
+
+  @$pb.TagNumber(6)
+  $core.int get matchId => $_getIZ(5);
+  @$pb.TagNumber(6)
+  set matchId($core.int v) { $_setSignedInt32(5, v); }
+  @$pb.TagNumber(6)
+  $core.bool hasMatchId() => $_has(5);
+  @$pb.TagNumber(6)
+  void clearMatchId() => clearField(6);
 }
 
 class TournamentStep extends $pb.GeneratedMessage {

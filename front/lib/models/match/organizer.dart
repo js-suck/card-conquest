@@ -1,17 +1,14 @@
 class Organizer {
-  final int id;
-  final String name;
-  final String email;
+  final String? username;
+  final String? email;
 
   Organizer({
-    required this.id,
-    required this.name,
-    required this.email,
+    this.username,
+    this.email,
   });
 
   factory Organizer.fromJson(Map<String, dynamic> json) {
     return Organizer(
-      id: json['ID'] ?? 0,
       name: json['username'] ?? '',
       email: json['email'] ?? '',
     );

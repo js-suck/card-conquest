@@ -13,7 +13,6 @@ import 'dart:core' as $core;
 
 import 'package:protobuf/protobuf.dart' as $pb;
 
-/// La demande pour recevoir des mises à jour
 class MatchRequest extends $pb.GeneratedMessage {
   factory MatchRequest({
     $core.int? matchId,
@@ -64,12 +63,119 @@ class MatchRequest extends $pb.GeneratedMessage {
   void clearMatchId() => clearField(1);
 }
 
-/// La réponse qui contient l'état du match
+class PlayerMatch extends $pb.GeneratedMessage {
+  factory PlayerMatch({
+    $core.int? id,
+    $core.String? username,
+    $core.String? mediaUrl,
+    $core.int? rank,
+    $core.int? score,
+  }) {
+    final $result = create();
+    if (id != null) {
+      $result.id = id;
+    }
+    if (username != null) {
+      $result.username = username;
+    }
+    if (mediaUrl != null) {
+      $result.mediaUrl = mediaUrl;
+    }
+    if (rank != null) {
+      $result.rank = rank;
+    }
+    if (score != null) {
+      $result.score = score;
+    }
+    return $result;
+  }
+  PlayerMatch._() : super();
+  factory PlayerMatch.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
+  factory PlayerMatch.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'PlayerMatch', package: const $pb.PackageName(_omitMessageNames ? '' : 'protos'), createEmptyInstance: create)
+    ..a<$core.int>(1, _omitFieldNames ? '' : 'id', $pb.PbFieldType.O3)
+    ..aOS(2, _omitFieldNames ? '' : 'username')
+    ..aOS(3, _omitFieldNames ? '' : 'mediaUrl', protoName: 'mediaUrl')
+    ..a<$core.int>(4, _omitFieldNames ? '' : 'rank', $pb.PbFieldType.O3)
+    ..a<$core.int>(5, _omitFieldNames ? '' : 'score', $pb.PbFieldType.O3)
+    ..hasRequiredFields = false
+  ;
+
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+  'Will be removed in next major version')
+  PlayerMatch clone() => PlayerMatch()..mergeFromMessage(this);
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+  'Will be removed in next major version')
+  PlayerMatch copyWith(void Function(PlayerMatch) updates) => super.copyWith((message) => updates(message as PlayerMatch)) as PlayerMatch;
+
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static PlayerMatch create() => PlayerMatch._();
+  PlayerMatch createEmptyInstance() => create();
+  static $pb.PbList<PlayerMatch> createRepeated() => $pb.PbList<PlayerMatch>();
+  @$core.pragma('dart2js:noInline')
+  static PlayerMatch getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<PlayerMatch>(create);
+  static PlayerMatch? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.int get id => $_getIZ(0);
+  @$pb.TagNumber(1)
+  set id($core.int v) { $_setSignedInt32(0, v); }
+  @$pb.TagNumber(1)
+  $core.bool hasId() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearId() => clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.String get username => $_getSZ(1);
+  @$pb.TagNumber(2)
+  set username($core.String v) { $_setString(1, v); }
+  @$pb.TagNumber(2)
+  $core.bool hasUsername() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearUsername() => clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.String get mediaUrl => $_getSZ(2);
+  @$pb.TagNumber(3)
+  set mediaUrl($core.String v) { $_setString(2, v); }
+  @$pb.TagNumber(3)
+  $core.bool hasMediaUrl() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearMediaUrl() => clearField(3);
+
+  @$pb.TagNumber(4)
+  $core.int get rank => $_getIZ(3);
+  @$pb.TagNumber(4)
+  set rank($core.int v) { $_setSignedInt32(3, v); }
+  @$pb.TagNumber(4)
+  $core.bool hasRank() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearRank() => clearField(4);
+
+  @$pb.TagNumber(5)
+  $core.int get score => $_getIZ(4);
+  @$pb.TagNumber(5)
+  set score($core.int v) { $_setSignedInt32(4, v); }
+  @$pb.TagNumber(5)
+  $core.bool hasScore() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearScore() => clearField(5);
+}
+
 class MatchResponse extends $pb.GeneratedMessage {
   factory MatchResponse({
     $core.int? matchId,
     $core.String? status,
-    $core.String? detail,
+    PlayerMatch? playerOne,
+    PlayerMatch? playerTwo,
+    $core.int? winnerId,
   }) {
     final $result = create();
     if (matchId != null) {
@@ -78,8 +184,14 @@ class MatchResponse extends $pb.GeneratedMessage {
     if (status != null) {
       $result.status = status;
     }
-    if (detail != null) {
-      $result.detail = detail;
+    if (playerOne != null) {
+      $result.playerOne = playerOne;
+    }
+    if (playerTwo != null) {
+      $result.playerTwo = playerTwo;
+    }
+    if (winnerId != null) {
+      $result.winnerId = winnerId;
     }
     return $result;
   }
@@ -90,7 +202,9 @@ class MatchResponse extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'MatchResponse', package: const $pb.PackageName(_omitMessageNames ? '' : 'protos'), createEmptyInstance: create)
     ..a<$core.int>(1, _omitFieldNames ? '' : 'matchId', $pb.PbFieldType.O3)
     ..aOS(2, _omitFieldNames ? '' : 'status')
-    ..aOS(3, _omitFieldNames ? '' : 'detail')
+    ..aOM<PlayerMatch>(3, _omitFieldNames ? '' : 'playerOne', protoName: 'playerOne', subBuilder: PlayerMatch.create)
+    ..aOM<PlayerMatch>(4, _omitFieldNames ? '' : 'playerTwo', protoName: 'playerTwo', subBuilder: PlayerMatch.create)
+    ..a<$core.int>(5, _omitFieldNames ? '' : 'winnerId', $pb.PbFieldType.O3, protoName: 'winnerId')
     ..hasRequiredFields = false
   ;
 
@@ -134,13 +248,35 @@ class MatchResponse extends $pb.GeneratedMessage {
   void clearStatus() => clearField(2);
 
   @$pb.TagNumber(3)
-  $core.String get detail => $_getSZ(2);
+  PlayerMatch get playerOne => $_getN(2);
   @$pb.TagNumber(3)
-  set detail($core.String v) { $_setString(2, v); }
+  set playerOne(PlayerMatch v) { setField(3, v); }
   @$pb.TagNumber(3)
-  $core.bool hasDetail() => $_has(2);
+  $core.bool hasPlayerOne() => $_has(2);
   @$pb.TagNumber(3)
-  void clearDetail() => clearField(3);
+  void clearPlayerOne() => clearField(3);
+  @$pb.TagNumber(3)
+  PlayerMatch ensurePlayerOne() => $_ensure(2);
+
+  @$pb.TagNumber(4)
+  PlayerMatch get playerTwo => $_getN(3);
+  @$pb.TagNumber(4)
+  set playerTwo(PlayerMatch v) { setField(4, v); }
+  @$pb.TagNumber(4)
+  $core.bool hasPlayerTwo() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearPlayerTwo() => clearField(4);
+  @$pb.TagNumber(4)
+  PlayerMatch ensurePlayerTwo() => $_ensure(3);
+
+  @$pb.TagNumber(5)
+  $core.int get winnerId => $_getIZ(4);
+  @$pb.TagNumber(5)
+  set winnerId($core.int v) { $_setSignedInt32(4, v); }
+  @$pb.TagNumber(5)
+  $core.bool hasWinnerId() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearWinnerId() => clearField(5);
 }
 
 

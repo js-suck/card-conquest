@@ -13,12 +13,6 @@ type GameRead struct {
 	Media *Media `json:"media, omitempty"`
 }
 
-type GameRead struct {
-	ID    uint   `json:"id"`
-	Name  string `json:"name"`
-	Media *Media `json:"media, omitempty"`
-}
-
 func (g Game) GetTableName() string {
 	return "games"
 }
