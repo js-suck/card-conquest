@@ -8,3 +8,8 @@ type Score struct {
 	Player   User `gorm:"foreignKey:PlayerID"`
 	Score    int
 }
+
+type ScoreRead struct {
+	PlayerID uint
+	Score    int
+}

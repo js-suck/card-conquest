@@ -4,6 +4,7 @@ import (
 	"authentication-api/errors"
 	"authentication-api/models"
 	"gorm.io/gorm"
+	"sort"
 )
 
 type GameParams struct {
@@ -31,7 +32,7 @@ func (s *GameService) GetAll(filterParams FilterParams, gameParams GameParams, p
 	// games who the tounraments are the most recent
 	if gameParams.WithTrendy {
 
-		err := query.Joins("JOIN tournaments ON tournaments.game_id = games.id").Group("games.id").Order("tournaments.start_date DESC").Limit(8).Find(&trendyGames).Error
+		err := query.Joins("JOIN tournaments ON tournaments.game_id = games.id").Group("games.id, tournaments.start_date").Order("tournaments.start_date DESC").Limit(8).Find(&trendyGames).Error
 		if err != nil {
 			return nil, nil, errors.NewErrorResponse(500, err.Error())
 		}
@@ -52,4 +53,53 @@ func (s *GameService) GetAll(filterParams FilterParams, gameParams GameParams, p
 	}
 
 	return trendyGames, allGames, nil
+}
+
+func (s *GameService) CalculateUserRankings(userID string) ([]models.UserGameRanking, errors.IError) {
+	// get all the games
+	var games []models.Game
+
+	err := s.db.Preload("Tournaments.Steps.Matches").Find(&games).Error
+	if err != nil {
+		return nil, errors.NewErrorResponse(500, err.Error())
+	}
+
+	userScores := make(map[uint]int)
+
+	// map and get calculate the points of all users
+	for _, game := range games {
+		for _, tournament := range game.Tournaments {
+			for _, step := range tournament.Steps {
+				for _, match := range step.Matches {
+					if match.WinnerID != nil && *match.WinnerID != 0 {
+						userScores[*match.WinnerID] += 3
+					} else {
+						userScores[match.PlayerOneID] += 1
+						if *match.PlayerTwoID != 0 {
+							userScores[*match.PlayerTwoID] += 1
+						}
+					}
+				}
+			}
+		}
+	}
+
+	// for each score, give 3 to the winner and 1 to the others
+	var rankings []models.UserGameRanking
+	for userID, score := range userScores {
+		user := models.User{}
+		err := s.db.First(&user, userID).Error
+		if err != nil {
+			return nil, errors.NewErrorResponse(500, err.Error())
+		}
+		rankings = append(rankings, models.UserGameRanking{User: user.ToRead(), Score: score})
+	}
+
+	// get the userID index
+	sort.Slice(rankings, func(i, j int) bool {
+		return rankings[i].Score > rankings[j].Score
+	})
+
+	// return the ranking
+	return rankings, nil
 }

@@ -12,8 +12,8 @@ const (
 )
 
 type UserReadTournament struct {
-	ID    uint   `gorm:"primarykey"`
-	Name  string `json:"name"`
+	ID    uint   `gorm:"primarykey" json:",omitempty"`
+	Name  string `json:"username"`
 	Email string `json:"email"`
 }
 
@@ -61,7 +61,7 @@ type TournamentRead struct {
 	Name        string             `json:"name"`
 	Description string             `json:"description"`
 	Location    string             `json:"location"`
-	Organizer   UserReadTournament `json:"organizer"`
+	Organizer   UserReadTournament `json:",omitempty"`
 	Game        GameReadTournament `json:"game"`
 	StartDate   time.Time          `json:"start_date"`
 	EndDate     time.Time          `json:"end_date"`
