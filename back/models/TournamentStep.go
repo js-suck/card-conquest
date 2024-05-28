@@ -15,3 +15,8 @@ func (t TournamentStep) GetID() uint {
 func (t TournamentStep) GetTableName() string {
 	return "tournament_steps"
 }
+
+type MatchReadTournamentStep struct {
+	Name     string
+	Sequence int
+}

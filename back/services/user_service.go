@@ -20,3 +20,9 @@ func NewUserService(db *gorm.DB) *UserService {
 		GenericService: NewGenericService(db, models.User{}),
 	}
 }
+
+func (s UserService) GetUserStats(userId uint) (models.UserStats, error) {
+	userStats := models.UserStats{}
+	err := s.db.Where("user_id = ?", userId).First(&userStats).Error
+	return userStats, err
+}
