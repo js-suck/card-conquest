@@ -11,6 +11,7 @@ import 'package:http/http.dart' as http;
 
 import '../../generated/tournament.pb.dart';
 import '../../models/game_match.dart';
+import 'bracket.dart';
 
 Future<List<match.Match>> fetchMatches(tournamentId) async {
   final storage = new FlutterSecureStorage();
@@ -120,13 +121,66 @@ class _ResultsState extends State<Results> {
     ),
   ];
 
+  final List<Matcha> oldMatches = [
+    Matcha(
+      player1: 'Alcaraz C',
+      player2: 'Medvedev D',
+      playerOneId: 1,
+      playerTwoId: 5,
+      status: 'finished',
+      score1: '2',
+      score2: '0',
+      winnerId: 1,
+    ),
+    Matcha(
+      player1: 'Federer R',
+      player2: 'Nadal R',
+      playerOneId: 3,
+      playerTwoId: 7,
+      status: 'finished',
+      score1: '2',
+      score2: '1',
+      winnerId: 3,
+    ),
+    Matcha(
+      player1: 'Djokovic N',
+      player2: 'Shapovalov D',
+      playerOneId: 9,
+      playerTwoId: 12,
+      status: 'finished',
+      score1: '2',
+      score2: '0',
+      winnerId: 9,
+    ),
+    Matcha(
+      player1: 'Auger-Aliassime F',
+      player2: 'Monfils G',
+      playerOneId: 14,
+      playerTwoId: 15,
+      status: 'finished',
+      score1: '1',
+      score2: '2',
+      winnerId: 15,
+    ),
+    Matcha(
+      player1: 'Rublev A',
+      player2: 'Sinner J',
+      playerOneId: 13,
+      playerTwoId: 21,
+      status: 'finished',
+      score1: '0',
+      score2: '2',
+      winnerId: 21,
+    ),
+  ];
+
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
       builder: (context, snapshot) {
         debugPrint(snapshot.data?[0].toString());
         return MatchTiles(
-          matches: matches,
+          matches: oldMatches,
         );
       },
       future: fetchMatches(_tournamentId),

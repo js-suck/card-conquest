@@ -5,8 +5,8 @@ import 'package:front/widget/bracket/match/match_tiles.dart';
 class Head2Head extends StatelessWidget {
   Head2Head({super.key});
 
-  final List<Match> matchesPlayer1 = [
-    Match(
+  final List<Matcha> matchesPlayer1 = [
+    Matcha(
       player1: 'Alcaraz',
       player2: 'Medvedev',
       playerOneId: 1,
@@ -16,7 +16,7 @@ class Head2Head extends StatelessWidget {
       score2: '0',
       winnerId: 1,
     ),
-    Match(
+    Matcha(
       player1: 'Alcaraz',
       player2: 'Djokovic',
       playerOneId: 1,
@@ -26,7 +26,7 @@ class Head2Head extends StatelessWidget {
       score2: '0',
       winnerId: 1,
     ),
-    Match(
+    Matcha(
       player1: 'Alcaraz',
       player2: 'Nadal',
       playerOneId: 1,
@@ -36,7 +36,7 @@ class Head2Head extends StatelessWidget {
       score2: '2',
       winnerId: 7,
     ),
-    Match(
+    Matcha(
       player1: 'Alcaraz',
       player2: 'Federer',
       playerOneId: 1,
@@ -46,7 +46,7 @@ class Head2Head extends StatelessWidget {
       score2: '2',
       winnerId: 3,
     ),
-    Match(
+    Matcha(
       player1: 'Alcaraz',
       player2: 'Thiem',
       playerOneId: 1,
@@ -56,7 +56,7 @@ class Head2Head extends StatelessWidget {
       score2: '0',
       winnerId: 1,
     ),
-    Match(
+    Matcha(
       player1: 'Alcaraz',
       player2: 'Zverev',
       playerOneId: 1,
@@ -66,7 +66,7 @@ class Head2Head extends StatelessWidget {
       score2: '0',
       winnerId: 1,
     ),
-    Match(
+    Matcha(
       player1: 'Alcaraz',
       player2: 'Rublev',
       playerOneId: 1,
@@ -78,8 +78,8 @@ class Head2Head extends StatelessWidget {
     ),
   ];
 
-  final List<Match> matchesPlayer2 = [
-    Match(
+  final List<Matcha> matchesPlayer2 = [
+    Matcha(
       player1: 'Medvedev',
       player2: 'Alcaraz',
       playerOneId: 5,
@@ -89,7 +89,7 @@ class Head2Head extends StatelessWidget {
       score2: '2',
       winnerId: 1,
     ),
-    Match(
+    Matcha(
       player1: 'Medvedev',
       player2: 'Djokovic',
       playerOneId: 5,
@@ -99,7 +99,7 @@ class Head2Head extends StatelessWidget {
       score2: '1',
       winnerId: 5,
     ),
-    Match(
+    Matcha(
       player1: 'Medvedev',
       player2: 'Nadal',
       playerOneId: 5,
@@ -109,7 +109,7 @@ class Head2Head extends StatelessWidget {
       score2: '2',
       winnerId: 7,
     ),
-    Match(
+    Matcha(
       player1: 'Medvedev',
       player2: 'Federer',
       playerOneId: 5,
@@ -119,7 +119,7 @@ class Head2Head extends StatelessWidget {
       score2: '2',
       winnerId: 3,
     ),
-    Match(
+    Matcha(
       player1: 'Medvedev',
       player2: 'Thiem',
       playerOneId: 5,
@@ -129,7 +129,7 @@ class Head2Head extends StatelessWidget {
       score2: '0',
       winnerId: 5,
     ),
-    Match(
+    Matcha(
       player1: 'Medvedev',
       player2: 'Zverev',
       playerOneId: 5,
@@ -139,7 +139,7 @@ class Head2Head extends StatelessWidget {
       score2: '0',
       winnerId: 5,
     ),
-    Match(
+    Matcha(
       player1: 'Medvedev',
       player2: 'Rublev',
       playerOneId: 5,
@@ -151,8 +151,8 @@ class Head2Head extends StatelessWidget {
     ),
   ];
 
-  final List<Match> matchesH2H = [
-    Match(
+  final List<Matcha> matchesH2H = [
+    Matcha(
       player1: 'Medvedev',
       player2: 'Alcaraz',
       playerOneId: 5,

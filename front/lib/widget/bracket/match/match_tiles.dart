@@ -13,7 +13,7 @@ class MatchTiles extends StatefulWidget {
     this.isScoreboard = false,
   });
 
-  final List<Match> matches;
+  final List<Matcha> matches;
   final bool isPast;
   final bool isLastMatches;
   final bool isH2H;
@@ -26,7 +26,7 @@ class MatchTiles extends StatefulWidget {
 class _MatchTilesState extends State<MatchTiles> {
   bool showMoreMatches = false;
 
-  List<Match> get displayMatches => !showMoreMatches &&
+  List<Matcha> get displayMatches => !showMoreMatches &&
           (widget.isLastMatches || widget.isH2H || widget.isScoreboard)
       ? widget.matches.take(5).toList()
       : widget.matches;

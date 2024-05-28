@@ -5,8 +5,8 @@ import 'package:front/widget/bracket/match/match_tiles.dart';
 class Calendar extends StatelessWidget {
   Calendar({super.key});
 
-  final List<Match> matches = [
-    Match(
+  final List<Matcha> matches = [
+    Matcha(
         player1: 'Alcaraz C',
         player2: 'Medvedev D',
         playerOneId: 1,
@@ -14,7 +14,7 @@ class Calendar extends StatelessWidget {
         status: 'not started',
         time: '14:00',
         date: '07.05.'),
-    Match(
+    Matcha(
         player1: 'Federer R',
         player2: 'Nadal R',
         playerOneId: 3,
@@ -22,7 +22,7 @@ class Calendar extends StatelessWidget {
         status: 'not started',
         time: '15:00',
         date: '07.05.'),
-    Match(
+    Matcha(
         player1: 'Djokovic N',
         player2: 'Shapovalov D',
         playerOneId: 9,
@@ -30,7 +30,7 @@ class Calendar extends StatelessWidget {
         status: 'not started',
         time: '16:00',
         date: '07.05.'),
-    Match(
+    Matcha(
         player1: 'Auger-Aliassime F',
         player2: 'Monfils G',
         playerOneId: 14,
@@ -38,7 +38,7 @@ class Calendar extends StatelessWidget {
         status: 'not started',
         time: '17:00',
         date: '08.05.'),
-    Match(
+    Matcha(
         player1: 'Rublev A',
         player2: 'Sinner J',
         playerOneId: 13,
@@ -46,7 +46,7 @@ class Calendar extends StatelessWidget {
         status: 'not started',
         time: '18:00',
         date: '08.05.'),
-    Match(
+    Matcha(
       player1: 'Tsitsipas S',
       player2: 'Zverev A',
       playerOneId: 11,

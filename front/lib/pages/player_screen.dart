@@ -5,12 +5,13 @@ import 'package:front/widget/app_bar.dart';
 import 'package:front/widget/bracket/bracket.dart';
 import 'package:front/widget/bracket/match/match_tiles.dart';
 import 'package:front/widget/bracket/scoreboard.dart';
+import 'package:front/generated/tournament.pb.dart' as tournament;
 
 class PlayerPage extends StatelessWidget {
   PlayerPage({super.key});
 
-  final List<Match> matchesPlayer1 = [
-    Match(
+  final List<Matcha> matchesPlayer1 = [
+    Matcha(
       player1: 'Alcaraz',
       player2: 'Medvedev',
       playerOneId: 1,
@@ -21,7 +22,7 @@ class PlayerPage extends StatelessWidget {
       winnerId: 1,
       tournament: 'US Open',
     ),
-    Match(
+    Matcha(
       player1: 'Alcaraz',
       player2: 'Djokovic',
       playerOneId: 1,
@@ -32,7 +33,7 @@ class PlayerPage extends StatelessWidget {
       winnerId: 1,
       tournament: 'US Open',
     ),
-    Match(
+    Matcha(
       player1: 'Alcaraz',
       player2: 'Nadal',
       playerOneId: 1,
@@ -43,7 +44,7 @@ class PlayerPage extends StatelessWidget {
       winnerId: 7,
       tournament: 'Roland Garros',
     ),
-    Match(
+    Matcha(
       player1: 'Alcaraz',
       player2: 'Federer',
       playerOneId: 1,
@@ -54,7 +55,7 @@ class PlayerPage extends StatelessWidget {
       winnerId: 3,
       tournament: 'Roland Garros',
     ),
-    Match(
+    Matcha(
       player1: 'Alcaraz',
       player2: 'Thiem',
       playerOneId: 1,
@@ -65,7 +66,7 @@ class PlayerPage extends StatelessWidget {
       winnerId: 1,
       tournament: 'Wimbledon',
     ),
-    Match(
+    Matcha(
       player1: 'Alcaraz',
       player2: 'Zverev',
       playerOneId: 1,
@@ -76,7 +77,7 @@ class PlayerPage extends StatelessWidget {
       winnerId: 1,
       tournament: 'Wimbledon',
     ),
-    Match(
+    Matcha(
       player1: 'Alcaraz',
       player2: 'Rublev',
       playerOneId: 1,
@@ -94,12 +95,12 @@ class PlayerPage extends StatelessWidget {
     Map<String, dynamic>? args =
         ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>?;
 
-    final Player player = args!['player'] as Player;
+    final tournament.Player player = args!['player'] as tournament.Player;
     final bool isTournament = args['isTournament'] as bool;
 
     return Scaffold(
       appBar: TopAppBar(
-        title: player.nom,
+        title: player.username,
         isPage: true,
         isAvatar: false,
         isSettings: false,
@@ -131,14 +132,14 @@ class PlayerPage extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        player.nom,
+                        player.username,
                         style: const TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       Text(
-                        'Age: ${player.age.toString()}',
+                        'Age: player.age.toString()',
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -169,13 +170,13 @@ class PlayerPage extends StatelessWidget {
                       ),
                     ),
                   ),
-                  Text('Classement: ${player.classement.toString()}'),
+                  Text('Classement: player.classement.toString()'),
                 ],
               ),
             ),
             if (!isTournament)
               for (var tournament
-                  in groupBy(matchesPlayer1, (Match match) => match.tournament)
+                  in groupBy(matchesPlayer1, (Matcha match) => match.tournament)
                       .entries)
                 MatchTiles(
                   matches: tournament.value,

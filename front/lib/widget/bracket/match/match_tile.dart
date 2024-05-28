@@ -9,7 +9,7 @@ class MatchTile extends StatelessWidget {
       required this.isPast,
       required this.isLastMatches});
 
-  final Match match;
+  final Matcha match;
   final bool isPast;
   final bool isLastMatches;
 
@@ -152,7 +152,7 @@ class MatchTile extends StatelessWidget {
                       return Row(
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
-                          Text(match.time!),
+                          Text('match.time!'),
                         ],
                       );
                     }

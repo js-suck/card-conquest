@@ -6,11 +6,18 @@ import 'package:front/widget/bracket/match/head2head.dart';
 import 'package:front/widget/bracket/match/summary.dart';
 import 'package:front/widget/bracket/scoreboard.dart';
 import 'package:provider/provider.dart';
+import 'package:front/generated/tournament.pb.dart' as tournament;
 
 class MatchPage extends StatelessWidget {
   MatchPage({super.key});
 
   final bool isBracket = true;
+
+  final status = {
+    'created': 'Créé',
+    'started': 'En cours',
+    'finished': 'Terminé',
+  };
 
   final Player player1 = Player(
     nom: 'Alcaraz C.',
@@ -34,7 +41,8 @@ class MatchPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final Match match = ModalRoute.of(context)!.settings.arguments as Match;
+    final tournament.Match match =
+        ModalRoute.of(context)!.settings.arguments as tournament.Match;
     final isDarkMode = Provider.of<ThemeNotifier>(context).isDarkMode;
     final fontColor = isDarkMode ? Colors.white : Colors.black;
 
@@ -59,8 +67,10 @@ class MatchPage extends StatelessWidget {
                         top: 16.0, left: 12.0, right: 8.0, bottom: 8.0),
                     child: GestureDetector(
                       onTap: () {
-                        Navigator.pushNamed(context, '/player',
-                            arguments: player1);
+                        Navigator.pushNamed(context, '/player', arguments: {
+                          'player': match.playerOne,
+                          'isTournament': true
+                        });
                       },
                       child: Column(
                         children: [
@@ -77,13 +87,14 @@ class MatchPage extends StatelessWidget {
                             ),
                           ),
                           Text(
-                            match.player1!,
+                            match.playerOne.username,
                             maxLines: 2,
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 16,
                               overflow: TextOverflow.ellipsis,
-                              fontWeight: match.winnerId == match.playerOneId
+                              fontWeight: match.winnerId.toString() ==
+                                      match.playerOne.userId
                                   ? FontWeight.bold
                                   : FontWeight.normal,
                             ),
@@ -99,15 +110,15 @@ class MatchPage extends StatelessWidget {
                   padding: const EdgeInsets.only(top: 8.0),
                   child: Column(
                     children: [
-                      Text(
-                        '${match.date} ${match.time}',
-                        style: const TextStyle(
+                      const Text(
+                        'match.date match.time',
+                        style: TextStyle(
                           fontSize: 16,
                           color: Colors.grey,
                         ),
                       ),
                       Text(
-                        '${match.score1} - ${match.score2}',
+                        '${match.playerOne.score} - ${match.playerTwo.score}',
                         style: TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
@@ -117,7 +128,7 @@ class MatchPage extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 4),
-                      Text(match.status,
+                      Text(status[match.status]!,
                           style: TextStyle(
                               fontSize: 16,
                               color: match.status == 'in progress'
@@ -132,8 +143,10 @@ class MatchPage extends StatelessWidget {
                         top: 16.0, left: 8.0, right: 12.0, bottom: 8.0),
                     child: GestureDetector(
                       onTap: () {
-                        Navigator.pushNamed(context, '/player',
-                            arguments: player2);
+                        Navigator.pushNamed(context, '/player', arguments: {
+                          'player': match.playerTwo,
+                          'isTournament': true
+                        });
                       },
                       child: Column(
                         children: [
@@ -150,13 +163,14 @@ class MatchPage extends StatelessWidget {
                             ),
                           ),
                           Text(
-                            match.player2!,
+                            match.playerTwo.username,
                             maxLines: 2,
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 16,
                               overflow: TextOverflow.ellipsis,
-                              fontWeight: match.winnerId == match.playerTwoId
+                              fontWeight: match.winnerId.toString() ==
+                                      match.playerTwo.userId
                                   ? FontWeight.bold
                                   : FontWeight.normal,
                             ),
@@ -196,7 +210,9 @@ class MatchPage extends StatelessWidget {
                         // const Center(child: Text('Stats')),
                         // const Center(child: Text('Point par point')),
                         Head2Head(),
-                        isBracket ? Bracket() : Scoreboard(),
+                        // TODO : Add the bracket widget
+                        // isBracket ? const Bracket() : Scoreboard(),
+                        Scoreboard(),
                       ],
                     ),
                   ),
