@@ -6,6 +6,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:front/widget/app_bar.dart';
 import 'package:front/widget/game_card.dart';
 import 'package:http/http.dart' as http;
+import 'package:front/models/game.dart';
 
 Future<List<Game>> fetchGames() async {
   final storage = new FlutterSecureStorage();
@@ -23,25 +24,7 @@ Future<List<Game>> fetchGames() async {
   return responseJson.map((json) => Game.fromJson(json)).toList();
 }
 
-class Game {
-  final String name;
 
-  Game({
-    required this.name,
-  });
-
-  factory Game.fromJson(Map<String, dynamic> json) {
-    return switch (json) {
-      {
-        'name': String name,
-      } =>
-        Game(
-          name: name,
-        ),
-      _ => throw const FormatException('Failed to load game.'),
-    };
-  }
-}
 
 class GamesPage extends StatefulWidget {
   const GamesPage({super.key});
