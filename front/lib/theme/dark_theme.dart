@@ -7,6 +7,7 @@ const Color backgroundColor = Color(0xff1E1E36);
 const Color invertedBackgroundColor = Colors.white;
 const Color accentBackgroundColor = Color(0xff000000);
 const Color secondaryAccentBackgroundColor = Color(0xff000000);
+const Color labelColor = Color(0x88888888);
 const Color accentColor = Color(0xffFF5500);
 
 // Définissez votre thème dans un fichier séparé
@@ -16,6 +17,11 @@ final ThemeData darkTheme = ThemeData(
   textTheme: const TextTheme(
     displayLarge: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
     bodyLarge: TextStyle(fontSize: 16),
+  ),
+  inputDecorationTheme: const InputDecorationTheme(
+    labelStyle: TextStyle(
+      color: labelColor,
+    ),
   ),
   brightness: Brightness.dark,
   primaryColor: accentBackgroundColor,

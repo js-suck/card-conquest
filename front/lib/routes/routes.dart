@@ -4,6 +4,7 @@ import 'package:front/auth/signup_screen.dart';
 import 'package:front/home_screen.dart';
 import 'package:front/main_screen.dart';
 import 'package:front/orga_new_tournament.dart';
+import 'package:front/orga_home.dart';
 import 'package:front/pages/bracket_screen.dart';
 import 'package:front/pages/games_screen.dart';
 import 'package:front/pages/match_screen.dart';
@@ -25,4 +26,5 @@ var routes = <String, WidgetBuilder>{
   '/player': (context) => PlayerPage(),
   '/scoreboard': (context) => const ScoreboardPage(),
   '/orga/tounament': (context) => const OrgaPage(),
+  '/orga/home': (context) => OrganizerHomePage(),
 };
