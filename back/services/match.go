@@ -6,6 +6,7 @@ import (
 	"gorm.io/gorm"
 	"math/rand"
 	"sort"
+	"strings"
 	"time"
 )
 
@@ -257,5 +258,47 @@ func (s MatchService) generateMatchesForStep(users []models.User, stepId uint, t
 			return errors.NewInternalServerError("Failed to generate matches", err)
 		}
 	}
+	return nil
+}
+
+func (s MatchService) GetTournamentMatches(u uint) ([]models.Match, errors.IError) {
+	var matches []models.Match
+	if err := s.db.Find(&matches, "tournament_id = ?", u).Error; err != nil {
+		return nil, errors.NewInternalServerError("Failed to get matches", err)
+	}
+	return matches, nil
+}
+
+func (s *MatchService) GetAll(models interface{}, filterParams FilterParams, preloads ...string) errors.IError {
+	query := s.db
+
+	if _, ok := filterParams.Fields["UserID"]; ok {
+		query = query.Where("player_one_id"+" = ?", filterParams.Fields["UserID"]).Or("player_two_id"+" = ?", filterParams.Fields["UserID"])
+	}
+
+	if _, ok := filterParams.Fields["TournamentID"]; ok {
+		query = query.Where("tournament_id"+" = ?", filterParams.Fields["TournamentID"])
+
+	}
+
+	query = query.Preload("PlayerOne").Preload("PlayerTwo").Preload("Tournament").Preload("TournamentStep").Preload("Scores")
+
+	for _, preload := range preloads {
+		query = query.Preload(preload)
+	}
+
+	for _, sortField := range filterParams.Sort {
+		if strings.HasPrefix(sortField, "-") {
+			query = query.Order(sortField[1:] + " desc")
+		} else {
+			query = query.Order(sortField)
+		}
+	}
+
+	result := query.Find(models)
+	if result.Error != nil {
+		return errors.NewErrorResponse(500, result.Error.Error())
+	}
+
 	return nil
 }

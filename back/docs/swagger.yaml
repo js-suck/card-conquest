@@ -56,6 +56,49 @@ definitions:
       username:
         type: string
     type: object
+  models.Match:
+    properties:
+      created_at:
+        type: string
+      endTime:
+        type: string
+      id:
+        type: integer
+      matchPosition:
+        type: integer
+      playerOne:
+        $ref: '#/definitions/models.User'
+      playerOneID:
+        type: integer
+      playerTwo:
+        $ref: '#/definitions/models.User'
+      playerTwoID:
+        type: integer
+      scores:
+        items:
+          $ref: '#/definitions/models.Score'
+        type: array
+      startTime:
+        type: string
+      status:
+        type: string
+      tournament:
+        $ref: '#/definitions/models.Tournament'
+      tournamentID:
+        type: integer
+      tournamentStep:
+        $ref: '#/definitions/models.TournamentStep'
+      tournamentStepID:
+        type: integer
+      updated_at:
+        type: string
+      winner:
+        $ref: '#/definitions/models.User'
+      winnerID:
+        type: integer
+    required:
+    - status
+    type: object
   models.Media:
     properties:
       created_at:
@@ -84,6 +127,25 @@ definitions:
         type: string
       username:
         example: username
+        type: string
+    type: object
+  models.Score:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: integer
+      match:
+        $ref: '#/definitions/models.Match'
+      matchID:
+        type: integer
+      player:
+        $ref: '#/definitions/models.User'
+      playerID:
+        type: integer
+      score:
+        type: integer
+      updated_at:
         type: string
     type: object
   models.Tag:
@@ -144,6 +206,10 @@ definitions:
         items:
           $ref: '#/definitions/models.Tag'
         type: array
+      tournament_steps:
+        items:
+          $ref: '#/definitions/models.TournamentStep'
+        type: array
       updated_at:
         type: string
       user:
@@ -161,6 +227,25 @@ definitions:
     - rounds
     - start_date
     type: object
+  models.TournamentStep:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: integer
+      matches:
+        items:
+          $ref: '#/definitions/models.Match'
+        type: array
+      name:
+        type: string
+      sequence:
+        type: integer
+      tournamentID:
+        type: integer
+      updated_at:
+        type: string
+    type: object
   models.User:
     properties:
       address:
@@ -175,6 +260,10 @@ definitions:
         type: integer
       is_verified:
         type: boolean
+      matches:
+        items:
+          $ref: '#/definitions/models.Match'
+        type: array
       media:
         $ref: '#/definitions/models.Media'
       media_id:
@@ -274,6 +363,42 @@ paths:
       summary: Get all games
       tags:
       - Game
+  /games/{userID}/rankings:
+    get:
+      consumes:
+      - application/json
+      description: Get the ranking of a user for all games
+      parameters:
+      - description: User ID
+        in: path
+        name: UserID
+        type: integer
+      - default: Bearer <Add access token here>
+        description: Insert your access token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get the ranking of a user for all games
+      tags:
+      - Game
   /images:
     post:
       consumes:
@@ -329,54 +454,20 @@ paths:
       summary: Login
       tags:
       - Auth
-  /matches/{id}/finish:
-    post:
-      consumes:
-      - application/json
-      description: Finish a match
-      parameters:
-      - description: Match ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      - description: Winner ID
-        in: query
-        name: winnerId
-        required: true
-        type: integer
-      - default: Bearer <Add access token here>
-        description: Insert your access token
-        in: header
-        name: Authorization
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            type: string
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/errors.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/errors.ErrorResponse'
-      security:
-      - BearerAuth: []
-      summary: Finish a match
-      tags:
-      - tournament
   /matchs:
     get:
       consumes:
       - application/json
       description: Get all matchs.
       parameters:
+      - description: Search by userID
+        in: query
+        name: UserID
+        type: integer
+      - description: Search by TournamentID
+        in: query
+        name: TournamentID
+        type: integer
       - default: Bearer <Add access token here>
         description: Insert your access token
         in: header
@@ -395,6 +486,117 @@ paths:
       security:
       - BearerAuth: []
       summary: Get all matchs
+      tags:
+      - Match
+  /matchs/{id}:
+    put:
+      consumes:
+      - application/json
+      description: Update a match with the given ID.
+      parameters:
+      - default: Bearer <Add access token here>
+        description: Insert your access token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Match ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Match data
+        in: body
+        name: match
+        required: true
+        schema:
+          $ref: '#/definitions/models.Match'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update a match
+      tags:
+      - Match
+  /matchs/{matchId}:
+    get:
+      consumes:
+      - application/json
+      description: Get a match with the given ID.
+      parameters:
+      - default: Bearer <Add access token here>
+        description: Insert your access token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Match ID
+        in: path
+        name: matchId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Match'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+      security:
+      - BearerAuth®: []
+      summary: Get a match
+      tags:
+      - Match
+  /matchs/update/score:
+    post:
+      consumes:
+      - application/json
+      description: Update score.
+      parameters:
+      - default: Bearer <Add access token here>
+        description: Insert your access token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Match ID
+        in: formData
+        name: matchId
+        required: true
+        type: string
+      - description: User ID
+        in: formData
+        name: userId
+        required: true
+        type: string
+      - description: Score
+        in: formData
+        name: score
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update score
       tags:
       - Match
   /register:
@@ -686,6 +888,43 @@ paths:
       summary: Generate matches for a tournament
       tags:
       - tournament
+  /tournaments/{id}/matches:
+    get:
+      consumes:
+      - application/json
+      description: Get all matches of a tournament
+      parameters:
+      - description: Tournament ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - default: Bearer <Add access token here>
+        description: Insert your access token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get all matches of a tournament
+      tags:
+      - tournament
   /tournaments/{id}/register/{userID}:
     post:
       consumes:
@@ -763,6 +1002,50 @@ paths:
       security:
       - BearerAuth ini: []
       summary: Start a tournament
+      tags:
+      - tournament
+  /tournaments/rankings:
+    get:
+      consumes:
+      - application/json
+      description: Get the ranking of a tournament
+      parameters:
+      - description: Tournament ID
+        in: query
+        name: TournamentID
+        type: integer
+      - description: Game ID
+        in: query
+        name: GameID
+        type: integer
+      - description: User ID
+        in: query
+        name: UserID
+        type: integer
+      - default: Bearer <Add access token here>
+        description: Insert your access token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get the ranking of a tournament
       tags:
       - tournament
   /users:
