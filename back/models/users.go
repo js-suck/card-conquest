@@ -54,6 +54,32 @@ type NewUserPayload struct {
 	Email    string `json:"email" example:"test@example.com`
 }
 
+type UserRead struct {
+	ID       uint   `gorm:"primarykey"`
+	Username string `json:"name"`
+	Email    string `json:"email, -"`
+}
+type UserRanking struct {
+	User  UserReadTournament
+	Score int
+}
+
+type UserStats struct {
+	*UserReadTournament
+	TotalMatches int
+	TotalWins    int
+	TotalLosses  int
+	TotalScore   int
+	GamesRanking []UserGameRanking
+}
+
+type UserGameRanking struct {
+	User     UserReadTournament
+	GameID   uint
+	GameName string
+	Score    int
+}
+
 func (u User) GetTableName() string {
 	return "users"
 }
@@ -67,7 +93,7 @@ func (u User) GetID() uint {
 	return u.ID
 }
 
-func (u User) ToRead() interface{} {
+func (u User) ToRead() UserReadTournament {
 	return UserReadTournament{
 		ID:    u.ID,
 		Name:  u.Username,

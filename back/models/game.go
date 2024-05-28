@@ -3,7 +3,8 @@ package models
 type Game struct {
 	BaseModel
 	MediaModel
-	Name string `json:"name"`
+	Name        string       `json:"name"`
+	Tournaments []Tournament `json:"-" gorm:"foreignKey:GameID"`
 }
 
 type GameRead struct {

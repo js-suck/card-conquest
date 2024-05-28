@@ -27,7 +27,7 @@ func SetupRouter(db *gorm.DB) *gin.Engine {
 	}
 	publicRoutes.GET("/images/:filename", func(c *gin.Context) {
 		filename := c.Param("filename")
-		c.File("./back/uploads/" + filename)
+		c.File("./uploads/" + filename)
 	})
 
 	protectedRoutes.Use(middlewares.AuthenticationMiddleware(), middlewares.PermissionMiddleware(db))
@@ -44,18 +44,23 @@ func SetupRouter(db *gorm.DB) *gin.Engine {
 		protectedRoutes.POST("/users/:id/upload/picture", userHandler.UploadPicture)
 
 		protectedRoutes.POST("/tournaments", tournamentHandler.CreateTournament)
+		protectedRoutes.GET("/tournaments/rankings", tournamentHandler.GetRankings)
 		protectedRoutes.GET("/tournaments", tournamentHandler.GetTournaments)
 		protectedRoutes.POST("/tournaments/:id/start", tournamentHandler.StartTournament)
 		protectedRoutes.GET("/tournaments/:id", tournamentHandler.GetTournament)
 		protectedRoutes.POST("/tournaments/:id/register/:userID", tournamentHandler.RegisterUser)
 		protectedRoutes.POST("/tournaments/:id/generate-matches", tournamentHandler.GenerateMatches)
+		protectedRoutes.GET("/tournaments/:id/matches", tournamentHandler.GetTournamentMatches)
 
 		//protectedRoutes.POST("/matches/:id/finish", tournamentHandler.FinishMatch)
 		protectedRoutes.POST("/matches/update/score", matchHandler.UpdateScore)
 
 		protectedRoutes.GET(("/games"), gameHandler.GetAllGames)
+		protectedRoutes.GET(("/games/:userID/rankings"), gameHandler.GetUserGameRankings)
 
 		protectedRoutes.GET(("/matchs"), matchHandler.GetAllMatchs)
+		protectedRoutes.GET(("/matchs/:id"), matchHandler.GetMatch)
+		protectedRoutes.PUT(("/matchs/:id"), matchHandler.UpdateMatch)
 
 		protectedRoutes.GET("/tags", tagHandler.GetAllTags)
 		protectedRoutes.POST("/tags", tagHandler.CreateTag)

@@ -64,3 +64,32 @@ func convertToReadable(games []models.Game) []models.GameRead {
 	}
 	return readableGames
 }
+
+// GetUserGameRankings godoc
+// @Summary Get the ranking of a user for all games
+// @Description Get the ranking of a user for all games
+// @Tags Game
+// @Accept json
+// @Produce json
+// @Param UserID path int false "User ID"
+// @Success 200 {object} string
+// @Failure 400 {object} errors.ErrorResponse
+// @Failure 500 {object} errors.ErrorResponse
+// @Security BearerAuth
+// @Param Authorization header string true "Insert your access token" default(Bearer <Add access token here>)
+// @Router /games/{userID}/rankings [get]
+func (h *GameHandler) GetUserGameRankings(c *gin.Context) {
+	userID := c.Param("userID")
+	if userID == "" {
+		c.JSON(400, gin.H{"error": "Invalid data"})
+		return
+	}
+
+	rankings, err := h.GameService.CalculateUserRankings(userID)
+	if err != nil {
+		c.JSON(err.Code(), err)
+		return
+	}
+
+	c.JSON(200, rankings)
+}
