@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:front/widget/app_bar.dart';
 import 'package:front/widget/game_card.dart';
@@ -12,7 +13,7 @@ Future<List<Game>> fetchGames() async {
   String? token = await storage.read(key: 'jwt_token');
 
   final response = await http.get(
-    Uri.parse('http://10.0.2.2:8080/api/v1/games'),
+    Uri.parse('${dotenv.env['API_URL']}games'),
     headers: {
       HttpHeaders.authorizationHeader: '$token',
     },
@@ -113,8 +114,7 @@ class _GamesPageState extends State<GamesPage> {
                     } else if (snapshot.hasError) {
                       return Text('${snapshot.error}');
                     }
-
-                    return const CircularProgressIndicator();
+                    return const Center(child: CircularProgressIndicator());
                   },
                 ),
               ),

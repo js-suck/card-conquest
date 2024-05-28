@@ -36,6 +36,7 @@ class _BottomBarState extends State<BottomBar> {
 
   @override
   Widget build(BuildContext context) {
+    final selectedPageModel = Provider.of<SelectedPageModel>(context);
     return ClipRRect(
       borderRadius: const BorderRadius.only(
         topLeft: Radius.circular(20),
@@ -60,7 +61,7 @@ class _BottomBarState extends State<BottomBar> {
             label: 'Mes tournois',
           ),
         ],
-        currentIndex: _selectedIndex,
+        currentIndex: selectedPageModel.selectedIndex,
         onTap: _onItemTapped,
       ),
     );

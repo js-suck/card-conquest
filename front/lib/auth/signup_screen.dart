@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 Future<void> signUp(BuildContext context, String username, String email,
     String password) async {
   final response = await http.post(
-    Uri.parse('http://10.0.2.2:8080/api/v1/register'),
+    Uri.parse('${dotenv.env['API_URL']}register'),
     headers: <String, String>{
       'Content-Type': 'application/json; charset=UTF-8',
     },

@@ -4,13 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:front/extension/theme_extension.dart';
 import 'package:http/http.dart' as http;
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 Future<void> login(
     BuildContext context, String username, String password) async {
   final storage =
       new FlutterSecureStorage(); // Create instance of secure storage
   final response = await http.post(
-    Uri.parse('http://10.33.0.66:8080/api/v1/login'),
+    Uri.parse('${dotenv.env['API_URL']}login'),
     headers: <String, String>{
       'Content-Type': 'application/json; charset=UTF-8',
     },
@@ -30,6 +31,12 @@ Future<void> login(
     Navigator.of(context).pushReplacementNamed('/bracket');
   } else {
     // Handle error in login
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Erreur de connexion'),
+        duration: Duration(seconds: 1),
+      ),
+    );
     throw Exception('Failed to log in');
   }
 }
