@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:front/widget/app_bar.dart';
 import 'auth/login_screen.dart';
 import 'auth/signup_screen.dart';
 
@@ -45,7 +44,7 @@ class HomePage extends StatelessWidget {
               onPressed: () {
 
                 // Naviguer vers la page principale
-                Navigator.pushNamed(context, '/home_user');
+                Navigator.pushNamed(context, '/main');
               },
               child: Text('Continuer en tant qu\'Invité'),
             ),

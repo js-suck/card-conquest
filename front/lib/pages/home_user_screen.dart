@@ -7,7 +7,6 @@ import 'package:front/pages/tournaments_screen.dart';
 import 'package:front/pages/games_screen.dart';
 import 'package:front/auth/login_screen.dart';
 import 'package:front/widget/app_bar.dart';
-import 'package:front/widget/bottom_bar.dart';
 import 'package:front/widget/tournaments/recent_tournaments_list.dart';
 import 'package:front/widget/tournaments/all_tournaments_list.dart';
 import 'package:front/widget/games/games_list.dart';
@@ -122,7 +121,6 @@ class _HomePageState extends State<HomeUserPage> {
           ],
         ),
       ),
-      bottomNavigationBar: const BottomBar(),
     );
   }
 
