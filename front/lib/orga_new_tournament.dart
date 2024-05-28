@@ -273,11 +273,9 @@ class _MyFormState extends State<MyForm> {
   }
 
   Future<void> _submitForm() async {
-    // Check if all required fields are filled
     if (_designationController.text.isEmpty ||
         _emailController.text.isEmpty ||
         _descController.text.isEmpty) {
-      // If any required field is empty, show an error message
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
@@ -296,18 +294,24 @@ class _MyFormState extends State<MyForm> {
     } else {
       // All required fields are filled, proceed to submit the form
       try {
-        var uri = Uri.parse('http://192.168.1.36:8080/api/v1/tournaments');
+        var uri = Uri.parse('http://192.168.238.44:8080/api/v1/tournaments');
         // var uri = Uri.parse('http://127.0.0.1:8080/api/v1/tournaments');
 
         var request = http.MultipartRequest('POST', uri)
           ..headers['Authorization'] =
-              'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTY4NzExNTcsIm5hbWUiOiJ1c2VyIiwicm9sZSI6ImFkbWluIiwidXNlcl9pZCI6MX0.ULtZobCVUZFp_RxDszNsQBSgoWc_EIampZSVmjPqryA';
+              'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTY5MjQzMTgsIm5hbWUiOiJ1c2VyIiwicm9sZSI6ImFkbWluIiwidXNlcl9pZCI6MX0.JZKNDO3Dweh27eIDd6afZr4I5HA8ZVWWTkAflTAI_TU';
+
+        DateTime startDate = DateTime(2024, 4, 12);
+        DateTime endDate = DateTime(2024, 5, 12);
+
+        String startDateIso = startDate.toUtc().toIso8601String();
+        String endDateIso = endDate.toUtc().toIso8601String();
 
         // Ajoutez les champs de formulaire
         request.fields['name'] = _designationController.text;
         request.fields['description'] = _descController.text;
-        request.fields['start_date'] = '10/03/2034';
-        request.fields['end_date'] = '10/03/2034';
+        request.fields['start_date'] = startDateIso;
+        request.fields['end_date'] = endDateIso;
         request.fields['location'] = '10 rue de la chaussette';
         request.fields['organizer_id'] = '1';
         request.fields['game_id'] = '1';

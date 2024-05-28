@@ -90,6 +90,7 @@ class MyApp extends StatelessWidget {
             debugShowCheckedModeBanner: false,
             //initialRoute: '/',
             initialRoute: '/orga/home',
+            // initialRoute: '/orga/tounament',
             routes: routes,
             theme: notifier.getTheme(),
           );
