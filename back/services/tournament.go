@@ -192,7 +192,7 @@ func (s *TournamentService) SendTournamentUpdatesForGRPC(tournamentId uint) erro
 	for _, step := range tournament.Steps {
 		// get les matchs
 		matches := []models.Match{}
-		err := s.db.Preload("PlayerOne").Preload("PlayerTwo").Preload("Winner").Where("tournament_step_id = ?", step.ID).Find(&matches).Error
+		err := s.db.Preload("PlayerOne").Preload("Scores").Preload("PlayerTwo").Preload("Winner").Where("tournament_step_id = ?", step.ID).Find(&matches).Error
 
 		if err != nil {
 			return errors.NewErrorResponse(500, err.Error())
@@ -205,14 +205,14 @@ func (s *TournamentService) SendTournamentUpdatesForGRPC(tournamentId uint) erro
 
 		for _, match := range matches {
 
-			scores := match.Scores
-
 			var playerOneScore, playerTwoScore int
-			if len(scores) >= 2 {
-				playerOneScore = scores[0].Score
-				playerTwoScore = scores[1].Score
+			for _, score := range match.Scores {
+				if score.PlayerID == match.PlayerOneID {
+					playerOneScore = score.Score
+				} else if score.PlayerID == *match.PlayerTwoID {
+					playerTwoScore = score.Score
+				}
 			}
-
 			playerOne := &authentication_api.Player{
 				Username: match.PlayerOne.Username,
 				UserId:   strconv.Itoa(int(match.PlayerOne.ID)),

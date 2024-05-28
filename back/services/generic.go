@@ -58,10 +58,10 @@ func (s *GenericService) Create(m models.IModel) errors.IError {
 	return nil
 }
 
-func (s *GenericService) Update(m models.IModel) error {
+func (s *GenericService) Update(m models.IModel) errors.IError {
 	result := s.db.Model(m).Updates(m)
 	if result.Error != nil {
-		return result.Error
+		return errors.NewErrorResponse(500, result.Error.Error())
 	}
 	return nil
 }

@@ -4,6 +4,7 @@ import (
 	dbService "authentication-api/db"
 	docs "authentication-api/docs"
 	grpcTounrnament "authentication-api/grpc"
+	"authentication-api/models"
 	authentication_api "authentication-api/pb/github.com/lailacha/authentication-api"
 	"authentication-api/routers"
 	"fmt"
@@ -45,6 +46,7 @@ func main() {
 	}
 
 	DB, err := dbService.InitDB()
+	DB.AutoMigrate(models.User{}, models.Tournament{}, models.Match{}, models.Score{}, models.TournamentStep{}, models.Media{}, models.TournamentStep{})
 
 	if DB == nil {
 		return
