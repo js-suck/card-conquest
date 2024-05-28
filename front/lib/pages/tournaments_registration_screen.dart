@@ -14,16 +14,7 @@ class RegistrationPage extends StatefulWidget {
 
 class _RegistrationPageState extends State<RegistrationPage> {
   final storage = const FlutterSecureStorage();
-  Map<String, dynamic> tournamentData = {
-    "name": "Open tour World championship",
-    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam eget elit posuere, luctus sapien sit amet, commodo nulla. Nullam aliquam scelerisque volutpat.",
-    "location": "Paris",
-    "start_date": "2024-05-22T22:12:39.550804+02:00",
-    "media": {
-      "file_name": "yugiho.webp"
-    },
-    "tags": ["3v3", "Cashprice"]
-  };
+  Map<String, dynamic> tournamentData = {};
   bool _isLoading = true;
 
   @override
@@ -33,10 +24,28 @@ class _RegistrationPageState extends State<RegistrationPage> {
   }
 
   Future<void> _fetchTournamentData() async {
-    // Utiliser des données fictives pour l'instant
-    setState(() {
-      _isLoading = false;
-    });
+    String? token = await storage.read(key: 'jwt_token');
+
+    final response = await http.get(
+      Uri.parse('http://10.0.2.2:8080/api/v1/tournaments/${widget.tournamentId}'),
+      headers: {
+        'Authorization': '$token',
+      },
+    );
+    if (response.statusCode == 200) {
+      setState(() {
+        tournamentData = jsonDecode(response.body);
+        _isLoading = false;
+      });
+    } else {
+      // Gérer les erreurs
+      setState(() {
+        _isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Échec de la récupération des données du tournoi.')),
+      );
+    }
   }
 
   Future<void> _registerForTournament() async {
@@ -44,24 +53,26 @@ class _RegistrationPageState extends State<RegistrationPage> {
     if (token != null) {
       String? userId = jsonDecode(
           ascii.decode(base64.decode(base64.normalize(token.split(".")[1])))
-      )['id'].toString();
+      )['user_id'].toString();
 
       final response = await http.post(
         Uri.parse('http://10.0.2.2:8080/api/v1/tournaments/${widget.tournamentId}/register/$userId'),
         headers: {
-          'Authorization': 'Bearer $token',
+          'Authorization': '$token',
         },
       );
 
       if (response.statusCode == 200) {
         // Inscription réussie
         ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Inscription réussie !'))
+          SnackBar(content: Text('Inscription réussie !')),
         );
+        // Rediriger vers la page principale
+        Navigator.pushReplacementNamed(context, '/home_user');
       } else {
         // Gérer les erreurs
         ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Échec de l\'inscription. Veuillez réessayer.'))
+          SnackBar(content: Text('Échec de l\'inscription. Veuillez réessayer.')),
         );
       }
     } else {
@@ -94,7 +105,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              tournamentData['name'] ?? 'Tournament Name',
+              tournamentData['name'] ?? 'Nom du tournoi',
               style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
@@ -132,10 +143,12 @@ class _RegistrationPageState extends State<RegistrationPage> {
                     right: 10,
                     child: Wrap(
                       spacing: 8,
-                      children: (tournamentData['tags'] as List<dynamic>).map((tag) => Chip(
+                      children: tournamentData['tags'] != null
+                          ? (tournamentData['tags'] as List<dynamic>).map((tag) => Chip(
                         label: Text(tag, style: const TextStyle(color: Colors.white)),
                         backgroundColor: Colors.orange,
-                      )).toList(),
+                      )).toList()
+                          : [],
                     ),
                   ),
                 ],
@@ -166,7 +179,6 @@ class _RegistrationPageState extends State<RegistrationPage> {
           ],
         ),
       ),
-
     );
   }
 }

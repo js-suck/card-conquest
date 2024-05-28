@@ -8,6 +8,7 @@ import 'package:front/pages/tournaments_screen.dart';
 import 'package:front/pages/games_screen.dart';
 import 'package:front/auth/login_screen.dart';
 import 'package:front/widget/app_bar.dart';
+import 'package:front/widget/bottom_bar.dart';
 
 
 
@@ -121,7 +122,7 @@ class _HomePageState extends State<HomeUserPage> {
   }
 
   /*Future<void> _fetchData() async {
-    final recentTournamentsResponse = await http.get(Uri.parse('http://10.0.2.2:8080/api/tournaments'));
+    final recentTournamentsResponse = await http.get(Uri.parse('http://10.0.2.2:8080/api/v1/tournaments'));
     final allTournamentsResponse = await http.get(Uri.parse('http://10.0.2.2:8080/api/v1/tournaments'));
     final gamesResponse = await http.get(Uri.parse('http://10.0.2.2:8080/api/v1/games'));
 
@@ -142,7 +143,7 @@ class _HomePageState extends State<HomeUserPage> {
     } else {
       throw Exception('Failed to load data');
     }
-  } */
+  }*/
 
   Future<void> _fetchData() async {
     // Utilisez des données d'exemple pour l'instant
@@ -382,6 +383,7 @@ class _HomePageState extends State<HomeUserPage> {
           ],
         ),
       ),
+      bottomNavigationBar: const BottomBar(),
     );
   }
 
