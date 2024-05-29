@@ -25,6 +25,6 @@ var routes = <String, WidgetBuilder>{
   '/match': (context) => MatchPage(),
   '/player': (context) => PlayerPage(),
   '/scoreboard': (context) => const ScoreboardPage(),
-  '/orga/tounament': (context) => const OrgaPage(),
+  '/orga/add/tournament': (context) => const OrgaPage(),
   '/orga/home': (context) => OrganizerHomePage(),
 };
