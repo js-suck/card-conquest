@@ -12,6 +12,9 @@ import 'package:front/widget/tournaments/all_tournaments_list.dart';
 import 'package:front/widget/games/games_list.dart';
 import 'package:front/models/tournament.dart';
 import 'package:front/models/game.dart';
+import 'package:provider/provider.dart';
+
+import '../widget/bottom_bar.dart';
 
 class HomeUserPage extends StatefulWidget {
   const HomeUserPage({Key? key}) : super(key: key);
@@ -87,6 +90,17 @@ class _HomePageState extends State<HomeUserPage> {
     }
   }
 
+  Future<void> _onTournamentPageTapped() async {
+    final selectedPageModel = Provider.of<SelectedPageModel>(context, listen: false);
+    selectedPageModel.changePage(const TournamentsPage(), 1);
+  }
+
+  Future<void> _onGamePageTapped() async {
+    final selectedPageModel = Provider.of<SelectedPageModel>(context, listen: false);
+    selectedPageModel.changePage(const GamesPage(), 2);
+  }
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -101,22 +115,12 @@ class _HomePageState extends State<HomeUserPage> {
               recentTournaments: recentTournaments,
               onTournamentTapped: _onTournamentTapped,
             ),
-            _buildSectionTitleWithButton('Les tournois', 'Voir les tournois', () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => TournamentsPage()),
-              );
-            }),
+            _buildSectionTitleWithButton('Les tournois', 'Voir les tournois', _onTournamentPageTapped as VoidCallback),
             AllTournamentsList(
               allTournaments: allTournaments.take(4).toList(),
               onTournamentTapped: _onTournamentTapped,
             ),
-            _buildSectionTitleWithButton('Les jeux', 'Tous les jeux', () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => GamesPage()),
-              );
-            }),
+            _buildSectionTitleWithButton('Les jeux', 'Tous les jeux', _onGamePageTapped as VoidCallback),
             GamesList(games: games),
           ],
         ),
