@@ -23,7 +23,7 @@ definitions:
       label:
         type: string
     required:
-    - label
+      - label
     type: object
   models.Game:
     properties:
@@ -97,7 +97,7 @@ definitions:
       winnerID:
         type: integer
     required:
-    - status
+      - status
     type: object
   models.Media:
     properties:
@@ -167,7 +167,7 @@ definitions:
       updated_at:
         type: string
     required:
-    - name
+      - name
     type: object
   models.Tournament:
     properties:
@@ -219,13 +219,13 @@ definitions:
           $ref: '#/definitions/models.User'
         type: array
     required:
-    - description
-    - end_date
-    - game_id
-    - maxPlayers
-    - name
-    - rounds
-    - start_date
+      - description
+      - end_date
+      - game_id
+      - maxPlayers
+      - name
+      - rounds
+      - start_date
     type: object
   models.TournamentStep:
     properties:
@@ -284,7 +284,7 @@ definitions:
       username:
         type: string
     required:
-    - password
+      - password
     type: object
 host: localhost:8080
 info:
@@ -303,16 +303,16 @@ paths:
   /confirm-email:
     get:
       consumes:
-      - application/json
+        - application/json
       description: Confirm email
       parameters:
-      - description: Token
-        in: query
-        name: token
-        required: true
-        type: string
+        - description: Token
+          in: query
+          name: token
+          required: true
+          type: string
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
@@ -328,27 +328,27 @@ paths:
             type: string
       summary: Confirm email
       tags:
-      - Auth
+        - Auth
   /games:
     get:
       consumes:
-      - application/json
+        - application/json
       description: Get all games. If the 'WithTrendy' query parameter is true, the
         response will be a 'GameWithTrendy' object. Otherwise, the response will be
         an array of 'models.Game'.
       parameters:
-      - description: Add trendy games to the response
-        in: query
-        name: WithTrendy
-        type: boolean
-      - default: Bearer <Add access token here>
-        description: Insert your access token
-        in: header
-        name: Authorization
-        required: true
-        type: string
+        - description: Add trendy games to the response
+          in: query
+          name: WithTrendy
+          type: boolean
+        - default: Bearer <Add access token here>
+          description: Insert your access token
+          in: header
+          name: Authorization
+          required: true
+          type: string
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
@@ -359,28 +359,28 @@ paths:
           schema:
             $ref: '#/definitions/errors.ErrorResponse'
       security:
-      - BearerAuth: []
+        - BearerAuth: []
       summary: Get all games
       tags:
-      - Game
+        - Game
   /games/{userID}/rankings:
     get:
       consumes:
-      - application/json
+        - application/json
       description: Get the ranking of a user for all games
       parameters:
-      - description: User ID
-        in: path
-        name: UserID
-        type: integer
-      - default: Bearer <Add access token here>
-        description: Insert your access token
-        in: header
-        name: Authorization
-        required: true
-        type: string
+        - description: User ID
+          in: path
+          name: UserID
+          type: integer
+        - default: Bearer <Add access token here>
+          description: Insert your access token
+          in: header
+          name: Authorization
+          required: true
+          type: string
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
@@ -395,23 +395,23 @@ paths:
           schema:
             $ref: '#/definitions/errors.ErrorResponse'
       security:
-      - BearerAuth: []
+        - BearerAuth: []
       summary: Get the ranking of a user for all games
       tags:
-      - Game
+        - Game
   /images:
     post:
       consumes:
-      - multipart/form-data
+        - multipart/form-data
       description: Upload an image
       parameters:
-      - description: Image file
-        in: formData
-        name: image
-        required: true
-        type: file
+        - description: Image file
+          in: formData
+          name: image
+          required: true
+          type: file
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
@@ -423,21 +423,21 @@ paths:
             type: string
       summary: Upload an image
       tags:
-      - Upload
+        - Upload
   /login:
     post:
       consumes:
-      - application/json
+        - application/json
       description: Login
       parameters:
-      - description: Login Payload
-        in: body
-        name: payload
-        required: true
-        schema:
-          $ref: '#/definitions/models.LoginPayload'
+        - description: Login Payload
+          in: body
+          name: payload
+          required: true
+          schema:
+            $ref: '#/definitions/models.LoginPayload'
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
@@ -453,29 +453,29 @@ paths:
             type: string
       summary: Login
       tags:
-      - Auth
+        - Auth
   /matchs:
     get:
       consumes:
-      - application/json
+        - application/json
       description: Get all matchs.
       parameters:
-      - description: Search by userID
-        in: query
-        name: UserID
-        type: integer
-      - description: Search by TournamentID
-        in: query
-        name: TournamentID
-        type: integer
-      - default: Bearer <Add access token here>
-        description: Insert your access token
-        in: header
-        name: Authorization
-        required: true
-        type: string
+        - description: Search by userID
+          in: query
+          name: UserID
+          type: integer
+        - description: Search by TournamentID
+          in: query
+          name: TournamentID
+          type: integer
+        - default: Bearer <Add access token here>
+          description: Insert your access token
+          in: header
+          name: Authorization
+          required: true
+          type: string
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
@@ -484,35 +484,35 @@ paths:
           schema:
             $ref: '#/definitions/errors.ErrorResponse'
       security:
-      - BearerAuth: []
+        - BearerAuth: []
       summary: Get all matchs
       tags:
-      - Match
+        - Match
   /matchs/{id}:
     put:
       consumes:
-      - application/json
+        - application/json
       description: Update a match with the given ID.
       parameters:
-      - default: Bearer <Add access token here>
-        description: Insert your access token
-        in: header
-        name: Authorization
-        required: true
-        type: string
-      - description: Match ID
-        in: path
-        name: id
-        required: true
-        type: string
-      - description: Match data
-        in: body
-        name: match
-        required: true
-        schema:
-          $ref: '#/definitions/models.Match'
+        - default: Bearer <Add access token here>
+          description: Insert your access token
+          in: header
+          name: Authorization
+          required: true
+          type: string
+        - description: Match ID
+          in: path
+          name: id
+          required: true
+          type: string
+        - description: Match data
+          in: body
+          name: match
+          required: true
+          schema:
+            $ref: '#/definitions/models.Match'
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
@@ -521,29 +521,29 @@ paths:
           schema:
             $ref: '#/definitions/errors.ErrorResponse'
       security:
-      - BearerAuth: []
+        - BearerAuth: []
       summary: Update a match
       tags:
-      - Match
+        - Match
   /matchs/{matchId}:
     get:
       consumes:
-      - application/json
+        - application/json
       description: Get a match with the given ID.
       parameters:
-      - default: Bearer <Add access token here>
-        description: Insert your access token
-        in: header
-        name: Authorization
-        required: true
-        type: string
-      - description: Match ID
-        in: path
-        name: matchId
-        required: true
-        type: string
+        - default: Bearer <Add access token here>
+          description: Insert your access token
+          in: header
+          name: Authorization
+          required: true
+          type: string
+        - description: Match ID
+          in: path
+          name: matchId
+          required: true
+          type: string
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
@@ -554,39 +554,39 @@ paths:
           schema:
             $ref: '#/definitions/errors.ErrorResponse'
       security:
-      - BearerAuth®: []
+        - BearerAuth®: []
       summary: Get a match
       tags:
-      - Match
+        - Match
   /matchs/update/score:
     post:
       consumes:
-      - application/json
+        - application/json
       description: Update score.
       parameters:
-      - default: Bearer <Add access token here>
-        description: Insert your access token
-        in: header
-        name: Authorization
-        required: true
-        type: string
-      - description: Match ID
-        in: formData
-        name: matchId
-        required: true
-        type: string
-      - description: User ID
-        in: formData
-        name: userId
-        required: true
-        type: string
-      - description: Score
-        in: formData
-        name: score
-        required: true
-        type: string
+        - default: Bearer <Add access token here>
+          description: Insert your access token
+          in: header
+          name: Authorization
+          required: true
+          type: string
+        - description: Match ID
+          in: formData
+          name: matchId
+          required: true
+          type: string
+        - description: User ID
+          in: formData
+          name: userId
+          required: true
+          type: string
+        - description: Score
+          in: formData
+          name: score
+          required: true
+          type: string
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
@@ -595,24 +595,24 @@ paths:
           schema:
             $ref: '#/definitions/errors.ErrorResponse'
       security:
-      - BearerAuth: []
+        - BearerAuth: []
       summary: Update score
       tags:
-      - Match
+        - Match
   /register:
     post:
       consumes:
-      - application/json
+        - application/json
       description: Register
       parameters:
-      - description: User Payload
-        in: body
-        name: payload
-        required: true
-        schema:
-          $ref: '#/definitions/models.NewUserPayload'
+        - description: User Payload
+          in: body
+          name: payload
+          required: true
+          schema:
+            $ref: '#/definitions/models.NewUserPayload'
       produces:
-      - application/json
+        - application/json
       responses:
         "201":
           description: Created
@@ -628,25 +628,25 @@ paths:
             $ref: '#/definitions/errors.ErrorResponse'
       summary: Register
       tags:
-      - Auth
+        - Auth
   /tags:
     get:
       consumes:
-      - application/json
+        - application/json
       description: Get all tags.
       parameters:
-      - description: Add trendy games to the response
-        in: query
-        name: WithTrendy
-        type: boolean
-      - default: Bearer <Add access token here>
-        description: Insert your access token
-        in: header
-        name: Authorization
-        required: true
-        type: string
+        - description: Add trendy games to the response
+          in: query
+          name: WithTrendy
+          type: boolean
+        - default: Bearer <Add access token here>
+          description: Insert your access token
+          in: header
+          name: Authorization
+          required: true
+          type: string
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
@@ -655,29 +655,29 @@ paths:
           schema:
             $ref: '#/definitions/errors.ErrorResponse'
       security:
-      - BearerAuth: []
+        - BearerAuth: []
       summary: Get all tags
       tags:
-      - Tag
+        - Tag
     post:
       consumes:
-      - application/json
+        - application/json
       description: Create a tag
       parameters:
-      - description: Tag object that needs to be created
-        in: body
-        name: tag
-        required: true
-        schema:
-          $ref: '#/definitions/models.CreateTagPayload'
-      - default: Bearer <Add access token here>
-        description: Insert your access token
-        in: header
-        name: Authorization
-        required: true
-        type: string
+        - description: Tag object that needs to be created
+          in: body
+          name: tag
+          required: true
+          schema:
+            $ref: '#/definitions/models.CreateTagPayload'
+        - default: Bearer <Add access token here>
+          description: Insert your access token
+          in: header
+          name: Authorization
+          required: true
+          type: string
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
@@ -688,28 +688,28 @@ paths:
           schema:
             $ref: '#/definitions/errors.ErrorResponse'
       security:
-      - BearerAuth: []
+        - BearerAuth: []
       summary: Create a tag
       tags:
-      - Tag
+        - Tag
   /tournaments:
     get:
       consumes:
-      - application/json
+        - application/json
       description: Get all tournaments
       parameters:
-      - description: Add recent tournaments to the response
-        in: query
-        name: WithRecents
-        type: boolean
-      - default: Bearer <Add access token here>
-        description: Insert your access token
-        in: header
-        name: Authorization
-        required: true
-        type: string
+        - description: Add recent tournaments to the response
+          in: query
+          name: WithRecents
+          type: boolean
+        - default: Bearer <Add access token here>
+          description: Insert your access token
+          in: header
+          name: Authorization
+          required: true
+          type: string
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
@@ -720,86 +720,86 @@ paths:
           schema:
             $ref: '#/definitions/errors.ErrorResponse'
       security:
-      - BearerAuth: []
+        - BearerAuth: []
       summary: Get all tournaments
       tags:
-      - tournament
+        - tournament
     post:
       consumes:
-      - multipart/form-data
+        - multipart/form-data
       description: Create a new tournament
       parameters:
-      - description: Tournament name
-        example: s
-        in: formData
-        name: name
-        required: true
-        type: string
-      - description: Tournament description
-        example: s
-        in: formData
-        name: description
-        required: true
-        type: string
-      - description: Tournament start date
-        example: s
-        in: formData
-        name: start_date
-        required: true
-        type: string
-      - description: Tournament end date
-        example: s
-        in: formData
-        name: end_date
-        required: true
-        type: string
-      - description: Organizer ID
-        in: formData
-        name: organizer_id
-        required: true
-        type: integer
-      - description: Game ID
-        in: formData
-        name: game_id
-        required: true
-        type: integer
-      - description: Number of rounds
-        in: formData
-        name: rounds
-        required: true
-        type: integer
-      - collectionFormat: csv
-        description: Array of tag IDs
-        in: formData
-        items:
+        - description: Tournament name
+          example: s
+          in: formData
+          name: name
+          required: true
+          type: string
+        - description: Tournament description
+          example: s
+          in: formData
+          name: description
+          required: true
+          type: string
+        - description: Tournament start date
+          example: s
+          in: formData
+          name: start_date
+          required: true
+          type: string
+        - description: Tournament end date
+          example: s
+          in: formData
+          name: end_date
+          required: true
+          type: string
+        - description: Organizer ID
+          in: formData
+          name: organizer_id
+          required: true
           type: integer
-        name: tagsIDs[]
-        required: true
-        type: array
-      - description: Image file
-        in: formData
-        name: image
-        required: true
-        type: file
-      - description: Location
-        example: s
-        in: formData
-        name: location
-        required: true
-        type: string
-      - description: Maximum number of players
-        in: formData
-        name: max_players
-        required: true
-        type: integer
-      - default: Bearer <Add access token here>
-        description: Insert your access token
-        in: header
-        name: Authorization
-        required: true
-        type: string
+        - description: Game ID
+          in: formData
+          name: game_id
+          required: true
+          type: integer
+        - description: Number of rounds
+          in: formData
+          name: rounds
+          required: true
+          type: integer
+        - collectionFormat: csv
+          description: Array of tag IDs
+          in: formData
+          items:
+            type: integer
+          name: tagsIDs[]
+          required: true
+          type: array
+        - description: Image file
+          in: formData
+          name: image
+          required: true
+          type: file
+        - description: Location
+          example: s
+          in: formData
+          name: location
+          required: true
+          type: string
+        - description: Maximum number of players
+          in: formData
+          name: max_players
+          required: true
+          type: integer
+        - default: Bearer <Add access token here>
+          description: Insert your access token
+          in: header
+          name: Authorization
+          required: true
+          type: string
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
@@ -810,29 +810,29 @@ paths:
         "500":
           description: Internal Server Error
       security:
-      - BearerAuth: []
+        - BearerAuth: []
       summary: Create a new tournament
       tags:
-      - tournament
+        - tournament
   /tournaments/{id}:
     get:
       consumes:
-      - application/json
+        - application/json
       description: Get a tournament
       parameters:
-      - description: Tournament ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      - default: Bearer <Add access token here>
-        description: Insert your access token
-        in: header
-        name: Authorization
-        required: true
-        type: string
+        - description: Tournament ID
+          in: path
+          name: id
+          required: true
+          type: integer
+        - default: Bearer <Add access token here>
+          description: Insert your access token
+          in: header
+          name: Authorization
+          required: true
+          type: string
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
@@ -847,29 +847,29 @@ paths:
           schema:
             $ref: '#/definitions/errors.ErrorResponse'
       security:
-      - BearerAuth: []
+        - BearerAuth: []
       summary: Get a tournament
       tags:
-      - tournament
+        - tournament
   /tournaments/{id}/generate-matches:
     post:
       consumes:
-      - application/json
+        - application/json
       description: Generate matches for a tournament
       parameters:
-      - description: Tournament ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      - default: Bearer <Add access token here>
-        description: Insert your access token
-        in: header
-        name: Authorization
-        required: true
-        type: string
+        - description: Tournament ID
+          in: path
+          name: id
+          required: true
+          type: integer
+        - default: Bearer <Add access token here>
+          description: Insert your access token
+          in: header
+          name: Authorization
+          required: true
+          type: string
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
@@ -884,29 +884,29 @@ paths:
           schema:
             $ref: '#/definitions/errors.ErrorResponse'
       security:
-      - BearerAuth: []
+        - BearerAuth: []
       summary: Generate matches for a tournament
       tags:
-      - tournament
+        - tournament
   /tournaments/{id}/matches:
     get:
       consumes:
-      - application/json
+        - application/json
       description: Get all matches of a tournament
       parameters:
-      - description: Tournament ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      - default: Bearer <Add access token here>
-        description: Insert your access token
-        in: header
-        name: Authorization
-        required: true
-        type: string
+        - description: Tournament ID
+          in: path
+          name: id
+          required: true
+          type: integer
+        - default: Bearer <Add access token here>
+          description: Insert your access token
+          in: header
+          name: Authorization
+          required: true
+          type: string
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
@@ -921,34 +921,34 @@ paths:
           schema:
             $ref: '#/definitions/errors.ErrorResponse'
       security:
-      - BearerAuth: []
+        - BearerAuth: []
       summary: Get all matches of a tournament
       tags:
-      - tournament
+        - tournament
   /tournaments/{id}/register/{userID}:
     post:
       consumes:
-      - application/json
+        - application/json
       description: Register a user to a tournament
       parameters:
-      - description: Tournament ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      - description: User ID
-        in: path
-        name: userID
-        required: true
-        type: integer
-      - default: Bearer <Add access token here>
-        description: Insert your access token
-        in: header
-        name: Authorization
-        required: true
-        type: string
+        - description: Tournament ID
+          in: path
+          name: id
+          required: true
+          type: integer
+        - description: User ID
+          in: path
+          name: userID
+          required: true
+          type: integer
+        - default: Bearer <Add access token here>
+          description: Insert your access token
+          in: header
+          name: Authorization
+          required: true
+          type: string
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
@@ -963,29 +963,29 @@ paths:
           schema:
             $ref: '#/definitions/errors.ErrorResponse'
       security:
-      - BearerAuth: []
+        - BearerAuth: []
       summary: Register a user to a tournament
       tags:
-      - tournament
+        - tournament
   /tournaments/{id}/start:
     post:
       consumes:
-      - application/json
+        - application/json
       description: Start a tournament
       parameters:
-      - description: Tournament ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      - default: Bearer <Add access token here>
-        description: Insert your access token
-        in: header
-        name: Authorization
-        required: true
-        type: string
+        - description: Tournament ID
+          in: path
+          name: id
+          required: true
+          type: integer
+        - default: Bearer <Add access token here>
+          description: Insert your access token
+          in: header
+          name: Authorization
+          required: true
+          type: string
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
@@ -1000,36 +1000,36 @@ paths:
           schema:
             $ref: '#/definitions/errors.ErrorResponse'
       security:
-      - BearerAuth ini: []
+        - BearerAuth ini: []
       summary: Start a tournament
       tags:
-      - tournament
+        - tournament
   /tournaments/rankings:
     get:
       consumes:
-      - application/json
+        - application/json
       description: Get the ranking of a tournament
       parameters:
-      - description: Tournament ID
-        in: query
-        name: TournamentID
-        type: integer
-      - description: Game ID
-        in: query
-        name: GameID
-        type: integer
-      - description: User ID
-        in: query
-        name: UserID
-        type: integer
-      - default: Bearer <Add access token here>
-        description: Insert your access token
-        in: header
-        name: Authorization
-        required: true
-        type: string
+        - description: Tournament ID
+          in: query
+          name: TournamentID
+          type: integer
+        - description: Game ID
+          in: query
+          name: GameID
+          type: integer
+        - description: User ID
+          in: query
+          name: UserID
+          type: integer
+        - default: Bearer <Add access token here>
+          description: Insert your access token
+          in: header
+          name: Authorization
+          required: true
+          type: string
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
@@ -1044,40 +1044,40 @@ paths:
           schema:
             $ref: '#/definitions/errors.ErrorResponse'
       security:
-      - BearerAuth: []
+        - BearerAuth: []
       summary: Get the ranking of a tournament
       tags:
-      - tournament
+        - tournament
   /users:
     get:
       consumes:
-      - application/json
+        - application/json
       description: Get all users
       parameters:
-      - description: Filter by isVerified
-        in: query
-        name: isVerified
-        type: string
-      - description: Sort by
-        in: query
-        name: sort
-        type: string
-      - description: Filter by role
-        in: query
-        name: role
-        type: string
-      - description: Filter by country
-        in: query
-        name: country
-        type: string
-      - default: Bearer <Add access token here>
-        description: Insert your access token
-        in: header
-        name: Authorization
-        required: true
-        type: string
+        - description: Filter by isVerified
+          in: query
+          name: isVerified
+          type: string
+        - description: Sort by
+          in: query
+          name: sort
+          type: string
+        - description: Filter by role
+          in: query
+          name: role
+          type: string
+        - description: Filter by country
+          in: query
+          name: country
+          type: string
+        - default: Bearer <Add access token here>
+          description: Insert your access token
+          in: header
+          name: Authorization
+          required: true
+          type: string
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
@@ -1088,29 +1088,29 @@ paths:
           schema:
             $ref: '#/definitions/errors.ErrorResponse'
       security:
-      - BearerAuth: []
+        - BearerAuth: []
       summary: Get all users
       tags:
-      - User
+        - User
     post:
       consumes:
-      - application/json
+        - application/json
       description: Create a user
       parameters:
-      - description: User Payload
-        in: body
-        name: payload
-        required: true
-        schema:
-          $ref: '#/definitions/models.User'
-      - default: Bearer <Add access token here>
-        description: Insert your access token
-        in: header
-        name: Authorization
-        required: true
-        type: string
+        - description: User Payload
+          in: body
+          name: payload
+          required: true
+          schema:
+            $ref: '#/definitions/models.User'
+        - default: Bearer <Add access token here>
+          description: Insert your access token
+          in: header
+          name: Authorization
+          required: true
+          type: string
       produces:
-      - application/json
+        - application/json
       responses:
         "201":
           description: Created
@@ -1125,29 +1125,29 @@ paths:
           schema:
             $ref: '#/definitions/errors.ErrorResponse'
       security:
-      - BearerAuth: []
+        - BearerAuth: []
       summary: Create a user
       tags:
-      - User
+        - User
   /users/{id}:
     delete:
       consumes:
-      - application/json
+        - application/json
       description: Delete a user
       parameters:
-      - description: User ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      - default: Bearer <Add access token here>
-        description: Insert your access token
-        in: header
-        name: Authorization
-        required: true
-        type: string
+        - description: User ID
+          in: path
+          name: id
+          required: true
+          type: integer
+        - default: Bearer <Add access token here>
+          description: Insert your access token
+          in: header
+          name: Authorization
+          required: true
+          type: string
       produces:
-      - application/json
+        - application/json
       responses:
         "204":
           description: No Content
@@ -1164,28 +1164,28 @@ paths:
           schema:
             $ref: '#/definitions/errors.ErrorResponse'
       security:
-      - BearerAuth: []
+        - BearerAuth: []
       summary: Delete a user
       tags:
-      - User
+        - User
     get:
       consumes:
-      - application/json
+        - application/json
       description: Get a user by ID
       parameters:
-      - description: User ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      - default: Bearer <Add access token here>
-        description: Insert your access token
-        in: header
-        name: Authorization
-        required: true
-        type: string
+        - description: User ID
+          in: path
+          name: id
+          required: true
+          type: integer
+        - default: Bearer <Add access token here>
+          description: Insert your access token
+          in: header
+          name: Authorization
+          required: true
+          type: string
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
@@ -1204,29 +1204,29 @@ paths:
           schema:
             $ref: '#/definitions/errors.ErrorResponse'
       security:
-      - BearerAuth: []
+        - BearerAuth: []
       summary: Get a user by ID
       tags:
-      - User
+        - User
     put:
       consumes:
-      - application/json
+        - application/json
       description: Update a user
       parameters:
-      - description: User Payload
-        in: body
-        name: payload
-        required: true
-        schema:
-          $ref: '#/definitions/models.User'
-      - default: Bearer <Add access token here>
-        description: Insert your access token
-        in: header
-        name: Authorization
-        required: true
-        type: string
+        - description: User Payload
+          in: body
+          name: payload
+          required: true
+          schema:
+            $ref: '#/definitions/models.User'
+        - default: Bearer <Add access token here>
+          description: Insert your access token
+          in: header
+          name: Authorization
+          required: true
+          type: string
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
@@ -1241,34 +1241,34 @@ paths:
           schema:
             $ref: '#/definitions/errors.ErrorResponse'
       security:
-      - BearerAuth: []
+        - BearerAuth: []
       summary: Update a user
       tags:
-      - User
+        - User
   /users/{id}/upload/picture:
     post:
       consumes:
-      - multipart/form-data
+        - multipart/form-data
       description: Upload a picture
       parameters:
-      - description: User ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      - description: Image file
-        in: formData
-        name: image
-        required: true
-        type: file
-      - default: Bearer <Add access token here>
-        description: Insert your access token
-        in: header
-        name: Authorization
-        required: true
-        type: string
+        - description: User ID
+          in: path
+          name: id
+          required: true
+          type: integer
+        - description: Image file
+          in: formData
+          name: image
+          required: true
+          type: file
+        - default: Bearer <Add access token here>
+          description: Insert your access token
+          in: header
+          name: Authorization
+          required: true
+          type: string
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
@@ -1283,10 +1283,10 @@ paths:
           schema:
             $ref: '#/definitions/errors.ErrorResponse'
       security:
-      - BearerAuth: []
+        - BearerAuth: []
       summary: Upload a picture
       tags:
-      - User
+        - User
 securityDefinitions:
   BearerAuth:
     in: header

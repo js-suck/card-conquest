@@ -91,7 +91,7 @@ class MyApp extends StatelessWidget {
         child: Consumer(builder: (context, ThemeNotifier notifier, child) {
           return MaterialApp(
             debugShowCheckedModeBanner: false,
-            initialRoute: '/bracket',
+            initialRoute: '/',
             routes: routes,
             theme: notifier.getTheme(),
           );
