@@ -3,6 +3,8 @@ package routers
 import (
 	"authentication-api/handlers"
 	"authentication-api/middlewares"
+	"authentication-api/models"
+	"authentication-api/permissions"
 	"authentication-api/services"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -30,21 +32,23 @@ func SetupRouter(db *gorm.DB) *gin.Engine {
 		c.File("./uploads/" + filename)
 	})
 
-	protectedRoutes.Use(middlewares.AuthenticationMiddleware(), middlewares.PermissionMiddleware(db))
+	protectedRoutes.Use(middlewares.AuthenticationMiddleware())
 	{
 		publicRoutes.POST("/images", uploadFileHandler.UploadImage)
 
 		publicRoutes.POST("/register", authHandler.Register)
 		publicRoutes.GET("/users/verify", authHandler.ConfirmEmail)
-		protectedRoutes.GET("/users/:id", userHandler.GetUser())
-		protectedRoutes.GET("/users", userHandler.GetUsers)
-		protectedRoutes.POST("/users", userHandler.PostUser)
-		protectedRoutes.PUT("/users/:id", userHandler.UpdateUser)
-		protectedRoutes.DELETE("/users/:id", userHandler.DeleteUser)
-		protectedRoutes.POST("/users/:id/upload/picture", userHandler.UploadPicture)
+		protectedRoutes.GET("/users/:id", permissions.PermissionMiddleware(permissions.PermissionReadeUser), middlewares.OwnerMiddleware("user", &models.User{}), userHandler.GetUser())
+		protectedRoutes.GET("/users", permissions.PermissionMiddleware(permissions.PermissionReadeUser), userHandler.GetUsers)
+		protectedRoutes.GET("/users/ranks", permissions.PermissionMiddleware(permissions.PermissionReadeUser), userHandler.GetUsersRanks)
+		protectedRoutes.GET("/users/:id/stats", permissions.PermissionMiddleware(permissions.PermissionReadeUser), userHandler.GetUserStats)
+		protectedRoutes.POST("/users", permissions.PermissionMiddleware(permissions.PermissionCreateUser), userHandler.PostUser)
+		protectedRoutes.PUT("/users/:id", middlewares.OwnerMiddleware("user", &models.User{}), permissions.PermissionMiddleware(permissions.PermissionUpdateUser), userHandler.UpdateUser)
+		protectedRoutes.DELETE("/users/:id", middlewares.OwnerMiddleware("user", &models.User{}), permissions.PermissionMiddleware(permissions.PermissionDeleteUser), userHandler.DeleteUser)
+		protectedRoutes.POST("/users/:id/upload/picture", middlewares.OwnerMiddleware("user", &models.User{}), permissions.PermissionMiddleware(permissions.PermissionUpdateUser), userHandler.UploadPicture)
 
 		protectedRoutes.POST("/tournaments", tournamentHandler.CreateTournament)
-		protectedRoutes.GET("/tournaments/rankings", tournamentHandler.GetRankings)
+		protectedRoutes.GET("/tournaments/rankings", tournamentHandler.GetTournamentRankings)
 		protectedRoutes.GET("/tournaments", tournamentHandler.GetTournaments)
 		protectedRoutes.POST("/tournaments/:id/start", tournamentHandler.StartTournament)
 		protectedRoutes.GET("/tournaments/:id", tournamentHandler.GetTournament)
@@ -54,6 +58,7 @@ func SetupRouter(db *gorm.DB) *gin.Engine {
 
 		//protectedRoutes.POST("/matches/:id/finish", tournamentHandler.FinishMatch)
 		protectedRoutes.POST("/matches/update/score", matchHandler.UpdateScore)
+		protectedRoutes.GET("/matchs/between-users", matchHandler.GetMatchesBetweenUsers)
 
 		protectedRoutes.GET(("/games"), gameHandler.GetAllGames)
 		protectedRoutes.GET(("/games/:userID/rankings"), gameHandler.GetUserGameRankings)
