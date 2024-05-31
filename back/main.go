@@ -3,7 +3,7 @@ package main
 import (
 	dbService "authentication-api/db"
 	docs "authentication-api/docs"
-	grpcTounrnament "authentication-api/grpc"
+	grpcServices "authentication-api/grpc"
 	"authentication-api/models"
 	authentication_api "authentication-api/pb/github.com/lailacha/authentication-api"
 	"authentication-api/routers"
@@ -46,7 +46,7 @@ func main() {
 	}
 
 	DB, err := dbService.InitDB()
-	DB.AutoMigrate(models.User{}, models.Tournament{}, models.Match{}, models.Score{}, models.TournamentStep{}, models.Media{}, models.TournamentStep{})
+	DB.AutoMigrate(models.User{}, models.Tournament{}, models.Match{}, models.Score{}, models.TournamentStep{}, models.Media{}, models.TournamentStep{}, models.GameScore{})
 
 	if DB == nil {
 		return
@@ -76,14 +76,22 @@ func main() {
 	}
 
 	docs.SwaggerInfo.BasePath = "/api/v1"
-
 	go func() {
+
 		lis, err := net.Listen("tcp", ":50051")
 		if err != nil {
 			log.Fatalf("Failed to listen: %v", err)
 		}
+
 		s := grpc.NewServer()
-		authentication_api.RegisterTournamentServiceServer(s, grpcTounrnament.NewServer())
+
+		matchServiceServer := grpcServices.NewMatchServer()
+		tournamentServiceServer := grpcServices.NewTournamentServer()
+
+		authentication_api.RegisterTournamentServiceServer(s, tournamentServiceServer)
+
+		authentication_api.RegisterMatchServiceServer(s, matchServiceServer)
+
 		log.Println("Server is running on port 50051")
 		if err := s.Serve(lis); err != nil {
 			log.Fatalf("Failed to serve: %v", err)
