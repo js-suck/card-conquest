@@ -6,44 +6,13 @@ import (
 	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 	"log"
 	"os"
 	"time"
 )
 
 const FirstTournamentName = "Test"
-
-func gameMigration(db *gorm.DB) (*models.Game, error) {
-	err := db.AutoMigrate(&models.Game{})
-
-	media := models.Media{
-		BaseModel:     models.BaseModel{},
-		FileName:      "lorcana.jpg",
-		FileExtension: "jpg",
-	}
-
-	db.Create(&media)
-
-	// create a game
-	game := models.Game{
-		Name: "Test",
-	}
-
-	game.MediaModel.Media = &media
-
-	if err != nil {
-		fmt.Println(err.Error())
-		return nil, err
-	}
-
-	db.Create(&game)
-
-	if err != nil {
-		fmt.Println(err.Error())
-		return nil, err
-	}
-	return &game, nil
-}
 
 func tournamentMigration(db *gorm.DB, game *models.Game) (*models.Tournament, error) {
 	err := db.AutoMigrate(&models.Tournament{})
@@ -91,6 +60,8 @@ func registrationsTournamentMigrations(db *gorm.DB) {
 
 	db.Create(&tournamentStep)
 
+	users := make([]models.User, 10)
+
 	for i := 0; i < 10; i++ {
 		user := models.User{
 			Username: fmt.Sprintf("Test%d", i),
@@ -101,8 +72,29 @@ func registrationsTournamentMigrations(db *gorm.DB) {
 
 		db.Create(&user)
 		tournament.Users = append(tournament.Users, &user)
+		users[i] = user
 
 		db.Save(&tournament)
+
+	}
+
+	// create matchs
+	for i := 0; i < 5; i++ {
+		match := models.Match{
+			BaseModel:        models.BaseModel{},
+			TournamentID:     tournament.ID,
+			Tournament:       models.Tournament{},
+			TournamentStepID: tournamentStep.ID,
+			PlayerOneID:      users[i].ID,
+			PlayerTwoID:      &users[i+5].ID,
+			StartTime:        time.Time{},
+			EndTime:          time.Time{},
+			Status:           "started",
+			WinnerID:         nil,
+			Scores:           nil,
+		}
+
+		db.Create(&match)
 
 	}
 
@@ -161,6 +153,18 @@ func matchMigration(db *gorm.DB, tournament *models.Tournament, user *models.Use
 	return &match, nil
 }
 
+func terminateConnections(defaultDB *gorm.DB, dbName string) error {
+	// Terminate other connections to the database
+	sql := fmt.Sprintf(`
+		SELECT pg_terminate_backend(pg_stat_activity.pid)
+		FROM pg_stat_activity
+		WHERE pg_stat_activity.datname = '%s'
+		  AND pid <> pg_backend_pid();
+	`, dbName)
+
+	return defaultDB.Exec(sql).Error
+}
+
 func MigrateDatabase() error {
 	err := godotenv.Load(".env")
 	if err != nil {
@@ -173,21 +177,50 @@ func MigrateDatabase() error {
 	dbPassword := os.Getenv("DATABASE_PASSWORD")
 	dbName := os.Getenv("DATABASE_NAME")
 
-	dsn := fmt.Sprintf("user=%s password=%s dbname=%s host=%s port=%s sslmode=disable TimeZone=Asia/Shanghai", dbUser, dbPassword, dbName, dbHost, dbPort)
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
-	// remove the old database
-	err = db.Migrator().DropTable(&models.User{})
-	err = db.Migrator().DropTable(&models.Tournament{})
-	err = db.Migrator().DropTable(&models.Game{})
-	err = db.Migrator().DropTable(&models.Media{})
-	err = db.Migrator().DropTable(&models.TournamentStep{})
-	err = db.Migrator().DropTable(&models.Match{})
-	err = db.Migrator().DropTable(&models.Score{})
-
+	// Connect to the default 'postgres' database
+	defaultDSN := fmt.Sprintf("user=%s password=%s dbname=postgres host=%s port=%s sslmode=disable TimeZone=Asia/Shanghai", dbUser, dbPassword, dbHost, dbPort)
+	defaultDB, err := gorm.Open(postgres.Open(defaultDSN), &gorm.Config{
+		Logger: logger.Default.LogMode(logger.Info),
+	})
 	if err != nil {
-		return err
+		log.Fatalf("failed to connect to the default database: %v", err)
 	}
 
+	// Terminate other connections to the target database
+	err = terminateConnections(defaultDB, dbName)
+	if err != nil {
+		log.Fatalf("failed to terminate other connections: %v", err)
+	}
+
+	// Drop the target database
+	err = defaultDB.Exec(fmt.Sprintf("DROP DATABASE IF EXISTS %s", dbName)).Error
+	if err != nil {
+		log.Fatalf("failed to drop database: %v", err)
+	}
+
+	// Recreate the target database
+	err = defaultDB.Exec(fmt.Sprintf("CREATE DATABASE %s", dbName)).Error
+	if err != nil {
+		log.Fatalf("failed to create database: %v", err)
+	}
+
+	// Close the connection to the default database
+	sqlDB, err := defaultDB.DB()
+	if err != nil {
+		log.Fatalf("failed to get sqlDB: %v", err)
+	}
+	sqlDB.Close()
+
+	// Connect to the newly created target database
+	dsn := fmt.Sprintf("user=%s password=%s dbname=%s host=%s port=%s sslmode=disable TimeZone=Asia/Shanghai", dbUser, dbPassword, dbName, dbHost, dbPort)
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
+		Logger: logger.Default.LogMode(logger.Info),
+	})
+	if err != nil {
+		log.Fatalf("failed to connect to the newly created database: %v", err)
+	}
+
+	// Now you can proceed with your migrations
 	err = db.AutoMigrate(&models.User{})
 	err = db.AutoMigrate(&models.TournamentStep{})
 	err = db.AutoMigrate(&models.Tag{})
@@ -207,17 +240,110 @@ func MigrateDatabase() error {
 		db.Create(&user)
 	}
 
-	game, err := gameMigration(db)
+	err = insertGamesFixtures(db)
+	if err != nil {
+		log.Fatalf("failed to insert games fixtures: %v", err)
+	}
 
-	_, err = tournamentMigration(db, game)
+	_, err = tournamentMigration(db, &GamesFixtures[1])
 
 	registrationsTournamentMigrations(db)
-	//_, err = matchMigration(db, t, &user)
 
 	if err != nil {
 		fmt.Println(err.Error())
 		return err
 	}
+
+	// Add triggers and functions
+	createFunction := `
+	CREATE OR REPLACE FUNCTION update_game_scores()
+	RETURNS TRIGGER AS $$
+	BEGIN
+		IF TG_OP = 'UPDATE' THEN
+			-- Mise à jour du score existant
+			UPDATE game_scores
+			SET total_score = total_score + NEW.score - OLD.score
+			WHERE user_id = NEW.player_id AND game_id = (
+				SELECT game_id
+				FROM tournaments
+				JOIN tournament_steps ON tournament_steps.tournament_id = tournaments.id
+				JOIN matches ON matches.tournament_step_id = tournament_steps.id
+				WHERE matches.id = NEW.match_id
+			);
+			UPDATE users
+			SET global_score = global_score + NEW.score - OLD.score
+			WHERE id = NEW.player_id;
+		ELSIF TG_OP = 'INSERT' THEN
+			-- Vérifier si l'enregistrement existe déjà
+			IF EXISTS (
+				SELECT 1
+				FROM game_scores
+				WHERE user_id = NEW.player_id AND game_id = (
+					SELECT game_id
+					FROM tournaments
+					JOIN tournament_steps ON tournament_steps.tournament_id = tournaments.id
+					JOIN matches ON matches.tournament_step_id = tournament_steps.id
+					WHERE matches.id = NEW.match_id
+				)
+			) THEN
+				-- Mise à jour de l'enregistrement existant
+				UPDATE game_scores
+				SET total_score = total_score + NEW.score
+				WHERE user_id = NEW.player_id AND game_id = (
+					SELECT game_id
+					FROM tournaments
+					JOIN tournament_steps ON tournament_steps.tournament_id = tournaments.id
+					JOIN matches ON matches.tournament_step_id = tournament_steps.id
+					WHERE matches.id = NEW.match_id
+				);
+			ELSE
+				-- Insertion d'un nouvel enregistrement
+				INSERT INTO game_scores (user_id, game_id, total_score)
+				VALUES (NEW.player_id, (
+					SELECT game_id
+					FROM tournaments
+					JOIN tournament_steps ON tournament_steps.tournament_id = tournaments.id
+					JOIN matches ON matches.tournament_step_id = tournament_steps.id
+					WHERE matches.id = NEW.match_id
+				), NEW.score);
+			END IF;
+			-- Mettre à jour le global_score
+			UPDATE users
+			SET global_score = global_score + NEW.score
+			WHERE id = NEW.player_id;
+		END IF;
+		RETURN NEW;
+	END;
+	$$ LANGUAGE plpgsql;
+	`
+
+	if err := db.Exec(createFunction).Error; err != nil {
+		log.Fatalf("failed to create function: %v", err)
+	}
+
+	createUpdateTrigger := `
+	CREATE TRIGGER update_game_scores_trigger
+	AFTER UPDATE ON scores
+	FOR EACH ROW
+	EXECUTE FUNCTION update_game_scores();
+	`
+
+	createInsertTrigger := `
+	CREATE TRIGGER insert_game_scores_trigger
+	AFTER INSERT ON scores
+	FOR EACH ROW
+	EXECUTE FUNCTION update_game_scores();
+	`
+
+	if err := db.Exec(createUpdateTrigger).Error; err != nil {
+		log.Fatalf("failed to create update trigger: %v", err)
+	}
+
+	if err := db.Exec(createInsertTrigger).Error; err != nil {
+		log.Fatalf("failed to create insert trigger: %v", err)
+	}
+
+	log.Println("Triggers created successfully")
 
 	return nil
 }
