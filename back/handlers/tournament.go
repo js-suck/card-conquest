@@ -71,6 +71,14 @@ func (h *TournamentHandler) parseFilterParams(c *gin.Context) services.FilterPar
 // @Router /tournaments [post]
 func (h *TournamentHandler) CreateTournament(c *gin.Context) {
 	file, err := c.FormFile("image")
+	if err != nil {
+		if errors.IsFileNotFound(err) {
+			file = nil
+		} else {
+			c.JSON(http.StatusBadRequest, errors.NewBadRequestError("Something went wrong with the file", err).ToGinH())
+			return
+		}
+	}
 	tagsIDsStr := c.PostFormArray("tagsIDs")
 	var tagsIDs []uint
 
@@ -82,21 +90,10 @@ func (h *TournamentHandler) CreateTournament(c *gin.Context) {
 		}
 		tagsIDs = append(tagsIDs, uint(id))
 	}
-	if err != nil {
-		c.JSON(http.StatusBadRequest, errors.NewBadRequestError("Something went wrong with the file", err).ToGinH())
-		return
-	}
 
 	var payload models.CreateTournamentPayload
 	if err := c.ShouldBind(&payload); err != nil {
 		c.JSON(http.StatusBadRequest, errors.NewBadRequestError("Invalid request", err).ToGinH())
-		return
-	}
-
-	// Upload de l'image
-	mediaModel, _, errUpload := h.FileService.UploadMedia(file)
-	if errUpload != nil {
-		c.JSON(http.StatusBadRequest, errors.NewBadRequestError("Invalid request", errUpload).ToGinH())
 		return
 	}
 
@@ -113,7 +110,16 @@ func (h *TournamentHandler) CreateTournament(c *gin.Context) {
 		MaxPlayers:  payload.MaxPlayers,
 	}
 
-	tournament.MediaModel.Media = mediaModel
+	if file != nil {
+		// Upload de l'image
+		mediaModel, _, errUpload := h.FileService.UploadMedia(file)
+		if errUpload != nil {
+			c.JSON(http.StatusBadRequest, errors.NewBadRequestError("Invalid request", errUpload).ToGinH())
+			return
+		}
+		tournament.MediaModel.Media = mediaModel
+
+	}
 
 	tags, err := h.TounamentService.GetTagsByIDs(tagsIDs)
 	if err != nil {
@@ -154,7 +160,7 @@ func (h *TournamentHandler) GetTournament(c *gin.Context) {
 
 	tournament := models.Tournament{}
 
-	errService := h.TounamentService.Get(&tournament, uint(idInt), "User", "Game", "Media")
+	errService := h.TounamentService.Get(&tournament, uint(idInt), "User", "Game", "Media", "Users")
 
 	if err != nil {
 		c.JSON(errService.Code(), err)
@@ -193,7 +199,7 @@ func (h *TournamentHandler) GetTournaments(c *gin.Context) {
 		return
 	}
 
-	err := h.TounamentService.GetAll(&tournaments, filterParams, "User", "Game", "Media")
+	err := h.TounamentService.GetAll(&tournaments, filterParams, "User", "Game", "Media", "Users")
 
 	// use toRead method to convert the model to the read model
 	for i, tournament := range tournaments {
@@ -238,6 +244,7 @@ func (h *TournamentHandler) GetTournaments(c *gin.Context) {
 // @Produce json
 // @Param id path int true "Tournament ID"
 // @Param userID path int true "User ID"
+// @Param Status query string false "Status" Example(s) : "opened"
 // @Success 200 {object} string
 // @Failure 400 {object} errors.ErrorResponse
 // @Failure 500 {object} errors.ErrorResponse
@@ -385,14 +392,13 @@ func (h *TournamentHandler) GetTournamentMatches(context *gin.Context) {
 	context.JSON(http.StatusOK, matches)
 }
 
-// GetRankings godoc
+// GetTournamentRankings godoc
 // @Summary Get the ranking of a tournament
 // @Description Get the ranking of a tournament
 // @Tags tournament
 // @Accept json
 // @Produce json
 // @Param TournamentID query int false "Tournament ID"
-// @Param GameID query int false "Game ID"
 // @Param UserID query int false "User ID"
 // @Success 200 {object} string
 // @Failure 400 {object} errors.ErrorResponse
@@ -400,9 +406,9 @@ func (h *TournamentHandler) GetTournamentMatches(context *gin.Context) {
 // @Security BearerAuth
 // @Param Authorization header string true "Insert your access token" default(Bearer <Add access token here>)
 // @Router /tournaments/rankings [get]
-func (h *TournamentHandler) GetRankings(c *gin.Context) {
+func (h *TournamentHandler) GetTournamentRankings(c *gin.Context) {
 
-	if c.Query("TournamentID") != "" || c.Query("GameID") != "" || c.Query("UserID") != "" {
+	if c.Query("TournamentID") != "" || c.Query("UserID") != "" {
 
 		filterParams := h.parseFilterParams(c)
 
@@ -416,7 +422,7 @@ func (h *TournamentHandler) GetRankings(c *gin.Context) {
 
 	}
 
-	ranking, errService := h.TounamentService.CalculateGlobalRanking()
+	ranking, errService := h.TounamentService.GetGlobalRankings()
 	if errService != nil {
 		c.JSON(errService.Code(), errService)
 		return

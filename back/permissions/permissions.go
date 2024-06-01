@@ -157,7 +157,6 @@ func PermissionMiddleware(requiredPermission string) gin.HandlerFunc {
 			return
 		}
 
-		// Optional: Check if the user is the owner of the resource
 		resourceID := c.Param("tournamentID")
 		if resourceID != "" {
 			var tournament models.Tournament

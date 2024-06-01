@@ -21,6 +21,7 @@ func SetupRouter(db *gorm.DB) *gin.Engine {
 	gameHandler := handlers.NewGameHandler(services.NewGameService(db))
 	uploadFileHandler := handlers.NewUploadHandler(services.NewFileService(db))
 	matchHandler := handlers.NewMatchHandler(services.NewMatchService(db))
+	guildHandler := handlers.NewGuildHandler(services.NewGuildService(db))
 
 	publicRoutes := r.Group("/api/v1")
 	protectedRoutes := r.Group("/api/v1")
@@ -69,6 +70,14 @@ func SetupRouter(db *gorm.DB) *gin.Engine {
 
 		protectedRoutes.GET("/tags", tagHandler.GetAllTags)
 		protectedRoutes.POST("/tags", tagHandler.CreateTag)
+
+		protectedRoutes.GET("/guilds", guildHandler.GetAllGuilds)
+		protectedRoutes.GET("/guilds/:id", guildHandler.GetGuild)
+		protectedRoutes.POST("/guilds", guildHandler.CreateGuild)
+		protectedRoutes.PUT("/guilds/:id", guildHandler.UpdateGuild)
+		protectedRoutes.DELETE("/guilds/:id", guildHandler.DeleteGuild)
+		//protectedRoutes.POST("/guilds/:id/users/:userID", guildHandler.AddUserToGuild)
+		//protectedRoutes.DELETE("/guilds/:id/users/:userID", guildHandler.RemoveUserFromGuild)
 
 	}
 

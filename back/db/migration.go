@@ -17,12 +17,17 @@ const FirstTournamentName = "Test"
 func tournamentMigration(db *gorm.DB, game *models.Game) (*models.Tournament, error) {
 	err := db.AutoMigrate(&models.Tournament{})
 
+	// get the first game
+	gameOne := models.Game{}
+
+	db.First(&gameOne, "name = ?", "Magic: The Gathering")
+
 	// create a tournament
 	tournament := models.Tournament{
 		Name:       FirstTournamentName,
 		Location:   "",
 		UserID:     uint(1),
-		GameID:     game.ID,
+		GameID:     gameOne.ID,
 		StartDate:  "2024-04-12T00:00:00Z",
 		EndDate:    "2024-05-12T00:00:00Z",
 		MaxPlayers: 32,
@@ -72,6 +77,7 @@ func registrationsTournamentMigrations(db *gorm.DB) {
 
 		db.Create(&user)
 		tournament.Users = append(tournament.Users, &user)
+		tournament.UserID = user.ID
 		users[i] = user
 
 		db.Save(&tournament)

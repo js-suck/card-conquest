@@ -26,6 +26,8 @@ type MatchParams struct {
 func (h *MatchHandler) parseFilterParams(c *gin.Context) services.FilterParams {
 	UserID := c.Query("UserID")
 	TournamentID := c.Query("TournamentID")
+	Status := c.Query("Status")
+	Unfinished := c.Query("Unfinished")
 
 	filterParams := services.FilterParams{
 		Fields: map[string]interface{}{},
@@ -38,6 +40,16 @@ func (h *MatchHandler) parseFilterParams(c *gin.Context) services.FilterParams {
 
 	if TournamentID != "" {
 		filterParams.Fields["TournamentID"] = TournamentID
+	}
+
+	if Status != "" {
+		filterParams.Fields["Status"] = Status
+
+	}
+
+	if Unfinished != "" {
+		filterParams.Fields["Unfinished"] = Unfinished
+
 	}
 
 	return filterParams
@@ -53,6 +65,8 @@ func (h *MatchHandler) parseFilterParams(c *gin.Context) services.FilterParams {
 // @Failure 500 {object} errors.ErrorResponse
 // @Security BearerAuth
 // @Param UserID query int 0 "Search by userID"
+// @Param Status query string 0 "Search by Status"
+// @Param Unfinished query bool false "Search by Unfinished"
 // @Param TournamentID query int 0 "Search by TournamentID"
 // @Param Authorization header string true "Insert your access token" default(Bearer <Add access token here>)
 // @Router /matchs [get]
@@ -177,11 +191,51 @@ func (h *MatchHandler) GetMatch(c *gin.Context) {
 
 	user := models.Match{}
 
-	err = h.MatchService.Get(&user, uint(idInt), "PlayerOne", "PlayerTwo", "Winner", "Scores", "TournamentStep", "Tournament")
+	err = h.MatchService.Get(&user, uint(idInt), "PlayerOne", "PlayerTwo", "Winner", "Scores", "TournamentStep", "Tournament", "Winner")
 	if err != nil {
 		c.JSON(http.StatusNotFound, errors.NewNotFoundError("Match not found", err).ToGinH())
 		return
 	}
 
 	c.JSON(http.StatusOK, user)
+}
+
+// GetMatchesBetweenUsers godoc
+// @Summary Get matches between users
+// @Description Get matches between users.
+// @Tags Match
+// @Accept json
+// @Produce json
+// @Success 200
+// @Failure 500 {object} errors.ErrorResponse
+// @Security BearerAuth
+// @Param Authorization header string true "Insert your access token" default(Bearer <Add access token here>)
+// @Param Player1ID query int true "Player1 ID"
+// @Param PlayerID2 query int true "Player2 ID"
+// @Router /matchs/between-users [get]
+func (h *MatchHandler) GetMatchesBetweenUsers(c *gin.Context) {
+	userID1, err := strconv.ParseUint(c.Query("Player1ID"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid Player1ID"})
+		return
+	}
+
+	userID2, err := strconv.ParseUint(c.Query("PlayerID2"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid PlayerID2"})
+		return
+	}
+
+	matches, err := h.MatchService.GetMatchesBetweenUsers(uint(userID1), uint(userID2))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	matchesResponse := make([]models.MatchRead, len(matches))
+	for i, match := range matches {
+		matchesResponse[i] = match.ToRead()
+	}
+
+	c.JSON(http.StatusOK, matchesResponse)
 }

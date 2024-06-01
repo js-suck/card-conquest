@@ -46,7 +46,7 @@ func main() {
 	}
 
 	DB, err := dbService.InitDB()
-	DB.AutoMigrate(models.User{}, models.Tournament{}, models.Match{}, models.Score{}, models.TournamentStep{}, models.Media{}, models.TournamentStep{}, models.GameScore{})
+	DB.AutoMigrate(models.User{}, models.Tournament{}, models.Match{}, models.Score{}, models.TournamentStep{}, models.Media{}, models.TournamentStep{}, models.GameScore{}, models.Guild{})
 
 	if DB == nil {
 		return

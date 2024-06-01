@@ -7,6 +7,7 @@ import (
 type IModel interface {
 	GetID() uint
 	GetTableName() string
+	IsOwner(userID uint) bool
 }
 
 type ForeignKeyChecker interface {
@@ -35,10 +36,12 @@ type User struct {
 	Email             string        `gorm:"unique;not null;type:varchar(255);default:null" json:"email"`
 	Role              string        `gorm:"type:varchar(100);default:user" json:"role"`
 	Country           string        `gorm:"type:varchar(255);default:null" json:"country"`
+	GlobalScore       int           `gorm:"default:0" json:"global_score"`
 	VerificationToken string        `gorm:"type:varchar(255);default:null" json:"-"`
 	IsVerified        bool          `gorm:"default:false" json:"is_verified"`
 	Tournaments       []*Tournament `gorm:"many2many:user_tournaments;"`
 	Matches           []Match       `gorm:"foreignKey:PlayerOneID;references:ID"`
+	GamesScores       []GameScore   `gorm:"foreignKey:UserID;references:ID"`
 }
 
 type LoginPayload struct {
@@ -59,9 +62,22 @@ type UserRead struct {
 	Username string `json:"name"`
 	Email    string `json:"email, -"`
 }
+
+type UserReadFull struct {
+	ID         uint   `json:"id"`
+	Username   string `json:"username"`
+	Email      string `json:"email"`
+	Address    string `json:"address"`
+	Phone      string `json:"phone"`
+	Role       string `json:"role"`
+	Country    string `json:"country"`
+	MediaModel *Media `json:"media"`
+}
+
 type UserRanking struct {
 	User  UserReadTournament
 	Score int
+	Rank  int
 }
 
 type UserStats struct {
@@ -70,6 +86,7 @@ type UserStats struct {
 	TotalWins    int
 	TotalLosses  int
 	TotalScore   int
+	Rank         int
 	GamesRanking []UserGameRanking
 }
 
@@ -78,6 +95,7 @@ type UserGameRanking struct {
 	GameID   uint
 	GameName string
 	Score    int
+	Rank     int
 }
 
 func (u User) GetTableName() string {
@@ -99,4 +117,28 @@ func (u User) ToRead() UserReadTournament {
 		Name:  u.Username,
 		Email: u.Email,
 	}
+}
+
+func (u User) ToReadFull() UserReadFull {
+	userRead := UserReadFull{
+		ID:       u.ID,
+		Username: u.Username,
+		Email:    u.Email,
+		Address:  u.Address,
+		Phone:    u.Phone,
+		Role:     u.Role,
+		Country:  u.Country,
+	}
+
+	if u.MediaModel.Media != nil {
+		userRead.MediaModel = &Media{FileName: u.MediaModel.Media.FileName, FileExtension: u.MediaModel.Media.FileExtension, BaseModel: BaseModel{
+			ID: u.MediaModel.Media.GetID(),
+		}}
+	}
+
+	return userRead
+}
+
+func (u User) IsOwner(userID uint) bool {
+	return u.ID == userID
 }
