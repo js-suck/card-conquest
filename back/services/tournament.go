@@ -277,7 +277,7 @@ func (s *TournamentService) StartTournament(tournamentId uint) errors.IError {
 
 	}
 
-	err := s.generateMatchesWithPosition(lastStep.ID, tournamentId)
+	err := s.GenerateMatchesWithPosition(lastStep.ID, tournamentId)
 
 	if err != nil {
 
@@ -288,7 +288,7 @@ func (s *TournamentService) StartTournament(tournamentId uint) errors.IError {
 	return nil
 }
 
-func (s TournamentService) generateMatchesWithPosition(stepId uint, tournamentID uint) errors.IError {
+func (s TournamentService) GenerateMatchesWithPosition(stepId uint, tournamentID uint) errors.IError {
 
 	users := []models.User{}
 

@@ -2,6 +2,7 @@ package db
 
 import (
 	"authentication-api/models"
+	"authentication-api/services"
 	"fmt"
 	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
@@ -84,25 +85,9 @@ func registrationsTournamentMigrations(db *gorm.DB) {
 
 	}
 
-	// create matchs
-	for i := 0; i < 5; i++ {
-		match := models.Match{
-			BaseModel:        models.BaseModel{},
-			TournamentID:     tournament.ID,
-			Tournament:       models.Tournament{},
-			TournamentStepID: tournamentStep.ID,
-			PlayerOneID:      users[i].ID,
-			PlayerTwoID:      &users[i+5].ID,
-			StartTime:        time.Time{},
-			EndTime:          time.Time{},
-			Status:           "started",
-			WinnerID:         nil,
-			Scores:           nil,
-		}
+	tournamentService := services.NewTournamentService(db)
 
-		db.Create(&match)
-
-	}
+	tournamentService.GenerateMatchesWithPosition(tournamentStep.ID, tournament.ID)
 
 }
 

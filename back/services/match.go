@@ -26,6 +26,8 @@ func NewMatchService(db *gorm.DB) *MatchService {
 
 func (s MatchService) UpdateScore(matchId uint, score *models.Score, userId int) errors.IError {
 	match := models.Match{}
+	tournamentService := NewTournamentService(s.db)
+
 	if err := s.db.First(&match, matchId).Error; err != nil {
 		return errors.NewNotFoundError("Match not found", err)
 	}
@@ -70,6 +72,10 @@ func (s MatchService) UpdateScore(matchId uint, score *models.Score, userId int)
 			s.db.First(&tournament, match.TournamentID)
 			tournament.Status = "finished"
 			s.db.Save(&tournament)
+
+			go tournamentService.SendTournamentUpdatesForGRPC(match.TournamentID)
+			go s.SendMatchUpdatesForGRPC(match.ID)
+
 			return nil
 		}
 
@@ -78,10 +84,11 @@ func (s MatchService) UpdateScore(matchId uint, score *models.Score, userId int)
 				return err
 			}
 		}
+		go tournamentService.SendTournamentUpdatesForGRPC(match.TournamentID)
+		go s.SendMatchUpdatesForGRPC(match.ID)
 
+		return nil
 	}
-
-	tournamentService := NewTournamentService(s.db)
 
 	go tournamentService.SendTournamentUpdatesForGRPC(match.TournamentID)
 	go s.SendMatchUpdatesForGRPC(match.ID)
