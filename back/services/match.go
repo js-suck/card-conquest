@@ -65,7 +65,7 @@ func (s MatchService) UpdateScore(matchId uint, score *models.Score, userId int)
 		s.db.Model(&models.Match{}).Where("tournament_id = ? AND tournament_step_id = ?", match.TournamentID, match.TournamentStepID).Count(&matchCount)
 
 		if matchCount == 1 {
-			match.WinnerID = &match.PlayerOneID
+			match.WinnerID = &score.PlayerID
 			match.Status = "finished"
 			s.db.Save(&match)
 			tournament := models.Tournament{}
