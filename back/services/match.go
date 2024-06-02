@@ -56,7 +56,7 @@ func (s MatchService) UpdateScore(matchId uint, score *models.Score, userId int)
 
 		// check if there is still matches in the current step that are not finished
 		var matches []models.Match
-		s.db.Find(&matches, "tournament_step_id = ? AND status = ?", match.TournamentStepID, "started")
+		s.db.Find(&matches, "tournament_step_id = ? AND status != ?", match.TournamentStepID, "finished")
 
 		// verify if there are more than one match in the current step
 		var matchCount int64
@@ -180,23 +180,9 @@ func (s MatchService) GenerateMatches(tournamentId uint) errors.IError {
 	if err != nil {
 		return errors.NewNotFoundError("Users not found", err)
 	}
-
 	// get all steps in the tournament
 	var steps []models.TournamentStep
 	s.db.Find(&steps, "tournament_id = ?", tournamentId)
-
-	// if there are no steps, create the first one and generate matches
-	if len(steps) == 0 {
-		step := models.TournamentStep{
-			TournamentID: tournament.ID,
-			Sequence:     1,
-		}
-		if err := s.db.Create(&step).Error; err != nil {
-			return errors.NewInternalServerError("Failed to create step", err)
-		}
-		return s.generateMatchesForStep(users, step.ID, tournament.ID)
-	}
-
 	// get the last step
 	lastStep := steps[len(steps)-1]
 
@@ -216,6 +202,18 @@ func (s MatchService) GenerateMatches(tournamentId uint) errors.IError {
 		if match.Status != "finished" {
 			return errors.NewBadRequestError("Not all matches in the last step are finished", nil)
 		}
+	}
+
+	// if there are no steps, create the first one and generate matches
+	if len(steps) == 0 {
+		step := models.TournamentStep{
+			TournamentID: tournament.ID,
+			Sequence:     1,
+		}
+		if err := s.db.Create(&step).Error; err != nil {
+			return errors.NewInternalServerError("Failed to create step", err)
+		}
+		return s.generateMatchesForStep(users, step.ID, tournament.ID)
 	}
 
 	// create the next step and generate matches with the winners of the last step

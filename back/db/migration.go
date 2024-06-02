@@ -235,6 +235,7 @@ func MigrateDatabase() error {
 	err = db.AutoMigrate(&models.Match{})
 	err = db.AutoMigrate(&models.Media{})
 	err = db.AutoMigrate(&models.Score{})
+	err = db.AutoMigrate(&models.GameScore{})
 
 	var user models.User
 

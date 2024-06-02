@@ -40,7 +40,7 @@ func (f *FileService) UploadMedia(file *multipart.FileHeader) (*models.Media, st
 		return nil, "", errors.NewBadRequestError("something went wrong with file", err)
 	}
 
-	filePath := "./back/uploads/" + file.Filename
+	filePath := "./uploads/" + file.Filename
 	err = ioutil.WriteFile(filePath, fileBytes, os.ModePerm)
 	if err != nil {
 		return nil, "", errors.NewBadRequestError("something went wrong with file", err)
