@@ -4,8 +4,10 @@ import (
 	"authentication-api/errors"
 	"authentication-api/models"
 	authentication_api "authentication-api/pb/github.com/lailacha/authentication-api"
+	_ "errors"
 	"fmt"
 	"gorm.io/gorm"
+	"log"
 	"math/rand"
 	"sort"
 	"strings"
@@ -383,8 +385,22 @@ func (s MatchService) GetTotalLossesByUserID(id uint) (int64, errors.IError) {
 func (s MatchService) SendMatchUpdatesForGRPC(u uint) {
 
 	match := models.Match{}
-	if err := s.db.Preload("PlayerOne.Media").Preload("PlayerTwo.Media").Preload("PlayerOne").Preload("PlayerTwo").Preload("Tournament").Preload("TournamentStep").Preload("Scores").Joins("INNER JOIN scores on matches.id = scores.match_id").Order("scores.updated_at desc").First(&match, u).Error; err != nil {
-		return
+
+	if err := s.db.Preload("PlayerOne").
+		Preload("PlayerTwo").
+		Preload("Tournament").
+		Preload("TournamentStep").
+		Preload("Scores").
+		Joins("LEFT JOIN scores ON scores.match_id = matches.id").
+		Order("scores.created_at desc").
+		First(&match, u).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			log.Printf("No match found with the specified criteria")
+			return
+		} else {
+			log.Printf("Error fetching match: %v", err)
+			return
+		}
 	}
 
 	// reverses matches.scores
