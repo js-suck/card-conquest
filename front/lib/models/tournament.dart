@@ -1,4 +1,5 @@
 import 'game.dart';
+import 'organizer.dart';
 
 class Tournament {
   final int id;
@@ -46,22 +47,4 @@ class Tournament {
   }
 }
 
-class Organizer {
-  final int id;
-  final String name;
-  final String email;
 
-  Organizer({
-    required this.id,
-    required this.name,
-    required this.email,
-  });
-
-  factory Organizer.fromJson(Map<String, dynamic> json) {
-    return Organizer(
-      id: json['ID'] ?? 0,
-      name: json['username'] ?? '',
-      email: json['email'] ?? '',
-    );
-  }
-}

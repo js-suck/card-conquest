@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:front/models/tournament.dart';
+import 'package:front/theme/theme.dart';
 
 class AllTournamentsList extends StatelessWidget {
   final List<Tournament> allTournaments;
@@ -93,7 +94,7 @@ class AllTournamentsList extends StatelessWidget {
                               label: Text(tag,
                                   style: const TextStyle(
                                       color: Colors.white)),
-                              backgroundColor: Colors.orange,
+                              backgroundColor: accentColor,
                             ),
                           )
                               .toList(),
