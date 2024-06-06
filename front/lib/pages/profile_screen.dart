@@ -4,7 +4,7 @@ import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
-
+import 'package:jwt_decoder/jwt_decoder.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({Key? key}) : super(key: key);
@@ -16,12 +16,10 @@ class ProfilePage extends StatefulWidget {
 class _ProfilePageState extends State<ProfilePage> {
   final storage = const FlutterSecureStorage();
   final _formKey = GlobalKey<FormState>();
-  bool _isLoading = false;
+  bool _isLoading = true;
   String? userId;
   Map<String, dynamic> userData = {};
-
   XFile? _image;
-
   final ImagePicker _picker = ImagePicker();
 
   @override
@@ -33,11 +31,12 @@ class _ProfilePageState extends State<ProfilePage> {
   Future<void> _fetchUserData() async {
     String? token = await storage.read(key: 'jwt_token');
     if (token != null) {
-      userId = jsonDecode(ascii.decode(base64.decode(base64.normalize(token.split(".")[1]))))['id'];
+      Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
+      userId = decodedToken['user_id'].toString();
       final response = await http.get(
         Uri.parse('http://10.0.2.2:8080/api/v1/users/$userId'),
         headers: {
-          'Authorization': 'Bearer $token',
+          'Authorization': '$token',
         },
       );
       if (response.statusCode == 200) {
@@ -46,7 +45,7 @@ class _ProfilePageState extends State<ProfilePage> {
           _isLoading = false;
         });
       } else {
-        // Handle errors
+        _showError('Failed to load user data.');
       }
     }
   }
@@ -57,9 +56,27 @@ class _ProfilePageState extends State<ProfilePage> {
       setState(() {
         _image = image;
       });
+      await _uploadImage(image.path);
     }
   }
 
+  Future<void> _uploadImage(String filePath) async {
+    String? token = await storage.read(key: 'jwt_token');
+    var uri = Uri.parse('http://10.0.2.2:8080/api/v1/users/$userId/upload/picture');
+    var request = http.MultipartRequest('POST', uri)
+      ..headers['Authorization'] = '$token'
+      ..files.add(await http.MultipartFile.fromPath(
+        'file', // Assurez-vous que c'est le nom attendu par votre API
+        filePath,
+      ));
+
+    var response = await request.send();
+    if (response.statusCode == 200) {
+      _showSuccess('Image uploaded successfully.');
+    } else {
+      _showError('Failed to upload image.');
+    }
+  }
 
   Future<void> _updateUserData() async {
     if (_formKey.currentState!.validate()) {
@@ -69,7 +86,7 @@ class _ProfilePageState extends State<ProfilePage> {
         Uri.parse('http://10.0.2.2:8080/api/v1/users/$userId'),
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
+          'Authorization': '$token',
         },
         body: json.encode({
           'email': userData['email'],
@@ -78,30 +95,30 @@ class _ProfilePageState extends State<ProfilePage> {
         }),
       );
       if (response.statusCode == 200) {
-        // Handle success
+        _showSuccess('Profile updated successfully.');
       } else {
-        // Handle errors
+        _showError('Failed to update profile.');
       }
     }
   }
 
-  Future<void> _uploadImage(String filePath) async {
-    var uri = Uri.parse('http://10.0.2.2:8080/api/v1/users/$userId/upload/picture');
-    var request = http.MultipartRequest('POST', uri)
-      ..headers['Authorization'] = 'Bearer your_jwt_token'
-      ..files.add(await http.MultipartFile.fromPath(
-        'file', // Assurez-vous que c'est le nom attendu par votre API
-        filePath,
-      ));
-
-    var response = await request.send();
-    if (response.statusCode == 200) {
-      // Success
-    } else {
-      // Error
-    }
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red,
+      ),
+    );
   }
 
+  void _showSuccess(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.green,
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -109,7 +126,9 @@ class _ProfilePageState extends State<ProfilePage> {
       appBar: AppBar(
         title: const Text('Profile'),
       ),
-      body: _isLoading ? const CircularProgressIndicator() : SingleChildScrollView(
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
         child: Center(
           child: Container(
             width: 320,
