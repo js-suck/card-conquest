@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
+
 class RegistrationPage extends StatefulWidget {
   final int tournamentId;
 
@@ -68,7 +69,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
           SnackBar(content: Text('Inscription réussie !')),
         );
         // Rediriger vers la page principale
-        Navigator.pushReplacementNamed(context, '/home_user');
+        Navigator.of(context).pop();
       } else {
         // Gérer les erreurs
         ScaffoldMessenger.of(context).showSnackBar(
@@ -80,6 +81,8 @@ class _RegistrationPageState extends State<RegistrationPage> {
       Navigator.pushReplacementNamed(context, '/login');
     }
   }
+
+
 
   @override
   Widget build(BuildContext context) {

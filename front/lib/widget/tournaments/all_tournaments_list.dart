@@ -66,14 +66,16 @@ class AllTournamentsList extends StatelessWidget {
                         Text(
                           item.name,
                           style: const TextStyle(
-                              fontSize: 16, fontWeight: FontWeight.bold),
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black),
                           overflow: TextOverflow.ellipsis,
                         ),
                         const SizedBox(height: 2),
                         Text(
                           "${item.startDate.split('T')[0]} - ${item.startDate.split('T')[1].substring(0, 5)}",
                           style: const TextStyle(
-                              fontSize: 14, color: Colors.grey),
+                              fontSize: 14, color: Colors.black),
                         ),
                         const SizedBox(height: 2),
                         Wrap(

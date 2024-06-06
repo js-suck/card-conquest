@@ -18,14 +18,14 @@ class AllGamesList extends StatelessWidget {
       child: allGames.isEmpty
           ? const Center(child: CircularProgressIndicator())
           : GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: allGames.length,
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        itemCount: allGames.length,
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,
           crossAxisSpacing: 10,
           mainAxisSpacing: 10,
-          childAspectRatio: 0.85,
+          childAspectRatio: 0.8,
         ),
         itemBuilder: (context, index) {
           var item = allGames[index];
@@ -67,7 +67,8 @@ class AllGamesList extends StatelessWidget {
                           item.name,
                           style: const TextStyle(
                               fontSize: 16,
-                              fontWeight: FontWeight.bold),
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ],
