@@ -440,7 +440,7 @@ func (s MatchService) SendMatchUpdatesForGRPC(u uint) {
 			Rank:     int32(userRank),
 			Score:    int32(playerOneScore),
 		},
-		PlayerTwoScore: &authentication_api.PlayerMatch{
+		PlayerTwo: &authentication_api.PlayerMatch{
 			Id:       int32(uint32(match.PlayerTwo.ID)),
 			Username: match.PlayerTwo.Username,
 			Rank:     int32(playerTwoRank),
@@ -448,12 +448,16 @@ func (s MatchService) SendMatchUpdatesForGRPC(u uint) {
 		},
 	}
 
+	if match.WinnerID != nil {
+		update.WinnerId = int32(uint32(*match.WinnerID))
+	}
+
 	if match.PlayerOne.Media != nil {
 		update.PlayerOne.MediaUrl = match.PlayerOne.Media.FileName
 	}
 
 	if match.PlayerTwo.Media != nil {
-		update.PlayerTwoScore.MediaUrl = match.PlayerTwo.Media.FileName
+		update.PlayerTwo.MediaUrl = match.PlayerTwo.Media.FileName
 	}
 
 	MatchUpdates <- update

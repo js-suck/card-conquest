@@ -23,5 +23,6 @@
     int32 match_id = 1;
     string status = 2;
     PlayerMatch playerOne = 3;
-    PlayerMatch playerTwoScore = 4;
+    PlayerMatch playerTwo = 4;
+    int32 winnerId = 5;
   }

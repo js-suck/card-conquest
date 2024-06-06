@@ -235,6 +235,7 @@ func (s *TournamentService) SendTournamentUpdatesForGRPC(tournamentId uint) erro
 				PlayerTwo: playerTwo,
 				Status:    match.Status,
 				WinnerId:  winnerId,
+				MatchId:   int32(match.ID),
 			}
 
 			tournamentStep.Matches = append(tournamentStep.Matches, tournamentMatch)
