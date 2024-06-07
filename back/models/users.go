@@ -42,6 +42,7 @@ type User struct {
 	Tournaments       []*Tournament `gorm:"many2many:user_tournaments;"`
 	Matches           []Match       `gorm:"foreignKey:PlayerOneID;references:ID"`
 	GamesScores       []GameScore   `gorm:"foreignKey:UserID;references:ID"`
+	Guilds            []Guild       `gorm:"many2many:guild_players;"`
 }
 
 type LoginPayload struct {
@@ -61,6 +62,13 @@ type UserRead struct {
 	ID       uint   `gorm:"primarykey"`
 	Username string `json:"name"`
 	Email    string `json:"email, -"`
+}
+
+type UserReadWithImage struct {
+	ID       uint   `json:"id"`
+	Username string `json:"username"`
+	Email    string `json:"email"`
+	Media    *Media `json:"media"`
 }
 
 type UserReadFull struct {
@@ -141,4 +149,13 @@ func (u User) ToReadFull() UserReadFull {
 
 func (u User) IsOwner(userID uint) bool {
 	return u.ID == userID
+}
+
+func (u User) ToReadWithImage() UserReadWithImage {
+	return UserReadWithImage{
+		ID:       u.ID,
+		Username: u.Username,
+		Email:    u.Email,
+		Media:    u.MediaModel.Media,
+	}
 }
