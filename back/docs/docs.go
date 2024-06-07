@@ -463,6 +463,70 @@ const docTemplate = `{
                 }
             }
         },
+        "/guilds/{id}/users/{userID}": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Add a user to a guild",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Guild"
+                ],
+                "summary": "Add a user to a guild",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Guild ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "User ID",
+                        "name": "userID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "default": "Bearer \u003cAdd access token here\u003e",
+                        "description": "Insert your access token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.Guild"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/errors.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/errors.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/images": {
             "post": {
                 "description": "Upload an image",
@@ -1004,6 +1068,12 @@ const docTemplate = `{
                         "type": "boolean",
                         "description": "Add recent tournaments to the response",
                         "name": "WithRecents",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Search by userID",
+                        "name": "UserID",
                         "in": "query"
                     },
                     {
@@ -2089,7 +2159,7 @@ const docTemplate = `{
         "models.Guild": {
             "type": "object",
             "properties": {
-                "admin": {
+                "admins": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/models.User"
@@ -2113,14 +2183,14 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
-                "updated_at": {
-                    "type": "string"
-                },
-                "users": {
+                "players": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/models.User"
                     }
+                },
+                "updated_at": {
+                    "type": "string"
                 }
             }
         },
@@ -2138,6 +2208,12 @@ const docTemplate = `{
                 },
                 "name": {
                     "type": "string"
+                },
+                "players": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.UserReadWithImage"
+                    }
                 }
             }
         },
@@ -2473,6 +2549,12 @@ const docTemplate = `{
                 "global_score": {
                     "type": "integer"
                 },
+                "guilds": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Guild"
+                    }
+                },
                 "id": {
                     "type": "integer"
                 },
@@ -2557,6 +2639,23 @@ const docTemplate = `{
                 },
                 "id": {
                     "type": "integer"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.UserReadWithImage": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "media": {
+                    "$ref": "#/definitions/models.Media"
                 },
                 "username": {
                     "type": "string"
