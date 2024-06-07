@@ -3,3 +3,5 @@
 /tmp/*
 /tmp/build-errors.log
 /main
+test.db
+/uploads/

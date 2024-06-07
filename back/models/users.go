@@ -9,22 +9,36 @@ type IModel interface {
 	GetTableName() string
 }
 
+type ForeignKeyChecker interface {
+	GetForeignKeyValue() (value interface{}, model IModel)
+}
+
 type BaseModel struct {
 	ID        uint       `gorm:"primarykey" json:"id"`
-	CreatedAt time.Time  `json:"created_at"`
-	UpdatedAt time.Time  `json:"updated_at"`
+	CreatedAt time.Time  `json:"created_at, omitempty"`
+	UpdatedAt time.Time  `json:"updated_at, omitempty"`
 	DeletedAt *time.Time `gorm:"index" json:"-"`
+}
+
+type MediaModel struct {
+	MediaID *uint  `json:"media_id"`
+	Media   *Media `json:"media" gorm:"foreignKey:MediaID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 }
 
 type User struct {
 	BaseModel
-	Username string `gorm:"unique;not null;type:varchar(100);default:null" json:"username" validate:"required"`
-	Password string `gorm:"unique;not null;type:varchar(100);default:null" json:"password" validate:"required"`
-	Address  string `gorm:"type:varchar(255);default:null" json:"address"`
-	Phone    string `gorm:"type:varchar(30);default:null" json:"phone"`
-	Email    string `gorm:"type:varchar(255);default:null" json:"email"`
-	Role     string `gorm:"type:varchar(100);default:user" json:"role"`
-	Country  string `gorm:"type:varchar(255);default:null" json:"country"`
+	MediaModel
+	Username          string        `gorm:"unique;not null;type:varchar(100);default:null" json:"username"`
+	Password          string        `gorm:"not null;type:varchar(100);default:null" json:"password" validate:"required,min=6"`
+	Address           string        `gorm:"type:varchar(255);default:null" json:"address"`
+	Phone             string        `gorm:"type:varchar(30);default:null" json:"phone"`
+	Email             string        `gorm:"unique;not null;type:varchar(255);default:null" json:"email"`
+	Role              string        `gorm:"type:varchar(100);default:user" json:"role"`
+	Country           string        `gorm:"type:varchar(255);default:null" json:"country"`
+	VerificationToken string        `gorm:"type:varchar(255);default:null" json:"-"`
+	IsVerified        bool          `gorm:"default:false" json:"is_verified"`
+	Tournaments       []*Tournament `gorm:"many2many:user_tournaments;"`
+	Matches           []Match       `gorm:"foreignKey:PlayerOneID;references:ID"`
 }
 
 type LoginPayload struct {
@@ -33,8 +47,37 @@ type LoginPayload struct {
 }
 
 type NewUserPayload struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
+	Username string `json:"username" example:"username"`
+	Password string `json:"password" example:"password"`
+	Address  string `json:"address" example:"1234 street"`
+	Phone    string `json:"phone" example:"1234567890"`
+	Email    string `json:"email" example:"test@example.com`
+}
+
+type UserRead struct {
+	ID       uint   `gorm:"primarykey"`
+	Username string `json:"name"`
+	Email    string `json:"email, -"`
+}
+type UserRanking struct {
+	User  UserReadTournament
+	Score int
+}
+
+type UserStats struct {
+	*UserReadTournament
+	TotalMatches int
+	TotalWins    int
+	TotalLosses  int
+	TotalScore   int
+	GamesRanking []UserGameRanking
+}
+
+type UserGameRanking struct {
+	User     UserReadTournament
+	GameID   uint
+	GameName string
+	Score    int
 }
 
 func (u User) GetTableName() string {
@@ -48,4 +91,12 @@ type NewUserToken struct {
 
 func (u User) GetID() uint {
 	return u.ID
+}
+
+func (u User) ToRead() UserReadTournament {
+	return UserReadTournament{
+		ID:    u.ID,
+		Name:  u.Username,
+		Email: u.Email,
+	}
 }
