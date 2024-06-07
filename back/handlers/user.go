@@ -47,7 +47,7 @@ func (h *UserHandler) GetUser() gin.HandlerFunc {
 			return
 		}
 
-		c.JSON(http.StatusOK, user)
+		c.JSON(http.StatusOK, user.ToReadFull())
 	}
 }
 
@@ -279,4 +279,57 @@ func (h *UserHandler) UploadPicture(c *gin.Context) {
 	err = h.UserService.Update(user)
 	c.JSON(http.StatusOK, gin.H{"message": "Image uploaded successfully!", "path": filePath})
 
+}
+
+// GetUsersRanks godoc
+// @basePath: /api/v1
+// @Summary Get users ranks
+// @Description Get users ranks
+// @Tags User
+// @Accept json
+// @Produce json
+// @Success 200 {object} []models.UserRanking
+// @Failure 500 {object} errors.ErrorResponse
+// @Security BearerAuth
+// @Param Authorization header string true "Insert your access token" default(Bearer <Add access token here>)
+// @Router /users/ranks [get]
+func (h *UserHandler) GetUsersRanks(context *gin.Context) {
+	userRankings, err := h.UserService.GetRanks()
+	if err != nil {
+		context.JSON(err.Code(), err)
+		return
+	}
+
+	context.JSON(http.StatusOK, userRankings)
+}
+
+// GetUserStats godoc
+// @basePath: /api/v1
+// @Summary Get user stats
+// @Description Get user stats
+// @Tags User
+// @Accept json
+// @Produce json
+// @Success 200 {object} models.UserStats
+// @Failure 500 {object} errors.ErrorResponse
+// @Security BearerAuth
+// @Param UserID path int true "User ID"
+// @Param Authorization header string true "Insert your access token" default(Bearer <Add access token here>)
+// @Router /users/{UserID}/stats [get]
+func (h *UserHandler) GetUserStats(context *gin.Context) {
+	userId := context.Param("id")
+
+	userInt, err := strconv.Atoi(userId)
+	if err != nil {
+		context.JSON(http.StatusBadRequest, errors.NewBadRequestError("Invalid ID", err).ToGinH())
+		return
+	}
+
+	userStats, err := h.UserService.GetUserStats(uint(userInt))
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, errors.NewInternalServerError("Failed to get user stats", err).ToGinH())
+		return
+	}
+
+	context.JSON(http.StatusOK, userStats)
 }
