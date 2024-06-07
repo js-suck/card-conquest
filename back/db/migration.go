@@ -15,6 +15,37 @@ import (
 
 const FirstTournamentName = "Test"
 
+func gameMigration(db *gorm.DB) (*models.Game, error) {
+	err := db.AutoMigrate(&models.Game{})
+
+	// create multiple games at once
+	for i := 1; i < 25; i++ {
+		game := models.Game{
+			Name: fmt.Sprintf("Test%d", i),
+		}
+    
+    if err != nil {
+		  fmt.Println(err.Error())
+		  return nil, err
+	  }
+
+		db.Create(&game)
+	}
+
+	// create a game
+	game := models.Game{
+		Name: "Test",
+	}
+
+	db.Create(&game) // create a game
+
+	if err != nil {
+		fmt.Println(err.Error())
+		return nil, err
+	}
+	return &game, nil
+}
+
 func tournamentMigration(db *gorm.DB, game *models.Game) (*models.Tournament, error) {
 	err := db.AutoMigrate(&models.Tournament{})
 
