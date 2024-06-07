@@ -3581,6 +3581,23 @@
                 }
             }
         },
+        "models.UserReadWithImage": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "media": {
+                    "$ref": "#/definitions/models.Media"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
         "models.UserStats": {
             "type": "object",
             "properties": {

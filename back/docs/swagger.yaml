@@ -67,7 +67,6 @@ definitions:
   models.Guild:
     properties:
       admins:
-      admins:
         items:
           $ref: '#/definitions/models.User'
         type: array
@@ -414,6 +413,28 @@ definitions:
         $ref: '#/definitions/models.Media'
       score:
         type: integer
+      username:
+        type: string
+    type: object
+  models.UserReadWithImage:
+    properties:
+      email:
+        type: string
+      id:
+        type: integer
+      media:
+        $ref: '#/definitions/models.Media'
+      username:
+        type: string
+    type: object
+  models.UserReadWithImage:
+    properties:
+      email:
+        type: string
+      id:
+        type: integer
+      media:
+        $ref: '#/definitions/models.Media'
       username:
         type: string
     type: object
