@@ -866,65 +866,6 @@
                         }
                     }
                 }
-            },
-            "delete": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Remove a user from a guild",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Guild"
-                ],
-                "summary": "Remove a user from a guild",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Guild ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "User ID",
-                        "name": "userID",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "default": "Bearer \u003cAdd access token here\u003e",
-                        "description": "Insert your access token",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "204": {
-                        "description": "No Content"
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/errors.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/errors.ErrorResponse"
-                        }
-                    }
-                }
             }
         },
         "/images": {
@@ -1586,24 +1527,6 @@
                         "type": "integer",
                         "description": "Search by userID",
                         "name": "UserID",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Search by gameID",
-                        "name": "GameID",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Search by name",
-                        "name": "Name",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Sort order (use 'start_date' for ascending order, '-start_date' for descending order)",
-                        "name": "Sort",
                         "in": "query"
                     },
                     {
@@ -3398,6 +3321,40 @@
                 },
                 "score": {
                     "type": "integer"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.UserReadWithImage": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "media": {
+                    "$ref": "#/definitions/models.Media"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.UserReadWithImage": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "media": {
+                    "$ref": "#/definitions/models.Media"
                 },
                 "username": {
                     "type": "string"
