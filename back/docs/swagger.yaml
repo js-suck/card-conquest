@@ -66,7 +66,7 @@ definitions:
     type: object
   models.Guild:
     properties:
-      admin:
+      admins:
         items:
           $ref: '#/definitions/models.User'
         type: array
@@ -82,12 +82,12 @@ definitions:
         type: integer
       name:
         type: string
-      updated_at:
-        type: string
-      users:
+      players:
         items:
           $ref: '#/definitions/models.User'
         type: array
+      updated_at:
+        type: string
     type: object
   models.GuildRead:
     properties:
@@ -99,6 +99,10 @@ definitions:
         $ref: '#/definitions/models.MediaModel'
       name:
         type: string
+      players:
+        items:
+          $ref: '#/definitions/models.UserReadWithImage'
+        type: array
     type: object
   models.LoginPayload:
     properties:
@@ -320,6 +324,10 @@ definitions:
         type: array
       global_score:
         type: integer
+      guilds:
+        items:
+          $ref: '#/definitions/models.Guild'
+        type: array
       id:
         type: integer
       is_verified:
@@ -378,6 +386,17 @@ definitions:
         type: string
       id:
         type: integer
+      username:
+        type: string
+    type: object
+  models.UserReadWithImage:
+    properties:
+      email:
+        type: string
+      id:
+        type: integer
+      media:
+        $ref: '#/definitions/models.Media'
       username:
         type: string
     type: object
@@ -703,6 +722,48 @@ paths:
       security:
       - BearerAuth: []
       summary: Update a guild
+      tags:
+      - Guild
+  /guilds/{id}/users/{userID}:
+    post:
+      consumes:
+      - application/json
+      description: Add a user to a guild
+      parameters:
+      - description: Guild ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: User ID
+        in: path
+        name: userID
+        required: true
+        type: integer
+      - default: Bearer <Add access token here>
+        description: Insert your access token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Guild'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Add a user to a guild
       tags:
       - Guild
   /images:
@@ -1052,6 +1113,10 @@ paths:
         in: query
         name: WithRecents
         type: boolean
+      - description: Search by userID
+        in: query
+        name: UserID
+        type: integer
       - default: Bearer <Add access token here>
         description: Insert your access token
         in: header
