@@ -10,6 +10,7 @@ import (
 	"math/rand"
 	"sort"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -431,4 +432,32 @@ func (s *TournamentService) GetGlobalRankings() ([]models.UserRanking, errors.IE
 	})
 
 	return rankings, nil
+}
+
+func (s *TournamentService) GetAll(models interface{}, filterParams FilterParams, preloads ...string) errors.IError {
+	query := s.db
+
+	for _, preload := range preloads {
+		query = query.Preload(preload)
+	}
+
+	if _, ok := filterParams.Fields["UserID"]; ok {
+		query = query.Joins("JOIN user_tournaments ON user_tournaments.tournament_id = tournaments.id").
+			Where("user_tournaments.user_id = ?", filterParams.Fields["UserID"])
+	}
+
+	for _, sortField := range filterParams.Sort {
+		if strings.HasPrefix(sortField, "-") {
+			query = query.Order(sortField[1:] + " desc")
+		} else {
+			query = query.Order(sortField)
+		}
+	}
+
+	result := query.Find(models)
+	if result.Error != nil {
+		return errors.NewErrorResponse(500, result.Error.Error())
+	}
+
+	return nil
 }

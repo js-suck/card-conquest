@@ -182,6 +182,7 @@ type TournamentsParams struct {
 // @Accept json
 // @Produce json
 // @Param WithRecents query bool false "Add recent tournaments to the response"
+// @Param UserID query int 0 "Search by userID"
 // @Success 200 {object} string
 // @Failure 500 {object} errors.ErrorResponse
 // @Security BearerAuth
@@ -191,13 +192,14 @@ func (h *TournamentHandler) GetTournaments(c *gin.Context) {
 	var tournaments []models.Tournament
 	var recentTournaments []models.Tournament
 	var formattedTournaments []models.TournamentRead
-	var filterParams services.FilterParams
 	var tournamentsParams TournamentsParams
 
 	if err := c.ShouldBindQuery(&tournamentsParams); err != nil {
 		c.JSON(http.StatusBadRequest, errors.NewBadRequestError("Invalid request", err).ToGinH())
 		return
 	}
+
+	filterParams := h.parseFilterParams(c)
 
 	err := h.TounamentService.GetAll(&tournaments, filterParams, "User", "Game", "Media", "Users")
 
