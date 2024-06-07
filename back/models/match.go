@@ -21,13 +21,14 @@ type Match struct {
 	TournamentStepID uint
 	TournamentStep   TournamentStep `gorm:"foreignKey:TournamentStepID"`
 	MatchPosition    int            `gorm:"default:0"`
+	Location         string
 }
 
 type MatchRead struct {
 	ID             uint
-	Tournament     TournamentRead `gorm:"foreignKey:TournamentID"`
-	PlayerOne      UserRead       `gorm:"foreignKey:PlayerOneID"`
-	PlayerTwo      UserRead       `gorm:"foreignKey:PlayerTwoID"`
+	Tournament     TournamentRead    `gorm:"foreignKey:TournamentID"`
+	PlayerOne      UserReadWithImage `gorm:"foreignKey:PlayerOneID"`
+	PlayerTwo      UserReadWithImage `gorm:"foreignKey:PlayerTwoID"`
 	StartTime      time.Time
 	EndTime        time.Time
 	TournamentStep MatchReadTournamentStep `gorm:"foreignKey:TournamentStepID"`
@@ -35,6 +36,7 @@ type MatchRead struct {
 	Scores         []ScoreRead             `gorm:"foreignKey:MatchID"`
 	Status         string                  `gorm:"default:created" validate:"required,eq=started|eq=finished|eq=created"`
 	Winner         UserReadTournament      `gorm:"foreignKey:WinnerID"`
+	Location       string
 }
 
 func (m Match) GetID() uint {
@@ -66,14 +68,8 @@ func (m Match) ToRead() MatchRead {
 			},
 			Media: nil,
 		},
-		PlayerOne: UserRead{
-			ID:       m.PlayerOne.ID,
-			Username: m.PlayerOne.Username,
-		},
-		PlayerTwo: UserRead{
-			ID:       m.PlayerTwo.ID,
-			Username: m.PlayerTwo.Username,
-		},
+		PlayerOne: m.PlayerOne.ToReadWithImage(),
+		PlayerTwo: m.PlayerTwo.ToReadWithImage(),
 		TournamentStep: MatchReadTournamentStep{
 			Name:     m.TournamentStep.Name,
 			Sequence: m.TournamentStep.Sequence,
@@ -82,6 +78,7 @@ func (m Match) ToRead() MatchRead {
 		StartTime: m.StartTime,
 		EndTime:   m.EndTime,
 		Status:    m.Status,
+		Location:  m.Location,
 	}
 
 	if m.Scores != nil && len(m.Scores) > 0 {

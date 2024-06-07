@@ -189,15 +189,15 @@ func (h *MatchHandler) GetMatch(c *gin.Context) {
 		return
 	}
 
-	user := models.Match{}
+	match := models.Match{}
 
-	err = h.MatchService.Get(&user, uint(idInt), "PlayerOne", "PlayerTwo", "Winner", "Scores", "TournamentStep", "Tournament", "Winner")
+	err = h.MatchService.Get(&match, uint(idInt), "PlayerOne", "PlayerTwo", "Winner", "Scores", "TournamentStep", "Tournament", "Winner", "PlayerTwo.Media", "PlayerOne.Media")
 	if err != nil {
 		c.JSON(http.StatusNotFound, errors.NewNotFoundError("Match not found", err).ToGinH())
 		return
 	}
 
-	c.JSON(http.StatusOK, user)
+	c.JSON(http.StatusOK, match.ToRead())
 }
 
 // GetMatchesBetweenUsers godoc
