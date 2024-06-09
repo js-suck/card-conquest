@@ -42,7 +42,6 @@ import _ "github.com/swaggo/files"       // swagger embed files
 func main() {
 	// Initialize logging
 	logrus.SetFormatter(&logrus.JSONFormatter{})
-	logFile, err := os.OpenFile("/var/log/myapp.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 
 	//firebaseClient, errF := firebase.NewFirebaseClient("./firebase/privateKey.json")
 	//if errF != nil {
@@ -59,12 +58,13 @@ func main() {
 	//}
 	//fmt.Printf("Successfully sent notification: %s\n", response)
 
+	logFile, err := os.OpenFile("/var/log/myapp.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err != nil {
-		logrus.Fatalf("Failed to open log file: %v", err)
+		logrus.Error("Failed to open log file: ", err)
+	} else {
+		defer logFile.Close()
+		logrus.SetOutput(logFile)
 	}
-
-	defer logFile.Close()
-	logrus.SetOutput(logFile)
 
 	err = godotenv.Load(".env")
 	if err != nil {
