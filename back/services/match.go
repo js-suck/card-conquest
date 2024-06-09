@@ -284,26 +284,18 @@ func (s MatchService) GetTournamentMatches(u uint) ([]models.Match, errors.IErro
 func (s *MatchService) GetAll(models interface{}, filterParams FilterParams, preloads ...string) errors.IError {
 	query := s.db
 
-	if _, ok := filterParams.Fields["UserID"]; ok {
-		query = query.Where("player_one_id"+" = ?", filterParams.Fields["UserID"]).Or("player_two_id"+" = ?", filterParams.Fields["UserID"])
+	if userID, ok := filterParams.Fields["UserID"]; ok {
+		query = query.Where("player_one_id = ? OR player_two_id = ?", userID, userID)
 	}
 
-	if _, ok := filterParams.Fields["TournamentID"]; ok {
-		query = query.Where("tournament_id"+" = ?", filterParams.Fields["TournamentID"])
-
+	if status, ok := filterParams.Fields["Status"]; ok {
+		query = query.Where("status = ?", status)
 	}
 
-	if _, ok := filterParams.Fields["Status"]; ok {
-		query = query.Where("status"+" = ?", filterParams.Fields["Status"])
-
-	}
-
-	if _, ok := filterParams.Fields["Unfinished"]; ok {
-		if filterParams.Fields["Unfinished"] == "true" {
-			query = query.Where("status"+" != ?", "finished")
-
+	if unfinished, ok := filterParams.Fields["Unfinished"]; ok {
+		if unfinished == "true" {
+			query = query.Where("status != ?", "finished")
 		}
-
 	}
 
 	query = query.Preload("PlayerOne").Preload("PlayerTwo").Preload("Tournament").Preload("TournamentStep").Preload("Scores").Preload("Winner")
