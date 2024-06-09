@@ -43,6 +43,7 @@ type User struct {
 	Matches           []Match       `gorm:"foreignKey:PlayerOneID;references:ID"`
 	GamesScores       []GameScore   `gorm:"foreignKey:UserID;references:ID"`
 	Guilds            []Guild       `gorm:"many2many:guild_players;"`
+	FCMToken          string        `gorm:"type:varchar(255);default:null" json:"fcm_token"; default:null`
 }
 
 type LoginPayload struct {
@@ -65,7 +66,7 @@ type UserRead struct {
 }
 
 type UserReadWithImage struct {
-	ID       uint   `json:"id"`
+	ID       uint
 	Username string `json:"username"`
 	Email    string `json:"email"`
 	Media    *Media `json:"media"`

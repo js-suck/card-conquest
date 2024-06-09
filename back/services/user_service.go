@@ -135,3 +135,22 @@ func (s UserService) GetTotalScoreByUserID(id uint) (int, errors.IError) {
 	}
 	return totalScore, nil
 }
+
+func (s UserService) AddFCMToken(userId uint, token string) error {
+	user := models.User{}
+	err := s.db.Find(&user, userId).Error
+
+	if err != nil {
+		return errors.NewInternalServerError("Failed to find user", err)
+	}
+
+	user.FCMToken = token
+
+	err = s.db.Save(&user).Error
+
+	if err != nil {
+		return errors.NewInternalServerError("Failed to save user", err)
+	}
+
+	return nil
+}
