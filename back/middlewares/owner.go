@@ -31,6 +31,12 @@ func OwnerMiddleware(resource string, model models.IModel) gin.HandlerFunc {
 			return
 		}
 
+		// if user is admin, skip the owner check
+		if user.IsAdmin() {
+			c.Next()
+			return
+		}
+
 		// Récupérer l'ID de la ressource depuis les paramètres de la requête
 		resourceID := c.Param("id")
 		if resourceID == "" {

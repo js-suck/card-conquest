@@ -160,3 +160,7 @@ func (u User) ToReadWithImage() UserReadWithImage {
 		Media:    u.MediaModel.Media,
 	}
 }
+
+func (u User) IsAdmin() bool {
+	return u.Role == "admin"
+}

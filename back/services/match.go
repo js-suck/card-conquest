@@ -373,7 +373,7 @@ func (s MatchService) GetTotalLossesByUserID(id uint) (int64, errors.IError) {
 
 	var totalLosses int64
 
-	err := s.db.Model(&models.Match{}).Where("player_one_id = ? OR player_two_id = ?", id, id).Count(&totalLosses).Error
+	err := s.db.Model(&models.Match{}).Where("(player_one_id = ? OR player_two_id = ?) AND winner_id != ?", id, id, id).Count(&totalLosses).Error
 
 	if err != nil {
 		return 0, errors.NewInternalServerError("Failed to get total losses", nil)
