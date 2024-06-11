@@ -380,6 +380,8 @@ func (s MatchService) SendMatchUpdatesForGRPC(u uint) {
 
 	if err := s.db.Preload("PlayerOne").
 		Preload("PlayerTwo").
+		Preload("PlayerTwo.Media").
+		Preload("PlayerOne.Media").
 		Preload("Tournament").
 		Preload("TournamentStep").
 		Preload("Scores").
