@@ -26,6 +26,9 @@ class TopAppBar extends StatelessWidget implements PreferredSizeWidget {
       ),
       child: AppBar(
         toolbarHeight: kToolbarHeight + 20,
+        iconTheme: const IconThemeData(
+          color: Colors.white,
+        ),
         title: Builder(builder: (context) {
           if (isPage) {
             return Text(

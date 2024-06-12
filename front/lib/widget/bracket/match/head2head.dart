@@ -1,190 +1,78 @@
+import 'dart:core';
+
 import 'package:flutter/material.dart';
-import 'package:front/widget/bracket/bracket.dart';
-import 'package:front/widget/bracket/match/match_tiles.dart';
+import 'package:front/generated/match.pb.dart';
+import 'package:front/utils/custom_future_builder.dart';
 
-class Head2Head extends StatelessWidget {
-  Head2Head({super.key});
+import '../../../service/match_service.dart';
+import 'match_tiles.dart';
 
-  final List<Matcha> matchesPlayer1 = [
-    Matcha(
-      player1: 'Alcaraz',
-      player2: 'Medvedev',
-      playerOneId: 1,
-      playerTwoId: 5,
-      status: 'finished',
-      score1: '2',
-      score2: '0',
-      winnerId: 1,
-    ),
-    Matcha(
-      player1: 'Alcaraz',
-      player2: 'Djokovic',
-      playerOneId: 1,
-      playerTwoId: 9,
-      status: 'finished',
-      score1: '2',
-      score2: '0',
-      winnerId: 1,
-    ),
-    Matcha(
-      player1: 'Alcaraz',
-      player2: 'Nadal',
-      playerOneId: 1,
-      playerTwoId: 7,
-      status: 'finished',
-      score1: '1',
-      score2: '2',
-      winnerId: 7,
-    ),
-    Matcha(
-      player1: 'Alcaraz',
-      player2: 'Federer',
-      playerOneId: 1,
-      playerTwoId: 3,
-      status: 'finished',
-      score1: '0',
-      score2: '2',
-      winnerId: 3,
-    ),
-    Matcha(
-      player1: 'Alcaraz',
-      player2: 'Thiem',
-      playerOneId: 1,
-      playerTwoId: 4,
-      status: 'finished',
-      score1: '2',
-      score2: '0',
-      winnerId: 1,
-    ),
-    Matcha(
-      player1: 'Alcaraz',
-      player2: 'Zverev',
-      playerOneId: 1,
-      playerTwoId: 8,
-      status: 'finished',
-      score1: '2',
-      score2: '0',
-      winnerId: 1,
-    ),
-    Matcha(
-      player1: 'Alcaraz',
-      player2: 'Rublev',
-      playerOneId: 1,
-      playerTwoId: 6,
-      status: 'finished',
-      score1: '2',
-      score2: '0',
-      winnerId: 1,
-    ),
-  ];
+class Head2Head extends StatefulWidget {
+  const Head2Head(
+      {super.key,
+      required this.playerOne,
+      required this.playerTwo,
+      required this.matchId});
 
-  final List<Matcha> matchesPlayer2 = [
-    Matcha(
-      player1: 'Medvedev',
-      player2: 'Alcaraz',
-      playerOneId: 5,
-      playerTwoId: 1,
-      status: 'finished',
-      score1: '0',
-      score2: '2',
-      winnerId: 1,
-    ),
-    Matcha(
-      player1: 'Medvedev',
-      player2: 'Djokovic',
-      playerOneId: 5,
-      playerTwoId: 9,
-      status: 'finished',
-      score1: '2',
-      score2: '1',
-      winnerId: 5,
-    ),
-    Matcha(
-      player1: 'Medvedev',
-      player2: 'Nadal',
-      playerOneId: 5,
-      playerTwoId: 7,
-      status: 'finished',
-      score1: '0',
-      score2: '2',
-      winnerId: 7,
-    ),
-    Matcha(
-      player1: 'Medvedev',
-      player2: 'Federer',
-      playerOneId: 5,
-      playerTwoId: 3,
-      status: 'finished',
-      score1: '0',
-      score2: '2',
-      winnerId: 3,
-    ),
-    Matcha(
-      player1: 'Medvedev',
-      player2: 'Thiem',
-      playerOneId: 5,
-      playerTwoId: 4,
-      status: 'finished',
-      score1: '2',
-      score2: '0',
-      winnerId: 5,
-    ),
-    Matcha(
-      player1: 'Medvedev',
-      player2: 'Zverev',
-      playerOneId: 5,
-      playerTwoId: 6,
-      status: 'finished',
-      score1: '2',
-      score2: '0',
-      winnerId: 5,
-    ),
-    Matcha(
-      player1: 'Medvedev',
-      player2: 'Rublev',
-      playerOneId: 5,
-      playerTwoId: 8,
-      status: 'finished',
-      score1: '2',
-      score2: '0',
-      winnerId: 5,
-    ),
-  ];
+  final PlayerMatch playerOne;
+  final PlayerMatch playerTwo;
+  final int matchId;
 
-  final List<Matcha> matchesH2H = [
-    Matcha(
-      player1: 'Medvedev',
-      player2: 'Alcaraz',
-      playerOneId: 5,
-      playerTwoId: 1,
-      status: 'finished',
-      score1: '0',
-      score2: '2',
-      winnerId: 1,
-    ),
-  ];
+  @override
+  State<Head2Head> createState() => _Head2HeadState();
+}
+
+class _Head2HeadState extends State<Head2Head> {
+  late MatchService matchService;
+
+  @override
+  void initState() {
+    super.initState();
+    matchService = MatchService();
+    matchService.fetchMatchesPlayerOne(widget.playerOne);
+    matchService.fetchMatchesPlayerTwo(widget.playerTwo);
+    matchService.fetchMatchesHead2Head(widget.playerOne, widget.playerTwo);
+  }
 
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
       child: Column(
         children: [
-          MatchTiles(
-            key: UniqueKey(),
-            matches: matchesPlayer1,
-            isLastMatches: true,
-          ),
-          MatchTiles(
-            key: UniqueKey(),
-            matches: matchesPlayer2,
-            isLastMatches: true,
-          ),
-          MatchTiles(
-            key: UniqueKey(),
-            matches: matchesH2H,
-            isLastMatches: false,
-            isH2H: true,
-          ),
+          CustomFutureBuilder(
+              future: matchService.fetchMatchesPlayerOne(widget.playerOne),
+              onLoaded: (matches) {
+                return MatchTiles(
+                  key: UniqueKey(),
+                  matches: matches,
+                  isLastMatches: true,
+                  player: widget.playerOne,
+                  matchId: widget.matchId,
+                );
+              }),
+          CustomFutureBuilder(
+              future: matchService.fetchMatchesPlayerTwo(widget.playerTwo),
+              onLoaded: (matches) {
+                return MatchTiles(
+                  key: UniqueKey(),
+                  matches: matches,
+                  isLastMatches: true,
+                  isSecond: true,
+                  player: widget.playerTwo,
+                  matchId: widget.matchId,
+                );
+              }),
+          CustomFutureBuilder(
+              future: matchService.fetchMatchesHead2Head(
+                  widget.playerOne, widget.playerTwo),
+              onLoaded: (matches) {
+                return MatchTiles(
+                  key: UniqueKey(),
+                  matches: matches,
+                  isLastMatches: false,
+                  isH2H: true,
+                );
+              }),
         ],
       ),
     );

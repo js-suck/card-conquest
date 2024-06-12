@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:front/extension/theme_extension.dart';
-import 'package:front/main.dart';
-import 'package:front/widget/bracket/bracket.dart';
-import 'package:provider/provider.dart';
 import 'package:front/generated/tournament.pb.dart' as tournament;
 
 class BracketMatch extends StatelessWidget {
@@ -12,11 +9,53 @@ class BracketMatch extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDarkMode = Provider.of<ThemeNotifier>(context).isDarkMode;
+    String playerOneUsername = match.playerOne.username;
+    String playerTwoUsername = match.playerTwo.username;
+    String playerOneScore = match.playerOne.score.toString();
+    String playerTwoScore = match.playerTwo.score.toString();
+    Color playerOneColor = context.themeColors.invertedBackgroundColor;
+    Color playerTwoColor = context.themeColors.invertedBackgroundColor;
+    Color matchBorderColor = context.themeColors.backgroundColor;
+    Color playerOneScoreColor = context.themeColors.fontColor;
+    Color playerTwoScoreColor = context.themeColors.fontColor;
+    FontWeight playerOneFontWeight = FontWeight.normal;
+    FontWeight playerTwoFontWeight = FontWeight.normal;
+    if (match.status != '') {
+      if (match.status == 'started') {
+        playerOneColor = Colors.redAccent;
+        playerTwoColor = Colors.redAccent;
+        matchBorderColor = Colors.redAccent;
+      }
+      if (match.status == 'finished') {
+        if (match.winnerId.toString() == match.playerOne.userId) {
+          playerOneFontWeight = FontWeight.bold;
+          playerOneScoreColor = Colors.green;
+          playerTwoScoreColor = Colors.red;
+        } else {
+          playerTwoFontWeight = FontWeight.bold;
+          playerTwoScoreColor = Colors.green;
+          playerOneScoreColor = Colors.red;
+        }
+      }
+      if (match.playerOne.username == '') {
+        playerOneUsername = 'Bye';
+        playerOneColor = Colors.grey;
+        playerOneScore = '';
+        playerTwoScore = '';
+      }
+      if (match.playerTwo.username == '') {
+        playerTwoUsername = 'Bye';
+        playerTwoColor = Colors.grey;
+        playerTwoScore = '';
+        playerOneScore = '';
+      }
+    }
     return GestureDetector(
       onTap: () {
-        if (match.status != '') {
-          Navigator.pushNamed(context, '/match', arguments: match);
+        if (match.status != '' &&
+            match.playerOne.username != '' &&
+            match.playerTwo.username != '') {
+          Navigator.pushNamed(context, '/match', arguments: match.matchId);
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -36,9 +75,7 @@ class BracketMatch extends StatelessWidget {
               borderRadius: const BorderRadius.all(Radius.circular(10)),
               border: Border.fromBorderSide(
                 BorderSide(
-                  color: match.status == 'in progress'
-                      ? Colors.redAccent
-                      : context.themeColors.backgroundColor,
+                  color: matchBorderColor,
                   width: 1,
                 ),
               ),
@@ -52,32 +89,20 @@ class BracketMatch extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        match.playerOne.username,
+                        playerOneUsername,
                         style: TextStyle(
-                          fontWeight: match.winnerId.toString() ==
-                                      match.playerOne.userId &&
-                                  match.status == 'finished'
-                              ? FontWeight.bold
-                              : FontWeight.normal,
-                          color: match.status == 'in progress'
-                              ? Colors.redAccent
-                              : context.themeColors.invertedBackgroundColor,
+                          fontWeight: playerOneFontWeight,
+                          color: playerOneColor,
                         ),
                       ),
                       const SizedBox(
                         height: 10,
                       ),
                       Text(
-                        match.playerTwo.username,
+                        playerTwoUsername,
                         style: TextStyle(
-                          fontWeight: match.winnerId.toString() ==
-                                      match.playerTwo.userId &&
-                                  match.status == 'finished'
-                              ? FontWeight.bold
-                              : FontWeight.normal,
-                          color: match.status == 'in progress'
-                              ? Colors.redAccent
-                              : context.themeColors.invertedBackgroundColor,
+                          fontWeight: playerTwoFontWeight,
+                          color: playerTwoColor,
                         ),
                       ),
                     ],
@@ -88,37 +113,29 @@ class BracketMatch extends StatelessWidget {
                         return Column(
                           children: [
                             Text(
-                              match.playerOne.score.toString(),
-                              style: TextStyle(
-                                  color: match.winnerId.toString() ==
-                                          match.playerOne.userId
-                                      ? Colors.green
-                                      : Colors.red),
+                              playerOneScore,
+                              style: TextStyle(color: playerOneScoreColor),
                             ),
                             const SizedBox(
                               height: 10,
                             ),
                             Text(
-                              match.playerTwo.score.toString(),
-                              style: TextStyle(
-                                  color: match.winnerId.toString() ==
-                                          match.playerTwo.userId
-                                      ? Colors.green
-                                      : Colors.red),
+                              playerTwoScore,
+                              style: TextStyle(color: playerTwoScoreColor),
                             ),
                           ],
                         );
-                      } else if (match.status == 'in progress') {
+                      } else if (match.status == 'started') {
                         return Column(
                           children: [
                             Text(
-                              match.playerOne.score.toString(),
+                              playerOneScore,
                               style: const TextStyle(color: Colors.redAccent),
                             ),
                             const SizedBox(
                               height: 10,
                             ),
-                            Text(match.playerTwo.score.toString(),
+                            Text(playerTwoScore,
                                 style:
                                     const TextStyle(color: Colors.redAccent)),
                           ],
@@ -128,7 +145,7 @@ class BracketMatch extends StatelessWidget {
                           match.status != '' ? '18:00' : '',
                           style: TextStyle(
                             fontSize: 16,
-                            color: isDarkMode ? Colors.white : Colors.black,
+                            color: context.themeColors.invertedBackgroundColor,
                           ),
                         );
                       }

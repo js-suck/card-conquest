@@ -20,19 +20,24 @@ import 'tournament.pb.dart' as $0;
 export 'tournament.pb.dart';
 
 class TournamentServiceClient extends $grpc.Client {
-  static final _$suscribeTournamentUpdate = $grpc.ClientMethod<$0.TournamentRequest, $0.TournamentResponse>(
-      '/protos.TournamentService/SuscribeTournamentUpdate',
-      ($0.TournamentRequest value) => value.writeToBuffer(),
-      ($core.List<$core.int> value) => $0.TournamentResponse.fromBuffer(value));
+  static final _$suscribeTournamentUpdate =
+      $grpc.ClientMethod<$0.TournamentRequest, $0.TournamentResponse>(
+          '/protos.TournamentService/SuscribeTournamentUpdate',
+          ($0.TournamentRequest value) => value.writeToBuffer(),
+          ($core.List<$core.int> value) =>
+              $0.TournamentResponse.fromBuffer(value));
 
   TournamentServiceClient($grpc.ClientChannel channel,
       {$grpc.CallOptions? options,
       $core.Iterable<$grpc.ClientInterceptor>? interceptors})
-      : super(channel, options: options,
-        interceptors: interceptors);
+      : super(channel, options: options, interceptors: interceptors);
 
-  $grpc.ResponseStream<$0.TournamentResponse> suscribeTournamentUpdate($0.TournamentRequest request, {$grpc.CallOptions? options}) {
-    return $createStreamingCall(_$suscribeTournamentUpdate, $async.Stream.fromIterable([request]), options: options);
+  $grpc.ResponseStream<$0.TournamentResponse> suscribeTournamentUpdate(
+      $0.TournamentRequest request,
+      {$grpc.CallOptions? options}) {
+    return $createStreamingCall(
+        _$suscribeTournamentUpdate, $async.Stream.fromIterable([request]),
+        options: options);
   }
 }
 
@@ -49,9 +54,12 @@ abstract class TournamentServiceBase extends $grpc.Service {
         ($0.TournamentResponse value) => value.writeToBuffer()));
   }
 
-  $async.Stream<$0.TournamentResponse> suscribeTournamentUpdate_Pre($grpc.ServiceCall call, $async.Future<$0.TournamentRequest> request) async* {
+  $async.Stream<$0.TournamentResponse> suscribeTournamentUpdate_Pre(
+      $grpc.ServiceCall call,
+      $async.Future<$0.TournamentRequest> request) async* {
     yield* suscribeTournamentUpdate(call, await request);
   }
 
-  $async.Stream<$0.TournamentResponse> suscribeTournamentUpdate($grpc.ServiceCall call, $0.TournamentRequest request);
+  $async.Stream<$0.TournamentResponse> suscribeTournamentUpdate(
+      $grpc.ServiceCall call, $0.TournamentRequest request);
 }

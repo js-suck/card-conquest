@@ -8,6 +8,8 @@ import 'package:front/widget/app_bar.dart';
 import 'package:front/widget/game_card.dart';
 import 'package:http/http.dart' as http;
 
+import '../utils/custom_future_builder.dart';
+
 Future<List<Game>> fetchGames() async {
   final storage = new FlutterSecureStorage();
   String? token = await storage.read(key: 'jwt_token');
@@ -94,27 +96,22 @@ class _GamesPageState extends State<GamesPage> {
                   style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
               SizedBox(
                 height: 540,
-                child: FutureBuilder<List<Game>>(
+                child: CustomFutureBuilder<List<Game>>(
                   future: futureGames,
-                  builder: (context, snapshot) {
-                    if (snapshot.hasData) {
-                      return GridView.count(
-                        scrollDirection: Axis.vertical,
-                        crossAxisCount: 2,
-                        children: List.generate(
-                          snapshot.data!.length,
-                          (index) {
-                            return GameCard(
-                              imageName: 'images/img.png',
-                              gameName: snapshot.data![index].name,
-                            );
-                          },
-                        ),
-                      );
-                    } else if (snapshot.hasError) {
-                      return Text('${snapshot.error}');
-                    }
-                    return const Center(child: CircularProgressIndicator());
+                  onLoaded: (games) {
+                    return GridView.count(
+                      scrollDirection: Axis.vertical,
+                      crossAxisCount: 2,
+                      children: List.generate(
+                        games.length,
+                        (index) {
+                          return GameCard(
+                            imageName: 'images/img.png',
+                            gameName: games[index].name,
+                          );
+                        },
+                      ),
+                    );
                   },
                 ),
               ),

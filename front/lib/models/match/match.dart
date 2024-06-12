@@ -1,8 +1,10 @@
-import 'package:front/models/tournament.dart';
-
-import '../generated/tournament.pb.dart';
+import 'package:front/models/match/player.dart';
+import 'package:front/models/match/score.dart';
+import 'package:front/models/match/tournament.dart';
+import 'package:front/models/match/tournament_step.dart';
 
 class Match {
+  final int id;
   final Tournament tournament;
   final Player playerOne;
   final Player playerTwo;
@@ -10,9 +12,13 @@ class Match {
   final DateTime endTime;
   final TournamentStep tournamentStep;
   final int matchPosition;
-  final List<dynamic> scores;
+  final List<Score>? scores;
+  final String status;
+  final Player winner;
+  final String location;
 
   Match({
+    required this.id,
     required this.tournament,
     required this.playerOne,
     required this.playerTwo,
@@ -20,11 +26,15 @@ class Match {
     required this.endTime,
     required this.tournamentStep,
     required this.matchPosition,
-    required this.scores,
+    this.scores,
+    required this.status,
+    required this.winner,
+    required this.location,
   });
 
   factory Match.fromJson(Map<String, dynamic> json) {
     return Match(
+      id: json['ID'],
       tournament: Tournament.fromJson(json['Tournament']),
       playerOne: Player.fromJson(json['PlayerOne']),
       playerTwo: Player.fromJson(json['PlayerTwo']),
@@ -32,7 +42,12 @@ class Match {
       endTime: DateTime.parse(json['EndTime']),
       tournamentStep: TournamentStep.fromJson(json['TournamentStep']),
       matchPosition: json['MatchPosition'],
-      scores: json['Scores'],
+      scores: json['Scores'] != null
+          ? (json['Scores'] as List).map((i) => Score.fromJson(i)).toList()
+          : [],
+      status: json['Status'],
+      winner: Player.fromJson(json['Winner']),
+      location: json['Location'],
     );
   }
 }

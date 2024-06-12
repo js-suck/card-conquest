@@ -2,10 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:front/extension/theme_extension.dart';
 import 'package:front/generated/tournament.pb.dart';
 import 'package:front/grpc/tournament_client.dart';
+import 'package:front/utils/custom_future_builder.dart';
 import 'package:front/widget/bracket/bracket.dart';
 import 'package:front/widget/bracket/calendar.dart';
 import 'package:front/widget/bracket/results.dart';
 import 'package:front/widget/bracket/scoreboard.dart';
+import 'package:provider/provider.dart';
+
+import '../models/match/tournament.dart';
+import '../service/tournament_service.dart';
+import '../utils/custom_stream_builder.dart';
 
 class BracketPage extends StatefulWidget {
   const BracketPage({super.key});
@@ -19,12 +25,15 @@ class BracketPage extends StatefulWidget {
 class _BracketPageState extends State<BracketPage> {
   final isBracket = true;
   late TournamentClient tournamentClient;
+  late TournamentService tournamentService;
 
   @override
   void initState() {
     super.initState();
     tournamentClient = TournamentClient();
     tournamentClient.subscribeTournamentUpdate(widget.tournamentID);
+    tournamentService = TournamentService();
+    tournamentService.fetchTournament(widget.tournamentID);
   }
 
   @override
@@ -40,22 +49,29 @@ class _BracketPageState extends State<BracketPage> {
       length: 3,
       child: Scaffold(
         appBar: AppBar(
-          title: Text(
+          iconTheme: const IconThemeData(
+            color: Colors.white,
+          ),
+          title: const Text(
             'Tableau',
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
-              color: context.themeColors.fontColor,
+              color: Colors.white,
             ),
           ),
           centerTitle: true,
           actions: [
             IconButton(
               icon: const Icon(Icons.settings),
+              color: Colors.white,
               onPressed: () => Navigator.pushNamed(context, '/settings'),
             )
           ],
           bottom: TabBar(
+            labelColor: context.themeColors.accentColor,
+            indicatorColor: context.themeColors.accentColor,
+            unselectedLabelColor: Colors.white,
             tabs: [
               isBracket
                   ? const Tab(text: 'Tableau')
@@ -65,32 +81,46 @@ class _BracketPageState extends State<BracketPage> {
             ],
           ),
         ),
-        body: StreamBuilder<TournamentResponse>(
+        body: CustomStreamBuilder<TournamentResponse>(
             stream:
                 tournamentClient.subscribeTournamentUpdate(widget.tournamentID),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
-              } else if (snapshot.hasError) {
-                return const Center(child: Text('Erreur de connexion'));
-              } else if (!snapshot.hasData) {
-                return const Center(child: Text('Aucune donnée'));
-              }
-              return Column(
-                children: [
-                  Expanded(
-                    child: TabBarView(
-                      children: [
-                        isBracket ? Bracket(snapshot) : Scoreboard(),
-                        Results(tournamentId: widget.tournamentID),
-                        Calendar(),
-                      ],
-                    ),
-                  ),
-                ],
+            onLoaded: (tournamentStream) {
+              return CustomFutureBuilder(
+                future: tournamentService.fetchTournament(widget.tournamentID),
+                onLoaded: (tournament) {
+                  context.read<TournamentNotifier>().setTournament(tournament);
+                  return Column(
+                    children: [
+                      Expanded(
+                        child: TabBarView(
+                          children: [
+                            isBracket
+                                ? Bracket(tournamentStream)
+                                : Scoreboard(),
+                            Results(tournamentId: widget.tournamentID),
+                            Calendar(tournamentId: widget.tournamentID),
+                          ],
+                        ),
+                      ),
+                    ],
+                  );
+                },
               );
             }),
       ),
     );
+  }
+}
+
+class TournamentNotifier extends ChangeNotifier {
+  Tournament? _tournament;
+
+  Tournament? get tournament => _tournament;
+
+  void setTournament(Tournament tournament) {
+    _tournament = tournament;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      notifyListeners();
+    });
   }
 }

@@ -1,10 +1,9 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:front/extension/theme_extension.dart';
-import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:http/http.dart' as http;
 
 Future<void> login(
     BuildContext context, String username, String password) async {
@@ -100,8 +99,7 @@ class _LoginPageState extends State<LoginPage> {
                       const SizedBox(height: 10),
                       TextFormField(
                         controller: _usernameController,
-                        style: TextStyle(
-                            color: context.themeColors.invertedBackgroundColor),
+                        style: const TextStyle(color: Colors.black),
                         decoration: InputDecoration(
                           hintText: 'username',
                           hintStyle: TextStyle(
@@ -129,8 +127,7 @@ class _LoginPageState extends State<LoginPage> {
                       const SizedBox(height: 10),
                       TextFormField(
                         controller: _passwordController,
-                        style: TextStyle(
-                            color: context.themeColors.invertedBackgroundColor),
+                        style: const TextStyle(color: Colors.black),
                         decoration: InputDecoration(
                           hintText: '*******',
                           hintStyle: TextStyle(

@@ -1,15 +1,16 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
+import 'package:front/extension/theme_extension.dart';
 import 'package:front/generated/tournament.pb.dart' as tournament_grpc;
-import 'package:front/main.dart';
+import 'package:front/pages/bracket_screen.dart';
 import 'package:front/widget/bracket/bracket_match.dart';
 import 'package:provider/provider.dart';
 
 import '../../generated/tournament.pb.dart';
 
 class Bracket extends StatefulWidget {
-  final AsyncSnapshot<tournament_grpc.TournamentResponse> tournamentStream;
-
-  final int tournamentSize = 4;
+  final tournament_grpc.TournamentResponse tournamentStream;
 
   const Bracket(this.tournamentStream, {super.key});
 
@@ -18,180 +19,6 @@ class Bracket extends StatefulWidget {
 }
 
 class _BracketState extends State<Bracket> {
-  final List<List<Matcha>> tournament = [
-    [
-      Matcha(
-        player1: 'Alcaraz C. (1)',
-        player2: 'Medvedev D. (5)',
-        playerOneId: 1,
-        playerTwoId: 5,
-        status: 'finished',
-        score1: '2',
-        score2: '0',
-        winnerId: 1,
-        time: '',
-        tournament: 'US Open',
-      ),
-      Matcha(
-        player1: 'Federer R. (3)',
-        player2: 'Nadal R. (7)',
-        playerOneId: 3,
-        playerTwoId: 7,
-        status: 'finished',
-        score1: '2',
-        score2: '1',
-        winnerId: 3,
-        time: '',
-        tournament: 'US Open',
-      ),
-      Matcha(
-        player1: 'Djokovic N. (9)',
-        player2: 'Shapovalov D. (12)',
-        playerOneId: 9,
-        playerTwoId: 12,
-        status: 'finished',
-        score1: '2',
-        score2: '0',
-        winnerId: 9,
-        time: '',
-        tournament: 'US Open',
-      ),
-      Matcha(
-        player1: 'Auger-Aliassime F. (14)',
-        player2: 'Monfils G. (16)',
-        playerOneId: 14,
-        playerTwoId: 15,
-        status: 'finished',
-        score1: '1',
-        score2: '2',
-        winnerId: 15,
-        time: '',
-        tournament: 'US Open',
-      ),
-      Matcha(
-        player1: 'Rublev A. (6)',
-        player2: 'Sinner J. (2)',
-        playerOneId: 13,
-        playerTwoId: 21,
-        status: 'finished',
-        score1: '0',
-        score2: '2',
-        winnerId: 21,
-        time: '',
-        tournament: 'US Open',
-      ),
-      Matcha(
-        player1: 'Ruud C. (4)',
-        player2: '',
-        playerOneId: 4,
-        playerTwoId: null,
-        status: 'Created',
-        time: '',
-        tournament: 'US Open',
-      ),
-      Matcha(
-        player1: '',
-        player2: '',
-        playerOneId: null,
-        playerTwoId: null,
-        status: 'Created',
-        time: '',
-        tournament: 'US Open',
-      ),
-      Matcha(
-        player1: '',
-        player2: '',
-        playerOneId: null,
-        playerTwoId: null,
-        status: 'Created',
-        time: '',
-        tournament: 'US Open',
-      ),
-    ],
-    [
-      Matcha(
-        player1: 'Alcaraz C. (1)',
-        player2: 'Federer R. (3)',
-        playerOneId: 1,
-        playerTwoId: 5,
-        status: 'finished',
-        score1: '1',
-        score2: '2',
-        winnerId: 5,
-        time: '',
-        tournament: 'US Open',
-      ),
-      Matcha(
-        player1: 'Monfils G. (16)',
-        player2: 'Djokovic N. (9)',
-        playerOneId: 16,
-        playerTwoId: 9,
-        status: 'started',
-        score1: '0',
-        score2: '1',
-        time: '',
-        tournament: 'US Open',
-      ),
-      Matcha(
-        player1: '',
-        player2: 'Sinner J. (2)',
-        playerOneId: null,
-        playerTwoId: 21,
-        status: 'Created',
-        time: '',
-        tournament: 'US Open',
-      ),
-      Matcha(
-        player1: '',
-        player2: '',
-        playerOneId: null,
-        playerTwoId: null,
-        status: 'Created',
-        score1: '',
-        score2: '',
-        time: '',
-        tournament: 'US Open',
-      ),
-    ],
-    [
-      Matcha(
-        player1: 'Djokovic N. (9)',
-        player2: 'Federer R. (3)',
-        playerOneId: 9,
-        playerTwoId: 3,
-        status: 'Created',
-        score1: '',
-        score2: '',
-        winnerId: null,
-        time: '18:00',
-        tournament: 'US Open',
-      ),
-      Matcha(
-        player1: '',
-        player2: '',
-        playerOneId: null,
-        playerTwoId: null,
-        status: 'Created',
-        time: '',
-        tournament: 'US Open',
-      ),
-    ],
-    [
-      Matcha(
-        player1: '',
-        player2: '',
-        playerOneId: null,
-        playerTwoId: null,
-        status: 'Created',
-        score1: '',
-        score2: '',
-        winnerId: null,
-        time: '',
-        tournament: 'US Open',
-      ),
-    ],
-  ];
-
   final tabs = [
     const Tab(text: '1/64 DE FINALE'),
     const Tab(text: '1/32 DE FINALE'),
@@ -202,13 +29,13 @@ class _BracketState extends State<Bracket> {
     const Tab(text: 'FINALE'),
   ];
 
-  List<Widget> generateStep(TournamentStep step) {
+  List<Widget> generateStep(TournamentStep step, tournamentSize) {
     List<Widget> listViewBuilders = [];
-    final tournamentData = widget.tournamentStream.data!;
-    int matchesInThisRound = (1 << (widget.tournamentSize - 1));
+    final tournamentData = widget.tournamentStream;
+    int matchesInThisRound = (1 << (tournamentSize - 1));
 
     final tournamentSteps = tournamentData.tournamentSteps.length;
-    while (tournamentData.tournamentSteps.length < widget.tournamentSize) {
+    while (tournamentData.tournamentSteps.length < tournamentSize) {
       tournamentData.tournamentSteps.add(TournamentStep());
     }
 
@@ -227,10 +54,8 @@ class _BracketState extends State<Bracket> {
     /*
     final List<tournament_grpc.Match> matchesStream = [];
     for (var tournamentStep in tournamentData.tournamentSteps) {
-      debugPrint('matches ${tournamentStep.matches}');
       matchesStream.add(tournamentStep.matches as tournament_grpc.Match);
     }
-    debugPrint('bracket ${matchesStream}');
      */
     listViewBuilders.add(
       ListView.builder(
@@ -253,11 +78,13 @@ class _BracketState extends State<Bracket> {
 
   @override
   Widget build(BuildContext context) {
-    final isDarkMode = Provider.of<ThemeNotifier>(context).isDarkMode;
-    final tournamentData = widget.tournamentStream.data;
-    final tournamentSteps = tournamentData!.tournamentSteps;
+    final tournamentData = widget.tournamentStream;
+    final tournamentSteps = tournamentData.tournamentSteps;
+    final tournament = context.watch<TournamentNotifier>().tournament;
+    var players = tournament?.playersRegistered;
+    var tournamentSize = (log(players as int) / log(2)).ceil();
     // generate empty matches
-    for (int i = 0; i < widget.tournamentSize; i++) {
+    for (int i = 0; i < tournamentSize; i++) {
       tournament_grpc.Player player = tournament_grpc.Player();
     }
     return DefaultTabController(
@@ -268,48 +95,19 @@ class _BracketState extends State<Bracket> {
           preferredSize: const Size.fromHeight(kToolbarHeight),
           child: TabBar(
             isScrollable: true,
-            unselectedLabelColor: isDarkMode ? Colors.white : Colors.black,
+            unselectedLabelColor: context.themeColors.fontColor,
+            indicatorColor: context.themeColors.accentColor,
             // Retrieve the last n tabs
-            tabs: tabs.sublist(tabs.length - 4, tabs.length),
+            tabs: tabs.sublist(tabs.length - tournamentSize, tabs.length),
           ),
         ),
         body: TabBarView(
           children: [
-            for (int step = 0; step < widget.tournamentSize; step++)
-              ...generateStep(tournamentSteps[step]),
+            for (int step = 0; step < tournamentSize; step++)
+              ...generateStep(tournamentSteps[step], tournamentSize),
           ],
         ),
       ),
     );
   }
-}
-
-class Matcha {
-  String? player1 = '';
-  String? player2 = '';
-  int? playerOneId;
-  int? playerTwoId;
-  final String status;
-  String? score1 = '';
-  String? score2 = '';
-  int? winnerId;
-  String? time = '';
-  String? date = '';
-  String? location = '';
-  String? tournament = '';
-
-  Matcha({
-    this.player1,
-    this.player2,
-    this.playerOneId,
-    this.playerTwoId,
-    required this.status,
-    this.score1,
-    this.score2,
-    this.winnerId,
-    this.time,
-    this.date,
-    this.location,
-    this.tournament,
-  });
 }

@@ -1,29 +1,33 @@
+import 'package:front/models/media.dart';
+
+import 'game.dart';
 import 'organizer.dart';
-import 'game_match.dart';
 
 class Tournament {
   final int id;
   final String name;
-  final String description;
-  final String location;
+  final String? description;
+  final String? location;
   final Organizer organizer;
-  final GameMatch game;
+  final Game game;
   final DateTime startDate;
   final DateTime endDate;
-  final dynamic media;
+  final Media? media;
   final int maxPlayers;
+  final int playersRegistered;
 
   Tournament({
     required this.id,
     required this.name,
-    required this.description,
-    required this.location,
+    this.description,
+    this.location,
     required this.organizer,
     required this.game,
     required this.startDate,
     required this.endDate,
-    required this.media,
+    this.media,
     required this.maxPlayers,
+    required this.playersRegistered,
   });
 
   factory Tournament.fromJson(Map<String, dynamic> json) {
@@ -33,11 +37,12 @@ class Tournament {
       description: json['description'],
       location: json['location'],
       organizer: Organizer.fromJson(json['Organizer']),
-      game: GameMatch.fromJson(json['game']),
+      game: Game.fromJson(json['game']),
       startDate: DateTime.parse(json['start_date']),
       endDate: DateTime.parse(json['end_date']),
-      media: json['media'],
+      media: json['media'] != null ? Media.fromJson(json['media']) : null,
       maxPlayers: json['max_players'],
+      playersRegistered: json['players_registered'],
     );
   }
 }
