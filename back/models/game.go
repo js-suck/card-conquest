@@ -35,3 +35,7 @@ func (g Game) ToRead() GameRead {
 
 	return obj
 }
+
+func (g Game) IsOwner(userID uint) bool {
+	return true
+}

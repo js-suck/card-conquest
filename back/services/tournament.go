@@ -10,6 +10,7 @@ import (
 	"math/rand"
 	"sort"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -235,6 +236,7 @@ func (s *TournamentService) SendTournamentUpdatesForGRPC(tournamentId uint) erro
 				PlayerTwo: playerTwo,
 				Status:    match.Status,
 				WinnerId:  winnerId,
+				MatchId:   int32(match.ID),
 			}
 
 			tournamentStep.Matches = append(tournamentStep.Matches, tournamentMatch)
@@ -253,7 +255,7 @@ func (s *TournamentService) StartTournament(tournamentId uint) errors.IError {
 
 	s.db.Find(&tournament, tournamentId)
 
-	tournament.Status = models.TournamentStatusOpened
+	tournament.Status = models.TournamentStatusStarted
 
 	result := s.db.Save(&tournament)
 
@@ -277,18 +279,18 @@ func (s *TournamentService) StartTournament(tournamentId uint) errors.IError {
 
 	}
 
-	err := s.generateMatchesWithPosition(lastStep.ID, tournamentId)
+	err := s.GenerateMatchesWithPosition(lastStep.ID, tournamentId)
 
 	if err != nil {
 
 		return errors.NewInternalServerError("Failed to generate matches", err)
 	}
 
-	s.SendTournamentUpdatesForGRPC(tournamentId)
+	go s.SendTournamentUpdatesForGRPC(tournamentId)
 	return nil
 }
 
-func (s TournamentService) generateMatchesWithPosition(stepId uint, tournamentID uint) errors.IError {
+func (s TournamentService) GenerateMatchesWithPosition(stepId uint, tournamentID uint) errors.IError {
 
 	users := []models.User{}
 
@@ -336,25 +338,15 @@ func (s *TournamentService) CalculateRanking(filterParams *FilterParams) ([]mode
 	query := s.db.Preload("PlayerOne").Preload("PlayerTwo").Preload("Winner").Preload("Scores")
 
 	if filterParams.Fields["TournamentID"] != nil {
-		err := query.Joins("JOIN steps ON steps.tournament_id = ?", filterParams.Fields["TournamentID"]).
-			Joins("JOIN matches ON matches.tournament_step_id = steps.id").
-			Where("matches.tournament_step_id IN (SELECT id FROM steps WHERE tournament_id = ?)", filterParams.Fields["TournamentID"]).
+		err := query.Joins("JOIN tournament_steps ON tournament_steps.tournament_id = ?", filterParams.Fields["TournamentID"]).
+			Where("matches.tournament_step_id IN (SELECT id FROM tournament_steps WHERE tournament_id = ?)", filterParams.Fields["TournamentID"]).
 			Find(&matches).Error
 		if err != nil {
 			return nil, errors.NewErrorResponse(500, err.Error())
 		}
 	}
 
-	if filterParams.Fields["GameID"] != nil {
-		gameID, _ := strconv.ParseUint(filterParams.Fields["GameID"].(string), 10, 64)
-		err := query.Joins("JOIN tournaments ON matches.tournament_id = tournaments.id").
-			Where("tournaments.game_id = ?", gameID).Find(&matches).Error
-		if err != nil {
-			return nil, errors.NewErrorResponse(500, err.Error())
-		}
-	}
-
-	if filterParams.Fields["TournamentID"] == nil && filterParams.Fields["GameID"] == nil {
+	if filterParams.Fields["TournamentID"] == nil {
 		return nil, errors.NewErrorResponse(400, "TournamentID or GameID must be specified")
 	}
 
@@ -403,7 +395,7 @@ func (s *TournamentService) CalculateRanking(filterParams *FilterParams) ([]mode
 	return rankings, nil
 }
 
-func (s *TournamentService) CalculateGlobalRanking() ([]models.UserRanking, errors.IError) {
+func (s *TournamentService) GetGlobalRankings() ([]models.UserRanking, errors.IError) {
 	var tournaments []models.Tournament
 	err := s.db.Preload("Steps.Matches.PlayerOne").Preload("Steps.Matches.PlayerTwo").Preload("Steps.Matches.Winner").Preload("Steps.Matches.Scores").Find(&tournaments).Error
 	if err != nil {
@@ -440,4 +432,32 @@ func (s *TournamentService) CalculateGlobalRanking() ([]models.UserRanking, erro
 	})
 
 	return rankings, nil
+}
+
+func (s *TournamentService) GetAll(models interface{}, filterParams FilterParams, preloads ...string) errors.IError {
+	query := s.db
+
+	for _, preload := range preloads {
+		query = query.Preload(preload)
+	}
+
+	if _, ok := filterParams.Fields["UserID"]; ok {
+		query = query.Joins("JOIN user_tournaments ON user_tournaments.tournament_id = tournaments.id").
+			Where("user_tournaments.user_id = ?", filterParams.Fields["UserID"])
+	}
+
+	for _, sortField := range filterParams.Sort {
+		if strings.HasPrefix(sortField, "-") {
+			query = query.Order(sortField[1:] + " desc")
+		} else {
+			query = query.Order(sortField)
+		}
+	}
+
+	result := query.Find(models)
+	if result.Error != nil {
+		return errors.NewErrorResponse(500, result.Error.Error())
+	}
+
+	return nil
 }

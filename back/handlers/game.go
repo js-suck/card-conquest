@@ -41,7 +41,7 @@ func (h *GameHandler) GetAllGames(c *gin.Context) {
 		return
 	}
 
-	trendyGames, allGames, err := h.GameService.GetAll(services.FilterParams{}, gameParams, "Media")
+	allGames, trendyGames, err := h.GameService.GetAll(services.FilterParams{}, gameParams, "Media")
 	if err != nil {
 		c.JSON(err.Code(), err)
 		return
@@ -77,7 +77,7 @@ func convertToReadable(games []models.Game) []models.GameRead {
 // @Failure 500 {object} errors.ErrorResponse
 // @Security BearerAuth
 // @Param Authorization header string true "Insert your access token" default(Bearer <Add access token here>)
-// @Router /games/{userID}/rankings [get]
+// @Router /games/{UserID}/rankings [get]
 func (h *GameHandler) GetUserGameRankings(c *gin.Context) {
 	userID := c.Param("userID")
 	if userID == "" {
@@ -85,7 +85,7 @@ func (h *GameHandler) GetUserGameRankings(c *gin.Context) {
 		return
 	}
 
-	rankings, err := h.GameService.CalculateUserRankings(userID)
+	rankings, err := h.GameService.CalculateUserRankingsForGames(userID)
 	if err != nil {
 		c.JSON(err.Code(), err)
 		return
