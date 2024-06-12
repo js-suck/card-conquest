@@ -17,12 +17,17 @@ class AllTournamentsList extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: allTournaments.isEmpty
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(
+            child: Text(
+              'Pas de tournois disponibles',
+              style: TextStyle(fontSize: 18, color: Colors.black),
+            ),
+          )
           : GridView.builder(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        itemCount: allTournaments.length,
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: allTournaments.length,
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,
           crossAxisSpacing: 10,
           mainAxisSpacing: 10,

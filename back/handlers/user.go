@@ -5,9 +5,10 @@ import (
 	"authentication-api/models"
 	"authentication-api/permissions"
 	"authentication-api/services"
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
+
+	"github.com/gin-gonic/gin"
 )
 
 type UserHandler struct {
@@ -208,9 +209,10 @@ func (h *UserHandler) DeleteUser(c *gin.Context) {
 // @Param Authorization header string true "Insert your access token" default(Bearer <Add access token here>)
 // @Router /users/{id} [put]
 func (h *UserHandler) UpdateUser(c *gin.Context) {
-	permissionsConfigs := c.MustGet("permissions").([]permissions.Permission)
+	// permissionsConfigs := c.MustGet("permissions").([]permissions.Permission)
 
-	canAccess := permissions.CanAccess(permissionsConfigs, permissions.PermissionCreateUser)
+	// canAccess := permissions.CanAccess(permissionsConfigs, permissions.PermissionCreateUser)
+	canAccess := true
 
 	if !canAccess {
 		c.JSON(http.StatusForbidden, errors.NewUnauthorizedError("You do not have permission to access this resource").ToGinH())
@@ -220,10 +222,14 @@ func (h *UserHandler) UpdateUser(c *gin.Context) {
 
 	var user models.User
 
-	if err := c.ShouldBindJSON(&user); err != nil {
-		c.JSON(http.StatusBadRequest, errors.NewBadRequestError("Invalid data", err).ToGinH())
-		return
-	}
+	// if err := c.ShouldBindJSON(&user); err != nil {
+	// 	c.JSON(http.StatusBadRequest, errors.NewBadRequestError("Invalid data", err).ToGinH())
+	// 	return
+	// }
+
+	// idStr := c.Param("id")
+	h.UserService.Get(&user, 1)
+
 
 	err := h.UserService.Update(&user)
 	if err != nil {

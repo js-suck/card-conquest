@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:front/pages/games_screen.dart';
 import 'package:front/pages/home_user_screen.dart';
 import 'package:front/pages/tournaments_screen.dart';
-import 'package:front/pages/user_profile_screen.dart';
+import 'package:front/pages/tournament_history_screen.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:provider/provider.dart';
 
@@ -20,7 +20,7 @@ class _BottomBarState extends State<BottomBar> {
     const HomeUserPage(),
     const TournamentsPage(),
     const GamesPage(),
-    const UserProfilePage(),
+  const TournamentHistoryPage(),
   ];
 
   void _onItemTapped(int index) {
