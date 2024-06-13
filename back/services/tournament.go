@@ -446,6 +446,10 @@ func (s *TournamentService) GetAll(models interface{}, filterParams FilterParams
 			Where("user_tournaments.user_id = ?", filterParams.Fields["UserID"])
 	}
 
+	if _, ok := filterParams.Fields["GameID"]; ok {
+		query = query.Where("tournaments.game_id = ?", filterParams.Fields["GameID"])
+	}
+
 	for _, sortField := range filterParams.Sort {
 		if strings.HasPrefix(sortField, "-") {
 			query = query.Order(sortField[1:] + " desc")

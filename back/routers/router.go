@@ -77,7 +77,8 @@ func SetupRouter(db *gorm.DB) *gin.Engine {
 		protectedRoutes.POST("/guilds", guildHandler.CreateGuild)
 		protectedRoutes.PUT("/guilds/:id", guildHandler.UpdateGuild)
 		protectedRoutes.DELETE("/guilds/:id", guildHandler.DeleteGuild)
-		//protectedRoutes.POST("/guilds/:id/users/:userID", guildHandler.AddUserToGuild)
+		protectedRoutes.DELETE("/guilds/:id/users/:userID", guildHandler.RemoveUserFromGuild)
+		protectedRoutes.POST("/guilds/:id/users/:userID", guildHandler.AddUserToGuild)
 		//protectedRoutes.DELETE("/guilds/:id/users/:userID", guildHandler.RemoveUserFromGuild)
 
 	}

@@ -21,6 +21,12 @@ func NewAuthHandler(authService *services.AuthService, userService *services.Use
 	}
 }
 
+type RequestBody struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+	FcmToken string `json:"fcm_token"`
+}
+
 // Login godoc
 // @Summary Login
 // @Description Login
@@ -34,21 +40,33 @@ func NewAuthHandler(authService *services.AuthService, userService *services.Use
 // @Router /login [post]
 func (h *AuthHandler) Login(c *gin.Context) {
 	var user models.User
+	var body RequestBody
 
-	if err := c.ShouldBindJSON(&user); err != nil {
+	if err := c.ShouldBindJSON(&body); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid data"})
 		return
 	}
 
-	err := h.AuthService.Login(&user)
+	user.Username = body.Username
+	user.Password = body.Password
+
+	userData, err := h.AuthService.Login(&user)
 
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
 		return
 	}
 
-	token, err := utils.GenerateToken(user)
-	if err != nil {
+	if body.FcmToken != "" {
+		err := h.UserService.AddFCMToken(userData.ID, body.FcmToken)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error adding FCM token"})
+			return
+		}
+	}
+
+	token, errToken := utils.GenerateToken(user)
+	if errToken != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error generating token"})
 		return
 	}
