@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -23,8 +24,8 @@ Future<void> login(BuildContext context, String username, String password) async
 
     // Store the token in secure storage
     await storage.write(key: 'jwt_token', value: token);
+    Navigator.pushReplacementNamed(context, '/main');
 
-    Navigator.of(context).pushReplacementNamed('/main');
   } else {
     // Handle error in login
     throw Exception('Failed to log in');
@@ -48,7 +49,9 @@ class _LoginPageState extends State<LoginPage> {
       try {
         login(context, _usernameController.text, _passwordController.text);
       } catch (e) {
-        print('Erreur de connexion: $e');
+        if (kDebugMode) {
+          print('Erreur de connexion: $e');
+        }
       }
     }
   }
@@ -184,7 +187,7 @@ class _LoginPageState extends State<LoginPage> {
                           mainAxisSize: MainAxisSize.min,
                           children: <Widget>[
                             Image.asset('assets/images/google.png', width: 30),
-                            SizedBox(width: 10),
+                            const SizedBox(width: 10),
                           ],
                         ),
                       ),

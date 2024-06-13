@@ -4,9 +4,16 @@ import 'package:front/theme/dark_theme.dart' as dark_theme;
 import 'package:front/theme/theme.dart' as theme;
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:front/services/user_service.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(MultiProvider(
+    providers: [
+      Provider(create: (_) => UserService('http://10.0.2.2:8080/api/v1')),
+    ],
+    child: const MyApp(),
+    ),
+  );
 }
 
 class ThemeColors {

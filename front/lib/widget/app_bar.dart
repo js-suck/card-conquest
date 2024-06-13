@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:jwt_decoder/jwt_decoder.dart';
+import 'package:provider/provider.dart';
+import 'package:front/services/user_service.dart';
 
-class TopAppBar extends StatelessWidget implements PreferredSizeWidget {
+class TopAppBar extends StatefulWidget implements PreferredSizeWidget {
   const TopAppBar({
     super.key,
     required this.title,
@@ -15,7 +19,55 @@ class TopAppBar extends StatelessWidget implements PreferredSizeWidget {
   final bool isSettings;
 
   @override
+  _TopAppBarState createState() => _TopAppBarState();
+
+  @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight + 20);
+}
+
+class _TopAppBarState extends State<TopAppBar> {
+  String userName = '';
+  String userRole = '';
+  String? userImage;
+  final FlutterSecureStorage _storage = const FlutterSecureStorage();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUser();
+  }
+
+  Future<void> _loadUser() async {
+    // Récupérer le token depuis le stockage sécurisé
+    String? token = await _storage.read(key: 'jwt_token');
+
+    if (token == null || JwtDecoder.isExpired(token)) {
+      // Gérer le cas où le token est manquant ou expiré
+      return;
+    }
+
+    Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
+    int userId = decodedToken['user_id'];
+    String name = decodedToken['name'];
+    String role = decodedToken['role'];
+
+    // Récupérer les détails de l'utilisateur à partir de l'API
+    try {
+      final userService = Provider.of<UserService>(context, listen: false);
+      final user = await userService.getUser(userId);
+      final image = await userService.getUserImage(userId);
+      setState(() {
+        userName = user['name'] ?? name;
+        userRole = user['role'] ?? role;
+        userImage = image;
+      });
+    } catch (e) {
+      setState(() {
+        userName = name;
+        userRole = role;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -27,9 +79,9 @@ class TopAppBar extends StatelessWidget implements PreferredSizeWidget {
       child: AppBar(
         toolbarHeight: kToolbarHeight + 20,
         title: Builder(builder: (context) {
-          if (isPage) {
+          if (widget.isPage) {
             return Text(
-              title,
+              widget.title,
               style: const TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
@@ -43,7 +95,7 @@ class TopAppBar extends StatelessWidget implements PreferredSizeWidget {
         centerTitle: true,
         actions: [
           Builder(builder: (context) {
-            if (!isPage) {
+            if (!widget.isPage) {
               return Container(
                 margin: const EdgeInsets.only(right: 10),
                 width: 45,
@@ -62,7 +114,7 @@ class TopAppBar extends StatelessWidget implements PreferredSizeWidget {
                   ),
                 ),
               );
-            } else if (!isSettings) {
+            } else if (!widget.isSettings) {
               return IconButton(
                 icon: const Icon(Icons.settings),
                 color: Colors.white,
@@ -75,9 +127,9 @@ class TopAppBar extends StatelessWidget implements PreferredSizeWidget {
             }
           })
         ],
-        leadingWidth: isPage ? 64 : 1000,
+        leadingWidth: widget.isPage ? 64 : 1000,
         leading: Builder(builder: (context) {
-          if (isAvatar) {
+          if (widget.isAvatar) {
             return Row(
               children: [
                 Padding(
@@ -86,39 +138,36 @@ class TopAppBar extends StatelessWidget implements PreferredSizeWidget {
                     onTap: () {
                       Navigator.of(context).pushNamed('/profile');
                     },
-                    child: const CircleAvatar(
+                    child: CircleAvatar(
                       radius: 30,
-                      backgroundImage: AssetImage('assets/images/avatar.png'),
+                      backgroundImage: userImage != null
+                          ? NetworkImage(userImage!)
+                          : const AssetImage('assets/images/avatar.png') as ImageProvider,
                     ),
                   ),
                 ),
-                Builder(builder: (context) {
-                  if (!isPage) {
-                    return const Padding(
-                      padding: EdgeInsets.only(left: 8.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text('John Doe',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                              )),
-                          Text('Admin',
-                              style: TextStyle(
-                                color: Colors.white70,
-                                fontSize: 18,
-                                fontWeight: FontWeight.w400,
-                              )),
-                        ],
-                      ),
-                    );
-                  } else {
-                    return const Text('');
-                  }
-                }),
+                if (!widget.isPage)
+                  Padding(
+                    padding: const EdgeInsets.only(left: 8.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(userName,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            )),
+                        Text(userRole,
+                            style: const TextStyle(
+                              color: Colors.white70,
+                              fontSize: 18,
+                              fontWeight: FontWeight.w400,
+                            )),
+                      ],
+                    ),
+                  ),
               ],
             );
           } else {
