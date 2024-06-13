@@ -4,12 +4,14 @@ import 'package:front/theme/theme.dart';
 
 class AllTournamentsList extends StatelessWidget {
   final List<Tournament> allTournaments;
-  final Future<void> Function(int) onTournamentTapped;
+  final Future<void> Function(int, String) onTournamentTapped;
+  final String emptyMessage;
 
   const AllTournamentsList({
     Key? key,
     required this.allTournaments,
     required this.onTournamentTapped,
+    required this.emptyMessage,
   }) : super(key: key);
 
   @override
@@ -17,17 +19,17 @@ class AllTournamentsList extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: allTournaments.isEmpty
-          ? const Center(
-            child: Text(
-              'Pas de tournois disponibles',
-              style: TextStyle(fontSize: 18, color: Colors.black),
-            ),
-          )
+          ? Center(
+        child: Text(
+          emptyMessage,
+          style: const TextStyle(fontSize: 18, color: Colors.black),
+        ),
+      )
           : GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: allTournaments.length,
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        itemCount: allTournaments.length,
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,
           crossAxisSpacing: 10,
           mainAxisSpacing: 10,
@@ -36,7 +38,7 @@ class AllTournamentsList extends StatelessWidget {
         itemBuilder: (context, index) {
           var item = allTournaments[index];
           return GestureDetector(
-            onTap: () => onTournamentTapped(item.id),
+            onTap: () => onTournamentTapped(item.id, item.status),
             child: Container(
               width: 180,
               decoration: BoxDecoration(

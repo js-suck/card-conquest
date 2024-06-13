@@ -13,6 +13,7 @@ class Tournament {
   final Organizer organizer;
   final Game game;
   final List<String> tags;
+  final String status;
 
   Tournament({
     required this.id,
@@ -26,6 +27,7 @@ class Tournament {
     required this.organizer,
     required this.game,
     required this.tags,
+    required this.status,
   });
 
   factory Tournament.fromJson(Map<String, dynamic> json) {
@@ -43,8 +45,7 @@ class Tournament {
       organizer: Organizer.fromJson(json['Organizer'] ?? {}),
       game: Game.fromJson(json['game'] ?? {}),
       tags: json['tags'] != null ? List<String>.from(json['tags']) : [],
+      status: json['status'] ?? 'unknown',
     );
   }
 }
-
-

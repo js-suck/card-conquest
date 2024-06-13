@@ -5,7 +5,6 @@ import 'dart:convert';
 import 'package:front/pages/tournaments_registration_screen.dart';
 import 'package:front/pages/tournaments_screen.dart';
 import 'package:front/pages/games_screen.dart';
-import 'package:front/auth/login_screen.dart';
 import 'package:front/widget/app_bar.dart';
 import 'package:front/widget/tournaments/recent_tournaments_list.dart';
 import 'package:front/widget/tournaments/all_tournaments_list.dart';
@@ -13,6 +12,7 @@ import 'package:front/widget/games/games_list.dart';
 import 'package:front/models/tournament.dart';
 import 'package:front/models/game.dart';
 import 'package:provider/provider.dart';
+import 'package:front/pages/bracket_screen.dart';
 
 import '../widget/bottom_bar.dart';
 
@@ -75,21 +75,32 @@ class _HomePageState extends State<HomeUserPage> {
     }
   }
 
-  Future<void> _onTournamentTapped(int id) async {
-    String? token = await storage.read(key: 'jwt_token');
-    if (token != null) {
+  Future<void> _onTournamentTapped(int id, String status) async {
+      Widget page;
+      switch (status) {
+        case 'opened':
+          page = RegistrationPage(tournamentId: id);
+          break;
+        case 'started':
+        // Ajoutez un id pour la page bracket
+          page = BracketPage();
+          break;
+        case 'finished':
+        // Ajoutez un id pour la page bracket
+          page = BracketPage();
+          break;
+        case 'canceled':
+        // Ajoutez la page correspondante pour les tournois annulés
+          page = BracketPage();
+          break;
+        default:
+          page = RegistrationPage(tournamentId: id); // Par défaut, redirigez vers la page d'inscription
+      }
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => RegistrationPage(tournamentId: id)),
+        MaterialPageRoute(builder: (context) => page),
       );
-    } else {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => LoginPage()),
-      );
-    }
   }
-
   Future<void> _onTournamentPageTapped() async {
     final selectedPageModel = Provider.of<SelectedPageModel>(context, listen: false);
     selectedPageModel.changePage(const TournamentsPage(), 1);
@@ -113,12 +124,13 @@ class _HomePageState extends State<HomeUserPage> {
             _buildSectionTitle('Tournois récents'),
             RecentTournamentsList(
               recentTournaments: recentTournaments,
-              onTournamentTapped: _onTournamentTapped,
+              onTournamentTapped: (id, status) => _onTournamentTapped(id, status),
             ),
             _buildSectionTitleWithButton('Les tournois', 'Voir les tournois', _onTournamentPageTapped as VoidCallback),
             AllTournamentsList(
               allTournaments: allTournaments.take(4).toList(),
-              onTournamentTapped: _onTournamentTapped,
+              onTournamentTapped: (id, status) => _onTournamentTapped(id, status),
+              emptyMessage: 'Pas de tournois à venir',
             ),
             _buildSectionTitleWithButton('Les jeux', 'Tous les jeux', _onGamePageTapped as VoidCallback),
             GamesList(games: games),

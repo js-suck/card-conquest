@@ -54,12 +54,12 @@ class _TournamentsPageState extends State<TournamentsPage> {
     }
   }
 
-
-  Future<void> _onTournamentTapped(int id) async {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => RegistrationPage(tournamentId: id)),
-      );
+  Future<void> _onTournamentTapped(int id, String status) async {
+    // Handle tournament tapped action based on status
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => RegistrationPage(tournamentId: id)),
+    );
   }
 
   @override
@@ -94,6 +94,7 @@ class _TournamentsPageState extends State<TournamentsPage> {
             AllTournamentsList(
               allTournaments: allTournaments,
               onTournamentTapped: _onTournamentTapped,
+              emptyMessage: 'Pas de tournois disponibles',
             ),
           ],
         ),

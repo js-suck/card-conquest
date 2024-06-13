@@ -48,14 +48,12 @@ class _TournamentHistoryPageState extends State<TournamentHistoryPage> with Sing
     );
     if (response.statusCode == 200) {
       List<dynamic> tournaments = json.decode(response.body);
-      DateTime now = DateTime.now();
       setState(() {
         for (var tournament in tournaments) {
           Tournament tournamentObj = Tournament.fromJson(tournament);
-          DateTime startDate = DateTime.parse(tournamentObj.startDate);
-          if (startDate.isAfter(now)) {
+          if (tournamentObj.status == 'opened' || tournamentObj.status == 'started') {
             upcomingTournaments.add(tournamentObj);
-          } else {
+          } else if (tournamentObj.status == 'finished' || tournamentObj.status == 'canceled') {
             pastTournaments.add(tournamentObj);
           }
         }
@@ -66,8 +64,8 @@ class _TournamentHistoryPageState extends State<TournamentHistoryPage> with Sing
     }
   }
 
-  Future<void> _onTournamentTapped(int id) async {
-    // Handle tournament tapped action
+  Future<void> _onTournamentTapped(int id, String status) async {
+    // Handle tournament tapped action based on status
   }
 
   void _showError(String message) {
@@ -101,10 +99,12 @@ class _TournamentHistoryPageState extends State<TournamentHistoryPage> with Sing
           AllTournamentsList(
             allTournaments: upcomingTournaments,
             onTournamentTapped: _onTournamentTapped,
+            emptyMessage: 'Pas de tournois à venir',
           ),
           AllTournamentsList(
             allTournaments: pastTournaments,
             onTournamentTapped: _onTournamentTapped,
+            emptyMessage: 'Pas de tournois passés',
           ),
         ],
       ),

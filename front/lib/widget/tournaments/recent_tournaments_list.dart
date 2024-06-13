@@ -3,7 +3,7 @@ import 'package:front/models/tournament.dart';
 
 class RecentTournamentsList extends StatelessWidget {
   final List<Tournament> recentTournaments;
-  final Future<void> Function(int) onTournamentTapped;
+  final Future<void> Function(int, String) onTournamentTapped;
 
   const RecentTournamentsList({
     Key? key,
@@ -23,7 +23,7 @@ class RecentTournamentsList extends StatelessWidget {
         itemBuilder: (context, index) {
           var item = recentTournaments[index];
           return GestureDetector(
-            onTap: () => onTournamentTapped(item.id),
+            onTap: () => onTournamentTapped(item.id, item.status),
             child: Padding(
               padding: const EdgeInsets.all(8.0),
               child: Container(
