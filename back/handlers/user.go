@@ -208,24 +208,26 @@ func (h *UserHandler) DeleteUser(c *gin.Context) {
 // @Param Authorization header string true "Insert your access token" default(Bearer <Add access token here>)
 // @Router /users/{id} [put]
 func (h *UserHandler) UpdateUser(c *gin.Context) {
-	permissionsConfigs := c.MustGet("permissions").([]permissions.Permission)
-
-	canAccess := permissions.CanAccess(permissionsConfigs, permissions.PermissionCreateUser)
-
-	if !canAccess {
-		c.JSON(http.StatusForbidden, errors.NewUnauthorizedError("You do not have permission to access this resource").ToGinH())
+	userIDStr := c.Param("id")
+	userID, err := strconv.Atoi(userIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, errors.NewBadRequestError("Invalid ID", err).ToGinH())
 		return
-
 	}
 
-	var user models.User
+	user := models.User{}
+	err = h.UserService.Get(&user, uint(userID), "Media")
+	if err != nil {
+		c.JSON(http.StatusNotFound, errors.NewNotFoundError("User not found", err).ToGinH())
+		return
+	}
 
 	if err := c.ShouldBindJSON(&user); err != nil {
 		c.JSON(http.StatusBadRequest, errors.NewBadRequestError("Invalid data", err).ToGinH())
 		return
 	}
 
-	err := h.UserService.Update(&user)
+	err = h.UserService.Update(&user)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, errors.NewInternalServerError("Error updating user", err).ToGinH())
 		return
