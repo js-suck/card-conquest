@@ -68,6 +68,7 @@ type TournamentRead struct {
 	Media             *Media             `json:"media, omitempty"`
 	MaxPlayers        int                `json:"max_players"`
 	PlayersRegistered int                `json:"players_registered"`
+	Status            string             `json:"status"`
 }
 
 type NewTournamentPayload struct {
@@ -110,6 +111,7 @@ func (t Tournament) ToRead() TournamentRead {
 		},
 		MaxPlayers:        t.MaxPlayers,
 		PlayersRegistered: len(t.Users),
+		Status:            t.Status,
 	}
 
 	if t.MediaModel.Media != nil {

@@ -34,7 +34,7 @@ func NewGuildHandler(guildService *services.GuildService) *GuildHandler {
 func (h *GuildHandler) GetAllGuilds(c *gin.Context) {
 	var guilds []models.Guild
 
-	err := h.GuildService.GetAll(&guilds, services.FilterParams{})
+	err := h.GuildService.GetAll(&guilds, services.FilterParams{}, "Players", "Media", "Players.Media")
 	if err != nil {
 		c.JSON(err.Code(), err)
 		return
@@ -193,29 +193,29 @@ func (h *GuildHandler) DeleteGuild(c *gin.Context) {
 // @Security BearerAuth
 // @Param Authorization header string true "Insert your access token" default(Bearer <Add access token here>)
 // @Router /guilds/{id}/users/{userID} [post]
-//func (h *GuildHandler) AddUserToGuild(c *gin.Context) {
-//	guildIDStr := c.Param("id")
-//	guildID, err := strconv.Atoi(guildIDStr)
-//	if err != nil {
-//		c.JSON(http.StatusBadRequest, errors.NewBadRequestError("Invalid Guild ID", err).ToGinH())
-//		return
-//	}
-//
-//	userIDStr := c.Param("userID")
-//	userID, err := strconv.Atoi(userIDStr)
-//	if err != nil {
-//		c.JSON(http.StatusBadRequest, errors.NewBadRequestError("Invalid User ID", err).ToGinH())
-//		return
-//	}
-//
-//	err = h.GuildService.AddUser(uint(guildID), uint(userID))
-//	if err != nil {
-//		c.JSON(err.Code(), err)
-//		return
-//	}
-//
-//	c.Status(http.StatusOK)
-//}
+func (h *GuildHandler) AddUserToGuild(c *gin.Context) {
+	guildIDStr := c.Param("id")
+	guildID, err := strconv.Atoi(guildIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, errors.NewBadRequestError("Invalid Guild ID", err).ToGinH())
+		return
+	}
+
+	userIDStr := c.Param("userID")
+	userID, err := strconv.Atoi(userIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, errors.NewBadRequestError("Invalid User ID", err).ToGinH())
+		return
+	}
+
+	errAdd := h.GuildService.AddUserToGuild(uint(userID), uint(guildID))
+	if err != nil {
+		c.JSON(errAdd.Code(), err)
+		return
+	}
+
+	c.Status(http.StatusOK)
+}
 
 // RemoveUserFromGuild godoc
 // @Summary Remove a user from a guild
@@ -231,26 +231,26 @@ func (h *GuildHandler) DeleteGuild(c *gin.Context) {
 // @Security BearerAuth
 // @Param Authorization header string true "Insert your access token" default(Bearer <Add access token here>)
 // @Router /guilds/{id}/users/{userID} [delete]
-//func (h *GuildHandler) RemoveUserFromGuild(c *gin.Context) {
-//	guildIDStr := c.Param("id")
-//	guildID, err := strconv.Atoi(guildIDStr)
-//	if err != nil {
-//		c.JSON(http.StatusBadRequest, errors.NewBadRequestError("Invalid Guild ID", err).ToGinH())
-//		return
-//	}
-//
-//	userIDStr := c.Param("userID")
-//	userID, err := strconv.Atoi(userIDStr)
-//	if err != nil {
-//		c.JSON(http.StatusBadRequest, errors.NewBadRequestError("Invalid User ID", err).ToGinH())
-//		return
-//	}
-//
-//	err = h.GuildService.RemoveUser(uint(guildID), uint(userID))
-//	if err != nil {
-//		c.JSON(err.Code(), err)
-//		return
-//	}
-//
-//	c.Status(http.StatusNoContent)
-//}
+func (h *GuildHandler) RemoveUserFromGuild(c *gin.Context) {
+	guildIDStr := c.Param("id")
+	guildID, err := strconv.Atoi(guildIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, errors.NewBadRequestError("Invalid Guild ID", err).ToGinH())
+		return
+	}
+
+	userIDStr := c.Param("userID")
+	userID, err := strconv.Atoi(userIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, errors.NewBadRequestError("Invalid User ID", err).ToGinH())
+		return
+	}
+
+	errSupp := h.GuildService.RemoveUser(uint(guildID), uint(userID))
+	if err != nil {
+		c.JSON(errSupp.Code(), err)
+		return
+	}
+
+	c.Status(http.StatusNoContent)
+}

@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
+	"strings"
 )
 
 type TournamentHandler struct {
@@ -23,6 +24,7 @@ func (h *TournamentHandler) parseFilterParams(c *gin.Context) services.FilterPar
 	TournamentID := c.Query("TournamentID")
 	UserID := c.Query("UserID")
 	GameID := c.Query("GameID")
+	Sort := c.Query("Sort")
 
 	filterParams := services.FilterParams{
 		Fields: map[string]interface{}{},
@@ -41,6 +43,10 @@ func (h *TournamentHandler) parseFilterParams(c *gin.Context) services.FilterPar
 
 	if GameID != "" {
 		filterParams.Fields["GameID"] = GameID
+	}
+
+	if Sort != "" {
+		filterParams.Sort = strings.Split(Sort, ",")
 	}
 
 	return filterParams
@@ -183,7 +189,8 @@ type TournamentsParams struct {
 // @Produce json
 // @Param WithRecents query bool false "Add recent tournaments to the response"
 // @Param UserID query int 0 "Search by userID"
-// @Success 200 {object} string
+// @Param Name query string false "Search by name"
+// @Param Sort query string false "Sort order (use 'start_date' for ascending order, '-start_date' for descending order)"// @Success 200 {object} string
 // @Failure 500 {object} errors.ErrorResponse
 // @Security BearerAuth
 // @Param Authorization header string true "Insert your access token" default(Bearer <Add access token here>)
