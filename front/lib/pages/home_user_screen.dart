@@ -1,20 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
+import 'package:front/pages/bracket_screen.dart';
+import 'package:front/pages/games_screen.dart';
 import 'package:front/pages/tournaments_registration_screen.dart';
 import 'package:front/pages/tournaments_screen.dart';
-import 'package:front/pages/games_screen.dart';
+import 'package:front/service/game_service.dart';
+import 'package:front/service/tournament_service.dart';
+import 'package:front/utils/custom_future_builder.dart';
 import 'package:front/widget/app_bar.dart';
-import 'package:front/widget/tournaments/recent_tournaments_list.dart';
-import 'package:front/widget/tournaments/all_tournaments_list.dart';
 import 'package:front/widget/games/games_list.dart';
-import 'package:front/models/tournament.dart';
-import 'package:front/models/game.dart';
+import 'package:front/widget/tournaments/all_tournaments_list.dart';
 import 'package:provider/provider.dart';
-import 'package:front/pages/bracket_screen.dart';
 
 import '../widget/bottom_bar.dart';
+import '../widget/tournaments/recent_tournaments_list.dart';
 
 class HomeUserPage extends StatefulWidget {
   const HomeUserPage({Key? key}) : super(key: key);
@@ -25,115 +24,96 @@ class HomeUserPage extends StatefulWidget {
 
 class _HomePageState extends State<HomeUserPage> {
   final storage = const FlutterSecureStorage();
-  List<Tournament> recentTournaments = [];
-  List<Tournament> allTournaments = [];
-  List<Game> games = [];
-  bool _isLoading = true;
+  late TournamentService tournamentService;
+  late GameService gameService;
 
   @override
   void initState() {
     super.initState();
-    _fetchData();
+    tournamentService = TournamentService();
+    gameService = GameService();
+    tournamentService.fetchTournaments();
+    tournamentService.fetchRecentTournaments();
+    gameService.fetchGames();
   }
 
-  Future<void> _fetchData() async {
-    String? token = await storage.read(key: 'jwt_token');
-    final recentTournamentsResponse = await http.get(
-      Uri.parse('http://10.0.2.2:8080/api/v1/tournaments?WithRecents=true'),
-      headers: {
-        'Authorization': '$token',
-      },
-    );
-    final gamesResponse = await http.get(
-      Uri.parse('http://10.0.2.2:8080/api/v1/games?WithTrendy=false'),
-      headers: {
-        'Authorization': '$token',
-      },
-    );
-
-    if (recentTournamentsResponse.statusCode == 200 &&
-        gamesResponse.statusCode == 200) {
-      final responseData = jsonDecode(recentTournamentsResponse.body);
-
-      setState(() {
-        recentTournaments = (responseData['recentTournaments'] as List)
-            .map((data) => Tournament.fromJson(data))
-            .toList();
-
-        allTournaments = (responseData['allTournaments'] as List)
-            .map((data) => Tournament.fromJson(data))
-            .toList();
-
-        games = (jsonDecode(gamesResponse.body) as List)
-            .map((data) => Game.fromJson(data))
-            .take(10)
-            .toList();
-        _isLoading = false;
-      });
-    } else {
-      throw Exception('Failed to load data');
-    }
-  }
-
-  Future<void> _onTournamentTapped(int id, String status) async {
-      Widget page;
-      switch (status) {
-        case 'opened':
-          page = RegistrationPage(tournamentId: id);
-          break;
-        case 'started':
+  Future<void> _onTournamentTapped(int tournamentId, String status) async {
+    Widget page;
+    switch (status) {
+      case 'opened':
+        page = RegistrationPage(tournamentId: tournamentId);
+        break;
+      case 'started':
         // Ajoutez un id pour la page bracket
-          page = BracketPage();
-          break;
-        case 'finished':
+        page = BracketPage(tournamentID: tournamentId);
+        break;
+      case 'finished':
         // Ajoutez un id pour la page bracket
-          page = BracketPage();
-          break;
-        case 'canceled':
+        page = BracketPage(tournamentID: tournamentId);
+        break;
+      case 'canceled':
         // Ajoutez la page correspondante pour les tournois annulés
-          page = BracketPage();
-          break;
-        default:
-          page = RegistrationPage(tournamentId: id); // Par défaut, redirigez vers la page d'inscription
-      }
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => page),
-      );
+        page = BracketPage(tournamentID: tournamentId);
+        break;
+      default:
+        page = RegistrationPage(
+            tournamentId:
+                tournamentId); // Par défaut, redirigez vers la page d'inscription
+    }
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => page),
+    );
   }
+
   Future<void> _onTournamentPageTapped() async {
-    final selectedPageModel = Provider.of<SelectedPageModel>(context, listen: false);
+    final selectedPageModel =
+        Provider.of<SelectedPageModel>(context, listen: false);
     selectedPageModel.changePage(const TournamentsPage(), 1);
   }
 
   Future<void> _onGamePageTapped() async {
-    final selectedPageModel = Provider.of<SelectedPageModel>(context, listen: false);
+    final selectedPageModel =
+        Provider.of<SelectedPageModel>(context, listen: false);
     selectedPageModel.changePage(const GamesPage(), 2);
   }
-
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: TopAppBar(title: 'Accueil', isAvatar: true, isPage: false),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
+      appBar: const TopAppBar(title: 'Accueil', isAvatar: true, isPage: false),
+      body: SingleChildScrollView(
         child: Column(
           children: [
             _buildSectionTitle('Tournois récents'),
-            RecentTournamentsList(
-              recentTournaments: recentTournaments,
-              onTournamentTapped: (id, status) => _onTournamentTapped(id, status),
-            ),
-            _buildSectionTitleWithButton('Les tournois', 'Voir les tournois', _onTournamentPageTapped as VoidCallback),
-            AllTournamentsList(
-              allTournaments: allTournaments.take(4).toList(),
-              onTournamentTapped: (id, status) => _onTournamentTapped(id, status),
-              emptyMessage: 'Pas de tournois à venir',
-            ),
-            _buildSectionTitleWithButton('Les jeux', 'Tous les jeux', _onGamePageTapped as VoidCallback),
-            GamesList(games: games),
+            CustomFutureBuilder(
+                future: tournamentService.fetchRecentTournaments(),
+                onLoaded: (tournaments) {
+                  return RecentTournamentsList(
+                    recentTournaments: tournaments,
+                    onTournamentTapped: (id, status) =>
+                        _onTournamentTapped(id, status),
+                  );
+                }),
+            _buildSectionTitleWithButton('Les tournois', 'Voir les tournois',
+                _onTournamentPageTapped as VoidCallback),
+            CustomFutureBuilder(
+                future: tournamentService.fetchTournaments(),
+                onLoaded: (tournaments) {
+                  return AllTournamentsList(
+                    allTournaments: tournaments.take(4).toList(),
+                    onTournamentTapped: (id, status) =>
+                        _onTournamentTapped(id, status),
+                    emptyMessage: 'Pas de tournois à venir',
+                  );
+                }),
+            _buildSectionTitleWithButton(
+                'Les jeux', 'Tous les jeux', _onGamePageTapped as VoidCallback),
+            CustomFutureBuilder(
+                future: gameService.fetchGames(),
+                onLoaded: (games) {
+                  return GamesList(games: games.take(4).toList());
+                }),
           ],
         ),
       ),
@@ -153,7 +133,8 @@ class _HomePageState extends State<HomeUserPage> {
     );
   }
 
-  Widget _buildSectionTitleWithButton(String title, String buttonText, VoidCallback onPressed) {
+  Widget _buildSectionTitleWithButton(
+      String title, String buttonText, VoidCallback onPressed) {
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Row(

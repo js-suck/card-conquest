@@ -145,7 +145,7 @@ class _MatchPageState extends State<MatchPage> {
                             child: Column(
                               children: [
                                 Text(
-                                  '${matchInfo.startTime.day.toString().padLeft(2, '0')}/${matchInfo.startTime.month.toString().padLeft(2, '0')}/${matchInfo.startTime.year} ${matchInfo.startTime.hour}:${matchInfo.startTime.minute}',
+                                  '${matchInfo.startTime.day.toString().padLeft(2, '0')}/${matchInfo.startTime.month.toString().padLeft(2, '0')}/${matchInfo.startTime.year} ${matchInfo.startTime.hour.toString().padLeft(2, '0')}:${matchInfo.startTime.minute.toString().padLeft(2, '0')}',
                                   style: const TextStyle(
                                     fontSize: 16,
                                     color: Colors.grey,

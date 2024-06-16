@@ -28,7 +28,6 @@ Future<void> login(
     // Store the token in secure storage
     await storage.write(key: 'jwt_token', value: token);
     Navigator.pushReplacementNamed(context, '/main');
-
   } else {
     // Handle error in login
     ScaffoldMessenger.of(context).showSnackBar(

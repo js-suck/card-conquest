@@ -1,7 +1,7 @@
-import 'package:front/models/user.dart';
+import 'package:front/models/match/player.dart';
 
 class GamesRanking {
-  final User user;
+  final Player user;
   final int gameId;
   final String gameName;
   final int score;
@@ -17,7 +17,7 @@ class GamesRanking {
 
   factory GamesRanking.fromJson(Map<String, dynamic> json) {
     return GamesRanking(
-      user: User.fromJson(json['User']),
+      user: Player.fromJson(json['User']),
       gameId: json['GameID'],
       gameName: json['GameName'],
       score: json['Score'],

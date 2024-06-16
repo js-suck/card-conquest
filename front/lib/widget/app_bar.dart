@@ -1,8 +1,11 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:front/utils/custom_future_builder.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
-import 'package:provider/provider.dart';
-import 'package:front/services/user_service.dart';
+
+import '../service/user_service.dart';
 
 class TopAppBar extends StatefulWidget implements PreferredSizeWidget {
   const TopAppBar({
@@ -26,46 +29,30 @@ class TopAppBar extends StatefulWidget implements PreferredSizeWidget {
 }
 
 class _TopAppBarState extends State<TopAppBar> {
-  String userName = '';
-  String userRole = '';
-  String? userImage;
+  int userId = 0;
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
+  late UserService userService;
 
   @override
-  void initState() {
+  initState() {
     super.initState();
+    userService = UserService();
     _loadUser();
   }
 
   Future<void> _loadUser() async {
-    // Récupérer le token depuis le stockage sécurisé
     String? token = await _storage.read(key: 'jwt_token');
-
-    if (token == null || JwtDecoder.isExpired(token)) {
-      // Gérer le cas où le token est manquant ou expiré
-      return;
-    }
+    if (token == null || JwtDecoder.isExpired(token)) return;
 
     Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
-    int userId = decodedToken['user_id'];
-    String name = decodedToken['name'];
-    String role = decodedToken['role'];
+    setState(() {
+      userId = decodedToken['user_id'];
+    });
 
-    // Récupérer les détails de l'utilisateur à partir de l'API
     try {
-      final userService = Provider.of<UserService>(context, listen: false);
-      final user = await userService.getUser(userId);
-      final image = await userService.getUserImage(userId);
-      setState(() {
-        userName = user['name'] ?? name;
-        userRole = user['role'] ?? role;
-        userImage = image;
-      });
+      final user = await userService.fetchUser(userId);
     } catch (e) {
-      setState(() {
-        userName = name;
-        userRole = role;
-      });
+      return;
     }
   }
 
@@ -133,46 +120,66 @@ class _TopAppBarState extends State<TopAppBar> {
         leadingWidth: widget.isPage ? 64 : 1000,
         leading: Builder(builder: (context) {
           if (widget.isAvatar) {
-            return Row(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(left: 4, top: 4, bottom: 4),
-                  child: GestureDetector(
-                    onTap: () {
-                      Navigator.of(context).pushNamed('/profile');
-                    },
-                    child: CircleAvatar(
-                      radius: 30,
-                      backgroundImage: userImage != null
-                          ? NetworkImage(userImage!)
-                          : const AssetImage('assets/images/avatar.png') as ImageProvider,
-                    ),
-                  ),
-                ),
-                if (!widget.isPage)
-                  Padding(
-                    padding: const EdgeInsets.only(left: 8.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(userName,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                            )),
-                        Text(userRole,
-                            style: const TextStyle(
-                              color: Colors.white70,
-                              fontSize: 18,
-                              fontWeight: FontWeight.w400,
-                            )),
-                      ],
-                    ),
-                  ),
-              ],
-            );
+            return CustomFutureBuilder(
+                future: userService.fetchUser(userId),
+                onLoaded: (user) {
+                  return Row(
+                    children: [
+                      Padding(
+                        padding:
+                            const EdgeInsets.only(left: 4, top: 4, bottom: 4),
+                        child: GestureDetector(
+                          onTap: () {
+                            Navigator.of(context).pushNamed('/profile');
+                          },
+                          child: CircleAvatar(
+                            radius: 27,
+                            child: ClipOval(
+                              child: SizedBox(
+                                width: 54,
+                                height: 54,
+                                child: user.media?.fileName != null
+                                    ? CachedNetworkImage(
+                                        imageUrl:
+                                            '${dotenv.env['MEDIA_URL']}${user.media!.fileName}',
+                                        placeholder: (context, url) =>
+                                            const CircularProgressIndicator(),
+                                        fit: BoxFit.cover,
+                                      )
+                                    : Image.asset(
+                                        'assets/images/avatar.png',
+                                        fit: BoxFit.cover,
+                                      ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      if (!widget.isPage)
+                        Padding(
+                          padding: const EdgeInsets.only(left: 8.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(user.username,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                  )),
+                              Text(user.role ?? '',
+                                  style: const TextStyle(
+                                    color: Colors.white70,
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w400,
+                                  )),
+                            ],
+                          ),
+                        ),
+                    ],
+                  );
+                });
           } else {
             return IconButton(
               icon: const Icon(Icons.arrow_back),

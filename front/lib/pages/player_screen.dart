@@ -1,5 +1,7 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:front/extension/theme_extension.dart';
 import 'package:front/generated/match.pb.dart' as tournament;
 import 'package:front/service/match_service.dart';
@@ -34,7 +36,6 @@ class _PlayerPageState extends State<PlayerPage> {
         ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>?;
     final tournament.PlayerMatch player =
         args!['player'] as tournament.PlayerMatch;
-    final bool isTournament = args['isTournament'] as bool;
     matchService.fetchFinishedMatchesOfPlayer(player.id);
   }
 
@@ -47,7 +48,6 @@ class _PlayerPageState extends State<PlayerPage> {
 
     final tournament.PlayerMatch player =
         args!['player'] as tournament.PlayerMatch;
-    final bool isTournament = args['isTournament'] as bool;
     return Scaffold(
       appBar: TopAppBar(
         title: player.username,
@@ -71,9 +71,12 @@ class _PlayerPageState extends State<PlayerPage> {
                     shape: BoxShape.rectangle,
                     borderRadius: BorderRadius.circular(10),
                     image: DecorationImage(
-                      image: AssetImage(player.mediaUrl == ''
-                          ? 'assets/images/avatar.png'
-                          : player.mediaUrl),
+                      image: player.mediaUrl != ''
+                          ? CachedNetworkImageProvider(
+                              '${dotenv.env['MEDIA_URL']}${player.mediaUrl}',
+                            )
+                          : const AssetImage('assets/images/avatar.png')
+                              as ImageProvider,
                       fit: BoxFit.cover,
                     ),
                   ),

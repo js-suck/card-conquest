@@ -1,54 +1,51 @@
 import 'package:front/models/match/user.dart';
-import 'package:front/models/media.dart';
 
-import 'game_match.dart';
+import 'game.dart';
+import 'media.dart';
 
-class Tournament {
+class TournamentHome {
   final int id;
   final String name;
-  final String? description;
-  final String? location;
-  final Organizer organizer;
-  final GameMatch game;
+  final String description;
+  final String location;
   final DateTime startDate;
   final DateTime endDate;
   final Media? media;
   final int maxPlayers;
-  final int playersRegistered;
-  final String status;
+  final Organizer organizer;
+  final Game game;
   final List<String> tags;
+  final String status;
 
-  Tournament({
+  TournamentHome({
     required this.id,
     required this.name,
-    this.description,
-    this.location,
-    required this.organizer,
-    required this.game,
+    required this.description,
+    required this.location,
     required this.startDate,
     required this.endDate,
     this.media,
     required this.maxPlayers,
-    required this.playersRegistered,
-    required this.status,
+    required this.organizer,
+    required this.game,
     required this.tags,
+    required this.status,
   });
 
-  factory Tournament.fromJson(Map<String, dynamic> json) {
-    return Tournament(
+  factory TournamentHome.fromJson(Map<String, dynamic> json) {
+    return TournamentHome(
       id: json['id'],
       name: json['name'],
       description: json['description'] ?? '',
       location: json['location'] ?? '',
-      organizer: Organizer.fromJson(json['Organizer'] ?? {}),
-      game: GameMatch.fromJson(json['game']),
       startDate: DateTime.parse(json['start_date']),
       endDate: DateTime.parse(json['end_date']),
       media: json['media'] != null ? Media.fromJson(json['media']) : null,
-      maxPlayers: json['max_players'],
-      playersRegistered: json['players_registered'],
-      status: json['status'] ?? 'unknown',
+      maxPlayers: json['max_players'] ?? 0,
+      organizer: Organizer.fromJson(json['Organizer'] ?? {}),
+      game: Game.fromJson(json['game'] ?? {}),
       tags: json['tags'] != null ? List<String>.from(json['tags']) : [],
+      status: json['status'] ?? 'unknown',
     );
   }
 }

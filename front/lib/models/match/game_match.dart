@@ -1,14 +1,14 @@
-class Game {
+class GameMatch {
   final int id;
   final String name;
 
-  Game({
+  GameMatch({
     required this.id,
     required this.name,
   });
 
-  factory Game.fromJson(Map<String, dynamic> json) {
-    return Game(
+  factory GameMatch.fromJson(Map<String, dynamic> json) {
+    return GameMatch(
       id: json['ID'],
       name: json['name'],
     );

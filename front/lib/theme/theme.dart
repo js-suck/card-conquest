@@ -45,7 +45,7 @@ final ThemeData theme = ThemeData(
   elevatedButtonTheme: ElevatedButtonThemeData(
     style: ButtonStyle(
       backgroundColor: MaterialStateProperty.all<Color>(accentColor),
-      foregroundColor: MaterialStateProperty.all<Color>(fontColor),
+      foregroundColor: MaterialStateProperty.all<Color>(Colors.white),
     ),
   ),
   badgeTheme: const BadgeThemeData(

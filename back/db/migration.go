@@ -23,11 +23,11 @@ func gameMigration(db *gorm.DB) (*models.Game, error) {
 		game := models.Game{
 			Name: fmt.Sprintf("Test%d", i),
 		}
-    
-    if err != nil {
-		  fmt.Println(err.Error())
-		  return nil, err
-	  }
+
+		if err != nil {
+			fmt.Println(err.Error())
+			return nil, err
+		}
 
 		db.Create(&game)
 	}
@@ -112,13 +112,6 @@ func registrationsTournamentMigrations(db *gorm.DB) {
 		tournament.UserID = user.ID
 		users[i] = user
 
-		tournamentStep := models.TournamentStep{
-			TournamentID: tournament.ID,
-			Name:         "First step",
-			Sequence:     1,
-		}
-
-		db.Create(&tournamentStep)
 		db.Save(&tournament)
 
 	}

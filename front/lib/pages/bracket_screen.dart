@@ -14,9 +14,9 @@ import '../service/tournament_service.dart';
 import '../utils/custom_stream_builder.dart';
 
 class BracketPage extends StatefulWidget {
-  const BracketPage({super.key});
+  final int tournamentID;
 
-  final int tournamentID = 1;
+  const BracketPage({super.key, required this.tournamentID});
 
   @override
   State<BracketPage> createState() => _BracketPageState();

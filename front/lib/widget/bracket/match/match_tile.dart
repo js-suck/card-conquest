@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:front/extension/theme_extension.dart';
 import 'package:front/models/match/match.dart';
 import 'package:front/models/match/score.dart';
@@ -22,8 +23,10 @@ class MatchTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    String? playerOneUsername = match.playerOne.name?.split(' ')[0] ?? '';
-    String? playerTwoUsername = match.playerTwo.name?.split(' ')[0] ?? '';
+    debugPrint(
+        'player name: ${match.playerOne.name} ${match.playerOne.media?.fileName}');
+    String? playerOneUsername = match.playerOne.name.split(' ')[0] ?? '';
+    String? playerTwoUsername = match.playerTwo.name.split(' ')[0] ?? '';
     Color playerOneColor = context.themeColors.fontColor;
     Color playerTwoColor = context.themeColors.fontColor;
     Color playerOneScoreColor = context.themeColors.fontColor;
@@ -126,9 +129,13 @@ class MatchTile extends StatelessWidget {
                           CircleAvatar(
                             radius: 10,
                             backgroundColor: Colors.transparent,
-                            backgroundImage: match.playerOne.name == ''
-                                ? null
-                                : const AssetImage('assets/images/avatar.png'),
+                            backgroundImage: match.playerOne.name != ''
+                                ? NetworkImage(match
+                                            .playerOne.media?.fileName ==
+                                        null
+                                    ? '${dotenv.env['MEDIA_URL']}avatar.jpg'
+                                    : '${dotenv.env['MEDIA_URL']}${match.playerOne.media?.fileName}')
+                                : null,
                           ),
                           const SizedBox(width: 5),
                           Text(
@@ -145,13 +152,17 @@ class MatchTile extends StatelessWidget {
                           CircleAvatar(
                             radius: 10,
                             backgroundColor: Colors.transparent,
-                            backgroundImage: match.playerTwo.name == ''
-                                ? null
-                                : const AssetImage('assets/images/avatar.png'),
+                            backgroundImage: match.playerTwo.name != ''
+                                ? NetworkImage(match
+                                            .playerTwo.media?.fileName ==
+                                        null
+                                    ? '${dotenv.env['MEDIA_URL']}avatar.jpg'
+                                    : '${dotenv.env['MEDIA_URL']}${match.playerTwo.media?.fileName}')
+                                : null,
                           ),
                           const SizedBox(width: 5),
                           Text(
-                            playerTwoUsername!,
+                            playerTwoUsername,
                             style: TextStyle(
                               color: playerTwoColor,
                               fontWeight: playerTwoFontWeight,
