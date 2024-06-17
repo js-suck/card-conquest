@@ -1,71 +1,72 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:jwt_decoder/jwt_decoder.dart';
+import 'package:front/extension/theme_extension.dart';
+import 'package:front/pages/tournaments_registration_screen.dart';
 import 'package:front/widget/app_bar.dart';
-import 'package:front/models/tournament.dart';
 import 'package:front/widget/tournaments/all_tournaments_list.dart';
+import 'package:jwt_decoder/jwt_decoder.dart';
+
+import '../service/tournament_service.dart';
+import '../utils/custom_future_builder.dart';
+import 'bracket_screen.dart';
 
 class TournamentHistoryPage extends StatefulWidget {
-  const TournamentHistoryPage({Key? key}) : super(key: key);
+  const TournamentHistoryPage({super.key});
 
   @override
   _TournamentHistoryPageState createState() => _TournamentHistoryPageState();
 }
 
-class _TournamentHistoryPageState extends State<TournamentHistoryPage> with SingleTickerProviderStateMixin {
+class _TournamentHistoryPageState extends State<TournamentHistoryPage>
+    with SingleTickerProviderStateMixin {
   final storage = const FlutterSecureStorage();
-  TabController? _tabController;
-  String? userId;
-  bool _isLoading = true;
-  List<Tournament> upcomingTournaments = [];
-  List<Tournament> pastTournaments = [];
+  int userId = 0;
+  late TournamentService tournamentService;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    tournamentService = TournamentService();
     _fetchUserId();
+    tournamentService.fetchPastTournamentsOfUser(userId);
+    tournamentService.fetchUpcomingTournamentsOfUser(userId);
   }
 
   Future<void> _fetchUserId() async {
     String? token = await storage.read(key: 'jwt_token');
     if (token != null) {
       Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
-      userId = decodedToken['user_id'].toString();
-      await _fetchTournaments();
+      userId = decodedToken['user_id'];
     }
   }
 
-  Future<void> _fetchTournaments() async {
-    String? token = await storage.read(key: 'jwt_token');
-    final response = await http.get(
-      Uri.parse('http://10.0.2.2:8080/api/v1/tournaments/?UserId=$userId'),
-      headers: {
-        'Authorization': '$token',
-      },
+  Future<void> _onTournamentTapped(int tournamentId, String status) async {
+    Widget page;
+    switch (status) {
+      case 'opened':
+        page = RegistrationPage(tournamentId: tournamentId);
+        break;
+      case 'started':
+        // Ajoutez un id pour la page bracket
+        page = BracketPage(tournamentID: tournamentId);
+        break;
+      case 'finished':
+        // Ajoutez un id pour la page bracket
+        page = BracketPage(tournamentID: tournamentId);
+        break;
+      case 'canceled':
+        // Ajoutez la page correspondante pour les tournois annulés
+        page = BracketPage(tournamentID: tournamentId);
+        break;
+      default:
+        page = RegistrationPage(
+            tournamentId:
+                tournamentId); // Par défaut, redirigez vers la page d'inscription
+    }
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => page),
     );
-    if (response.statusCode == 200) {
-      List<dynamic> tournaments = json.decode(response.body);
-      setState(() {
-        for (var tournament in tournaments) {
-          Tournament tournamentObj = Tournament.fromJson(tournament);
-          if (tournamentObj.status == 'opened' || tournamentObj.status == 'started') {
-            upcomingTournaments.add(tournamentObj);
-          } else if (tournamentObj.status == 'finished' || tournamentObj.status == 'canceled') {
-            pastTournaments.add(tournamentObj);
-          }
-        }
-        _isLoading = false;
-      });
-    } else {
-      _showError('Failed to load tournaments.');
-    }
-  }
-
-  Future<void> _onTournamentTapped(int id, String status) async {
-    // Handle tournament tapped action based on status
   }
 
   void _showError(String message) {
@@ -79,34 +80,46 @@ class _TournamentHistoryPageState extends State<TournamentHistoryPage> with Sing
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const TopAppBar(title: 'Historique'),
-        automaticallyImplyLeading: false,
-        bottom: TabBar(
-          controller: _tabController,
-          tabs: const [
-            Tab(text: 'Tournois à venir'),
-            Tab(text: 'Tournois Passés'),
+    return DefaultTabController(
+      initialIndex: 0,
+      length: 2,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const TopAppBar(title: 'Historique'),
+          automaticallyImplyLeading: false,
+          bottom: TabBar(
+            labelColor: context.themeColors.accentColor,
+            indicatorColor: context.themeColors.accentColor,
+            unselectedLabelColor: Colors.white,
+            tabs: const [
+              Tab(text: 'Tournois à venir'),
+              Tab(text: 'Tournois Passés'),
+            ],
+          ),
+        ),
+        body: TabBarView(
+          children: [
+            CustomFutureBuilder(
+                future:
+                    tournamentService.fetchUpcomingTournamentsOfUser(userId),
+                onLoaded: (upcomingTournaments) {
+                  return AllTournamentsList(
+                    allTournaments: upcomingTournaments,
+                    onTournamentTapped: _onTournamentTapped,
+                    emptyMessage: 'Pas de tournois à venir',
+                  );
+                }),
+            CustomFutureBuilder(
+                future: tournamentService.fetchPastTournamentsOfUser(userId),
+                onLoaded: (pastTournaments) {
+                  return AllTournamentsList(
+                    allTournaments: pastTournaments,
+                    onTournamentTapped: _onTournamentTapped,
+                    emptyMessage: 'Pas de tournois passés',
+                  );
+                }),
           ],
         ),
-      ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : TabBarView(
-        controller: _tabController,
-        children: [
-          AllTournamentsList(
-            allTournaments: upcomingTournaments,
-            onTournamentTapped: _onTournamentTapped,
-            emptyMessage: 'Pas de tournois à venir',
-          ),
-          AllTournamentsList(
-            allTournaments: pastTournaments,
-            onTournamentTapped: _onTournamentTapped,
-            emptyMessage: 'Pas de tournois passés',
-          ),
-        ],
       ),
     );
   }

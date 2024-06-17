@@ -1,11 +1,12 @@
 // theme.dart
 import 'package:flutter/material.dart';
 
-const Color fontColor = Color(0xfff5f4f6);
+const Color fontColor = Colors.black;
 const Color backgroundColor = Colors.white;
 const Color invertedBackgroundColor = Color(0xff1a1a1a);
 const Color accentBackgroundColor = Color(0xff1a4ccb);
 const Color secondaryAccentBackgroundColor = Color(0xFFf1f1f1);
+const Color secondaryBackgroundAccentActiveColor = Color(0xFFE2DFE0);
 const Color accentColor = Color(0xffff933d);
 
 // Définissez votre thème dans un fichier séparé
@@ -44,7 +45,7 @@ final ThemeData theme = ThemeData(
   elevatedButtonTheme: ElevatedButtonThemeData(
     style: ButtonStyle(
       backgroundColor: MaterialStateProperty.all<Color>(accentColor),
-      foregroundColor: MaterialStateProperty.all<Color>(fontColor),
+      foregroundColor: MaterialStateProperty.all<Color>(Colors.white),
     ),
   ),
   badgeTheme: const BadgeThemeData(
