@@ -89,7 +89,7 @@ class _BracketState extends State<Bracket> {
     }
     return DefaultTabController(
       initialIndex: 0,
-      length: 4,
+      length: tournamentSize,
       child: Scaffold(
         appBar: PreferredSize(
           preferredSize: const Size.fromHeight(kToolbarHeight),

@@ -75,7 +75,7 @@ class _HomePageState extends State<HomeUserPage> {
   Future<void> _onGamePageTapped() async {
     final selectedPageModel =
         Provider.of<SelectedPageModel>(context, listen: false);
-    selectedPageModel.changePage(const GamesPage(), 2);
+    selectedPageModel.changePage(const GamesPage(), 3);
   }
 
   @override

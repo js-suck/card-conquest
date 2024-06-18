@@ -24,9 +24,9 @@ class MatchTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     debugPrint(
-        'player name: ${match.playerOne.name} ${match.playerOne.media?.fileName}');
-    String? playerOneUsername = match.playerOne.name.split(' ')[0] ?? '';
-    String? playerTwoUsername = match.playerTwo.name.split(' ')[0] ?? '';
+        'player name: ${match.playerOne.username} ${match.playerOne.media?.fileName}');
+    String? playerOneUsername = match.playerOne.username.split(' ')[0] ?? '';
+    String? playerTwoUsername = match.playerTwo.username.split(' ')[0] ?? '';
     Color playerOneColor = context.themeColors.fontColor;
     Color playerTwoColor = context.themeColors.fontColor;
     Color playerOneScoreColor = context.themeColors.fontColor;
@@ -60,7 +60,7 @@ class MatchTile extends StatelessWidget {
       playerOneScoreColor = Colors.redAccent;
       playerTwoScoreColor = Colors.redAccent;
     }
-    if (match.playerOne.name == '') {
+    if (match.playerOne.username == '') {
       playerOneUsername = 'Bye';
       playerOneColor = Colors.grey;
       playerOneScore = '';
@@ -68,7 +68,7 @@ class MatchTile extends StatelessWidget {
     } else {
       playerOneColor = context.themeColors.fontColor;
     }
-    if (match.playerTwo.name == '') {
+    if (match.playerTwo.username == '') {
       playerTwoUsername = 'Bye';
       playerTwoColor = Colors.grey;
       playerTwoScore = '';
@@ -95,7 +95,7 @@ class MatchTile extends StatelessWidget {
           );
           return;
         }
-        if (match.playerOne.name != '' && match.playerTwo.name != '') {
+        if (match.playerOne.username != '' && match.playerTwo.username != '') {
           Navigator.pushNamed(context, '/match', arguments: match.id);
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -129,10 +129,10 @@ class MatchTile extends StatelessWidget {
                           CircleAvatar(
                             radius: 10,
                             backgroundColor: Colors.transparent,
-                            backgroundImage: match.playerOne.name != ''
+                            backgroundImage: match.playerOne.username != ''
                                 ? NetworkImage(match
                                             .playerOne.media?.fileName ==
-                                        null
+                                        ''
                                     ? '${dotenv.env['MEDIA_URL']}avatar.jpg'
                                     : '${dotenv.env['MEDIA_URL']}${match.playerOne.media?.fileName}')
                                 : null,
@@ -152,10 +152,10 @@ class MatchTile extends StatelessWidget {
                           CircleAvatar(
                             radius: 10,
                             backgroundColor: Colors.transparent,
-                            backgroundImage: match.playerTwo.name != ''
+                            backgroundImage: match.playerTwo.username != ''
                                 ? NetworkImage(match
                                             .playerTwo.media?.fileName ==
-                                        null
+                                        ''
                                     ? '${dotenv.env['MEDIA_URL']}avatar.jpg'
                                     : '${dotenv.env['MEDIA_URL']}${match.playerTwo.media?.fileName}')
                                 : null,
