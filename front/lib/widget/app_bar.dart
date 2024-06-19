@@ -1,6 +1,13 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:front/utils/custom_future_builder.dart';
+import 'package:jwt_decoder/jwt_decoder.dart';
 
-class TopAppBar extends StatelessWidget implements PreferredSizeWidget {
+import '../service/user_service.dart';
+
+class TopAppBar extends StatefulWidget implements PreferredSizeWidget {
   const TopAppBar({
     super.key,
     required this.title,
@@ -15,7 +22,39 @@ class TopAppBar extends StatelessWidget implements PreferredSizeWidget {
   final bool isSettings;
 
   @override
+  _TopAppBarState createState() => _TopAppBarState();
+
+  @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight + 20);
+}
+
+class _TopAppBarState extends State<TopAppBar> {
+  int userId = 0;
+  final FlutterSecureStorage _storage = const FlutterSecureStorage();
+  late UserService userService;
+
+  @override
+  initState() {
+    super.initState();
+    userService = UserService();
+    _loadUser();
+  }
+
+  Future<void> _loadUser() async {
+    String? token = await _storage.read(key: 'jwt_token');
+    if (token == null || JwtDecoder.isExpired(token)) return;
+
+    Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
+    setState(() {
+      userId = decodedToken['user_id'];
+    });
+
+    try {
+      final user = await userService.fetchUser(userId);
+    } catch (e) {
+      return;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -26,10 +65,13 @@ class TopAppBar extends StatelessWidget implements PreferredSizeWidget {
       ),
       child: AppBar(
         toolbarHeight: kToolbarHeight + 20,
+        iconTheme: const IconThemeData(
+          color: Colors.white,
+        ),
         title: Builder(builder: (context) {
-          if (isPage) {
+          if (widget.isPage) {
             return Text(
-              title,
+              widget.title,
               style: const TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
@@ -43,7 +85,7 @@ class TopAppBar extends StatelessWidget implements PreferredSizeWidget {
         centerTitle: true,
         actions: [
           Builder(builder: (context) {
-            if (!isPage) {
+            if (!widget.isPage) {
               return Container(
                 margin: const EdgeInsets.only(right: 10),
                 width: 45,
@@ -62,7 +104,7 @@ class TopAppBar extends StatelessWidget implements PreferredSizeWidget {
                   ),
                 ),
               );
-            } else if (!isSettings) {
+            } else if (!widget.isSettings) {
               return IconButton(
                 icon: const Icon(Icons.settings),
                 color: Colors.white,
@@ -75,52 +117,69 @@ class TopAppBar extends StatelessWidget implements PreferredSizeWidget {
             }
           })
         ],
-        leadingWidth: isPage ? 64 : 1000,
+        leadingWidth: widget.isPage ? 64 : 1000,
         leading: Builder(builder: (context) {
-          if (isAvatar) {
-            return Row(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(left: 4, top: 4, bottom: 4),
-                  child: GestureDetector(
-                    onTap: () {
-                      Navigator.of(context).pushNamed('/profile');
-                    },
-                    child: const CircleAvatar(
-                      radius: 30,
-                      backgroundImage: AssetImage('assets/images/avatar.png'),
-                    ),
-                  ),
-                ),
-                Builder(builder: (context) {
-                  if (!isPage) {
-                    return const Padding(
-                      padding: EdgeInsets.only(left: 8.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text('John Doe',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                              )),
-                          Text('Admin',
-                              style: TextStyle(
-                                color: Colors.white70,
-                                fontSize: 18,
-                                fontWeight: FontWeight.w400,
-                              )),
-                        ],
+          if (widget.isAvatar) {
+            return CustomFutureBuilder(
+                future: userService.fetchUser(userId),
+                onLoaded: (user) {
+                  return Row(
+                    children: [
+                      Padding(
+                        padding:
+                            const EdgeInsets.only(left: 4, top: 4, bottom: 4),
+                        child: GestureDetector(
+                          onTap: () {
+                            Navigator.of(context).pushNamed('/profile');
+                          },
+                          child: CircleAvatar(
+                            radius: 27,
+                            child: ClipOval(
+                              child: SizedBox(
+                                width: 54,
+                                height: 54,
+                                child: user.media?.fileName != null
+                                    ? CachedNetworkImage(
+                                        imageUrl:
+                                            '${dotenv.env['MEDIA_URL']}${user.media!.fileName}',
+                                        placeholder: (context, url) =>
+                                            const CircularProgressIndicator(),
+                                        fit: BoxFit.cover,
+                                      )
+                                    : Image.asset(
+                                        'assets/images/avatar.png',
+                                        fit: BoxFit.cover,
+                                      ),
+                              ),
+                            ),
+                          ),
+                        ),
                       ),
-                    );
-                  } else {
-                    return const Text('');
-                  }
-                }),
-              ],
-            );
+                      if (!widget.isPage)
+                        Padding(
+                          padding: const EdgeInsets.only(left: 8.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(user.username,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                  )),
+                              Text(user.role ?? '',
+                                  style: const TextStyle(
+                                    color: Colors.white70,
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w400,
+                                  )),
+                            ],
+                          ),
+                        ),
+                    ],
+                  );
+                });
           } else {
             return IconButton(
               icon: const Icon(Icons.arrow_back),

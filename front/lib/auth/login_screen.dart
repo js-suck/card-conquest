@@ -1,13 +1,17 @@
-import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
-Future<void> login(BuildContext context, String username, String password) async {
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:http/http.dart' as http;
+
+Future<void> login(
+    BuildContext context, String username, String password) async {
   final storage =
       new FlutterSecureStorage(); // Create instance of secure storage
   final response = await http.post(
-    Uri.parse('http://10.0.2.2:8080/api/v1/login'),
+    Uri.parse('${dotenv.env['API_URL']}login'),
     headers: <String, String>{
       'Content-Type': 'application/json; charset=UTF-8',
     },
@@ -23,10 +27,15 @@ Future<void> login(BuildContext context, String username, String password) async
 
     // Store the token in secure storage
     await storage.write(key: 'jwt_token', value: token);
-
-    Navigator.of(context).pushReplacementNamed('/main');
+    Navigator.pushReplacementNamed(context, '/main');
   } else {
     // Handle error in login
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Erreur de connexion'),
+        duration: Duration(seconds: 1),
+      ),
+    );
     throw Exception('Failed to log in');
   }
 }
@@ -48,7 +57,9 @@ class _LoginPageState extends State<LoginPage> {
       try {
         login(context, _usernameController.text, _passwordController.text);
       } catch (e) {
-        print('Erreur de connexion: $e');
+        if (kDebugMode) {
+          print('Erreur de connexion: $e');
+        }
       }
     }
   }
@@ -90,6 +101,7 @@ class _LoginPageState extends State<LoginPage> {
                       const SizedBox(height: 10),
                       TextFormField(
                         controller: _usernameController,
+                        style: const TextStyle(color: Colors.black),
                         decoration: InputDecoration(
                           hintText: 'username',
                           hintStyle: TextStyle(
@@ -117,6 +129,7 @@ class _LoginPageState extends State<LoginPage> {
                       const SizedBox(height: 10),
                       TextFormField(
                         controller: _passwordController,
+                        style: const TextStyle(color: Colors.black),
                         decoration: InputDecoration(
                           hintText: '*******',
                           hintStyle: TextStyle(
@@ -184,7 +197,7 @@ class _LoginPageState extends State<LoginPage> {
                           mainAxisSize: MainAxisSize.min,
                           children: <Widget>[
                             Image.asset('assets/images/google.png', width: 30),
-                            SizedBox(width: 10),
+                            const SizedBox(width: 10),
                           ],
                         ),
                       ),
