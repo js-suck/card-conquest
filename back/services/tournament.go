@@ -27,7 +27,7 @@ func NewTournamentService(db *gorm.DB) *TournamentService {
 
 var TournamentUpdates = make(chan *authentication_api.TournamentResponse, 100)
 
-func (s TournamentService) RegisterUser(userId uint, tournamentId uint) errors.IError {
+func (s TournamentService) RegisterUser(tournamentId uint, userId uint) errors.IError {
 	tournament := models.Tournament{}
 	user := models.User{}
 
