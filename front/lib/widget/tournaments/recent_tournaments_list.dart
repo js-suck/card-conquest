@@ -15,7 +15,7 @@ class RecentTournamentsList extends StatelessWidget {
   });
 
   String _formatDateTime(DateTime dateTime) {
-    final DateFormat formatter = DateFormat('dd/MM/yyyy');
+    final DateFormat formatter = DateFormat('dd/MM/yyyy HH:mm');
     return formatter.format(dateTime);
   }
 
