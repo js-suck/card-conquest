@@ -41,7 +41,7 @@ func (h *UserHandler) GetUser() gin.HandlerFunc {
 
 		user := models.User{}
 
-		err = h.UserService.Get(&user, uint(idInt), "Media")
+		err = h.UserService.Get(&user, uint(idInt), "Media", "Guilds")
 		if err != nil {
 			c.JSON(http.StatusNotFound, errors.NewNotFoundError("User not found", err).ToGinH())
 			return
@@ -105,14 +105,20 @@ func (h *UserHandler) GetUsers(c *gin.Context) {
 
 	var users []models.User
 	filterParams := parseFilterParams(c)
-	err := h.UserService.GetAll(&users, filterParams, "Media")
+	err := h.UserService.GetAll(&users, filterParams, "Media", "Guilds")
+
+	reaableUsers := make([]models.UserReadFull, len(users))
+	// get readables for users
+	for i, user := range users {
+		reaableUsers[i] = user.ToReadFull()
+	}
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, errors.NewInternalServerError("Error getting users", err).ToGinH())
 		return
 	}
 
-	c.JSON(http.StatusOK, users)
+	c.JSON(http.StatusOK, reaableUsers)
 }
 
 // PostUser godoc

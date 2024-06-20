@@ -22,8 +22,8 @@ func NewGameService(db *gorm.DB) *GameService {
 }
 
 func (s *GameService) GetAll(filterParams FilterParams, gameParams GameParams, preloads ...string) (allGames []models.Game, trendyGames []models.Game, err errors.IError) {
-	query := s.db
-	queryTrendy := s.db
+	query := s.Db
+	queryTrendy := s.Db
 
 	for _, preload := range preloads {
 		query = query.Preload(preload)
@@ -60,14 +60,14 @@ func (s *GameService) CalculateUserRankingsForGames(userID string) ([]models.Use
 	var userGamesScores []models.GameScore
 	var userRankings []models.UserGameRanking
 
-	if err := s.db.Preload("Game").Preload("User").Find(&userGamesScores, "user_id = ?", userID).Error; err != nil {
+	if err := s.Db.Preload("Game").Preload("User").Find(&userGamesScores, "user_id = ?", userID).Error; err != nil {
 		return nil, errors.NewInternalServerError("Failed to get game scores", err)
 	}
 
 	for _, gameScore := range userGamesScores {
 		var rank int64
 
-		if err := s.db.Table("game_scores").
+		if err := s.Db.Table("game_scores").
 			Where("game_id = ?", gameScore.GameID).
 			Where("total_score > ?", gameScore.TotalScore).
 			Count(&rank).Error; err != nil {

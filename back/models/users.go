@@ -1,6 +1,7 @@
 package models
 
 import (
+	"gorm.io/gorm"
 	"time"
 )
 
@@ -46,6 +47,11 @@ type User struct {
 	FCMToken          string        `gorm:"type:varchar(255);default:null" json:"fcm_token"; default:null`
 }
 
+func (u *User) AfterFind(tx *gorm.DB) (err error) {
+	tx.Model(u).Association("Media").Find(&u.Media)
+	return
+}
+
 type LoginPayload struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
@@ -70,17 +76,19 @@ type UserReadWithImage struct {
 	Username string `json:"username"`
 	Email    string `json:"email"`
 	Media    *Media `json:"media"`
+	Score    int    `json:"score"`
 }
 
 type UserReadFull struct {
-	ID         uint   `json:"id"`
-	Username   string `json:"username"`
-	Email      string `json:"email"`
-	Address    string `json:"address"`
-	Phone      string `json:"phone"`
-	Role       string `json:"role"`
-	Country    string `json:"country"`
-	MediaModel *Media `json:"media"`
+	ID         uint        `json:"id"`
+	Username   string      `json:"username"`
+	Email      string      `json:"email"`
+	Address    string      `json:"address"`
+	Phone      string      `json:"phone"`
+	Role       string      `json:"role"`
+	Country    string      `json:"country"`
+	MediaModel *Media      `json:"media"`
+	Guilds     []GuildRead `json:"guilds"`
 }
 
 type UserRanking struct {
@@ -121,11 +129,17 @@ func (u User) GetID() uint {
 }
 
 func (u User) ToRead() UserReadTournament {
-	return UserReadTournament{
+	user := UserReadTournament{
 		ID:    u.ID,
 		Name:  u.Username,
 		Email: u.Email,
 	}
+
+	if u.MediaModel.Media != nil && u.MediaModel.Media.FileName != "" {
+		user.Media = u.MediaModel.Media
+	}
+
+	return user
 }
 
 func (u User) ToReadFull() UserReadFull {
@@ -139,10 +153,18 @@ func (u User) ToReadFull() UserReadFull {
 		Country:  u.Country,
 	}
 
-	if u.MediaModel.Media != nil {
+	if u.MediaModel.Media != nil && u.MediaModel.Media.FileName != "" {
 		userRead.MediaModel = &Media{FileName: u.MediaModel.Media.FileName, FileExtension: u.MediaModel.Media.FileExtension, BaseModel: BaseModel{
 			ID: u.MediaModel.Media.GetID(),
 		}}
+	}
+
+	if len(u.Guilds) > 0 {
+		userRead.Guilds = make([]GuildRead, len(u.Guilds))
+		for i, guild := range u.Guilds {
+			userRead.Guilds[i] = guild.ToRead()
+		}
+
 	}
 
 	return userRead
@@ -158,6 +180,7 @@ func (u User) ToReadWithImage() UserReadWithImage {
 		Username: u.Username,
 		Email:    u.Email,
 		Media:    u.MediaModel.Media,
+		Score:    u.GlobalScore,
 	}
 }
 

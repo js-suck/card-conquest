@@ -31,6 +31,7 @@ func NewFirebaseClient(serviceAccountKeyPath string) (*FirebaseClient, error) {
 }
 
 func (f *FirebaseClient) SendNotification(token, title, body string) (string, error) {
+
 	message := &messaging.Message{
 		Notification: &messaging.Notification{
 			Title: title,

@@ -31,17 +31,17 @@ func (s TournamentService) RegisterUser(userId uint, tournamentId uint) errors.I
 	tournament := models.Tournament{}
 	user := models.User{}
 
-	if err := s.db.First(&tournament, tournamentId).Error; err != nil {
+	if err := s.Db.First(&tournament, tournamentId).Error; err != nil {
 		return errors.NewNotFoundError("Tournament not found", err)
 	}
 
-	if err := s.db.First(&user, userId).Error; err != nil {
+	if err := s.Db.First(&user, userId).Error; err != nil {
 		return errors.NewNotFoundError("User not found", err)
 	}
 
 	tournament.Users = append(tournament.Users, &user)
 
-	if err := s.db.Save(&tournament).Error; err != nil {
+	if err := s.Db.Save(&tournament).Error; err != nil {
 		return errors.NewInternalServerError("Failed to register user to tournament", err)
 	}
 
@@ -119,7 +119,7 @@ func (s TournamentService) RegisterUser(userId uint, tournamentId uint) errors.I
 
 // GetRecentsTournaments godoc
 func (s TournamentService) GetRecentsTournaments(tournaments *[]models.Tournament) errors.IError {
-	db := s.db.Preload("User")
+	db := s.Db.Preload("User")
 	err := db.Order("start_date desc").Limit(8).Find(&tournaments).Error
 	if err != nil {
 		return errors.NewErrorResponse(500, err.Error())
@@ -127,20 +127,18 @@ func (s TournamentService) GetRecentsTournaments(tournaments *[]models.Tournamen
 	return nil
 }
 
-func (s *TournamentService) GetTagsByIDs(tagIDs []uint) ([]*models.Tag, error) {
+func (s *TournamentService) GetTagsByIDs(tagIDs []uint) ([]*models.Tag, errors.IError) {
 	var tags []*models.Tag
 	for _, tagID := range tagIDs {
 		var tag models.Tag
-		result := s.db.First(&tag, tagID)
+		result := s.Db.First(&tag, tagID)
 		if result.Error != nil {
-			return nil, result.Error
+			return nil, errors.NewErrorResponse(500, result.Error.Error())
 		}
 		tags = append(tags, &tag)
 	}
 	return tags, nil
 }
-
-// NOUVELLE VERSION
 
 func (s *TournamentService) CreateTournament(t *models.Tournament) errors.IError {
 
@@ -156,12 +154,10 @@ func (s *TournamentService) CreateTournament(t *models.Tournament) errors.IError
 
 	}
 
-	result := s.db.Create(t)
+	result := s.Db.Create(t)
 	if result.Error != nil {
 		return errors.NewErrorResponse(500, result.Error.Error())
 	}
-
-	// create the first tournament step
 
 	firtstTournamentStep := models.TournamentStep{
 		TournamentID: t.ID,
@@ -169,7 +165,7 @@ func (s *TournamentService) CreateTournament(t *models.Tournament) errors.IError
 		Sequence:     1,
 	}
 
-	result = s.db.Create(&firtstTournamentStep)
+	result = s.Db.Create(&firtstTournamentStep)
 	if result.Error != nil {
 		return errors.NewErrorResponse(500, result.Error.Error())
 	}
@@ -181,7 +177,7 @@ func (s *TournamentService) SendTournamentUpdatesForGRPC(tournamentId uint) erro
 	tournament := models.Tournament{}
 	tournamentResponse := authentication_api.TournamentResponse{}
 
-	err := s.db.Preload("Users").Preload("Steps").First(&tournament, tournamentId).Error
+	err := s.Db.Preload("Users").Preload("Steps").First(&tournament, tournamentId).Error
 	if err != nil {
 		return errors.NewErrorResponse(500, err.Error())
 	}
@@ -194,7 +190,7 @@ func (s *TournamentService) SendTournamentUpdatesForGRPC(tournamentId uint) erro
 	for _, step := range tournament.Steps {
 		// get les matchs
 		matches := []models.Match{}
-		err := s.db.Preload("PlayerOne").Preload("Scores").Preload("PlayerTwo").Preload("Winner").Where("tournament_step_id = ?", step.ID).Find(&matches).Error
+		err := s.Db.Preload("PlayerOne").Preload("Scores").Preload("PlayerTwo").Preload("Winner").Where("tournament_step_id = ?", step.ID).Find(&matches).Error
 
 		if err != nil {
 			return errors.NewErrorResponse(500, err.Error())
@@ -253,11 +249,11 @@ func (s *TournamentService) SendTournamentUpdatesForGRPC(tournamentId uint) erro
 func (s *TournamentService) StartTournament(tournamentId uint) errors.IError {
 	var tournament models.Tournament
 
-	s.db.Find(&tournament, tournamentId)
+	s.Db.Find(&tournament, tournamentId)
 
 	tournament.Status = models.TournamentStatusStarted
 
-	result := s.db.Save(&tournament)
+	result := s.Db.Save(&tournament)
 
 	if result.Error != nil {
 		return errors.NewErrorResponse(500, result.Error.Error())
@@ -266,11 +262,11 @@ func (s *TournamentService) StartTournament(tournamentId uint) errors.IError {
 
 	// search for the last step
 	lastStep := models.TournamentStep{}
-	s.db.Last(&lastStep, "tournament_id = ?", tournamentId)
+	s.Db.Last(&lastStep, "tournament_id = ?", tournamentId)
 
 	// check all matches in the last step are finished
 	matches := []models.Match{}
-	s.db.Find(&matches, "tournament_id = ? AND tournament_step_id = ?", tournamentId, lastStep.ID)
+	s.Db.Find(&matches, "tournament_id = ? AND tournament_step_id = ?", tournamentId, lastStep.ID)
 
 	for _, match := range matches {
 		if match.Status != "finished" {
@@ -296,7 +292,7 @@ func (s TournamentService) GenerateMatchesWithPosition(stepId uint, tournamentID
 
 	tournament := models.Tournament{}
 	tournament.ID = tournamentID
-	err := s.db.Model(&tournament).Association("Users").Find(&users)
+	err := s.Db.Model(&tournament).Association("Users").Find(&users)
 
 	if err != nil {
 		return errors.NewNotFoundError("Users not found", err)
@@ -323,7 +319,7 @@ func (s TournamentService) GenerateMatchesWithPosition(stepId uint, tournamentID
 			MatchPosition:    matchPosition,
 		}
 
-		if err := s.db.Create(&match).Error; err != nil {
+		if err := s.Db.Create(&match).Error; err != nil {
 			return errors.NewInternalServerError("Failed to generate matches", err)
 		}
 
@@ -335,7 +331,7 @@ func (s TournamentService) GenerateMatchesWithPosition(stepId uint, tournamentID
 func (s *TournamentService) CalculateRanking(filterParams *FilterParams) ([]models.UserRanking, errors.IError) {
 	var _ models.Tournament
 	var matches []models.Match
-	query := s.db.Preload("PlayerOne").Preload("PlayerTwo").Preload("Winner").Preload("Scores")
+	query := s.Db.Preload("PlayerOne").Preload("PlayerTwo").Preload("Winner").Preload("Scores")
 
 	if filterParams.Fields["TournamentID"] != nil {
 		err := query.Joins("JOIN tournament_steps ON tournament_steps.tournament_id = ?", filterParams.Fields["TournamentID"]).
@@ -369,7 +365,7 @@ func (s *TournamentService) CalculateRanking(filterParams *FilterParams) ([]mode
 		score, exists := userScores[uint(userID)]
 		if exists {
 			user := models.User{}
-			err := s.db.First(&user, userID).Error
+			err := s.Db.First(&user, userID).Error
 			if err != nil {
 				return nil, errors.NewErrorResponse(500, err.Error())
 			}
@@ -380,7 +376,7 @@ func (s *TournamentService) CalculateRanking(filterParams *FilterParams) ([]mode
 	} else {
 		for userID, score := range userScores {
 			user := models.User{}
-			err := s.db.First(&user, userID).Error
+			err := s.Db.First(&user, userID).Error
 			if err != nil {
 				return nil, errors.NewErrorResponse(500, err.Error())
 			}
@@ -397,7 +393,7 @@ func (s *TournamentService) CalculateRanking(filterParams *FilterParams) ([]mode
 
 func (s *TournamentService) GetGlobalRankings() ([]models.UserRanking, errors.IError) {
 	var tournaments []models.Tournament
-	err := s.db.Preload("Steps.Matches.PlayerOne").Preload("Steps.Matches.PlayerTwo").Preload("Steps.Matches.Winner").Preload("Steps.Matches.Scores").Find(&tournaments).Error
+	err := s.Db.Preload("Steps.Matches.PlayerOne").Preload("Steps.Matches.PlayerTwo").Preload("Steps.Matches.Winner").Preload("Steps.Matches.Scores").Find(&tournaments).Error
 	if err != nil {
 		return nil, errors.NewErrorResponse(500, err.Error())
 	}
@@ -420,7 +416,7 @@ func (s *TournamentService) GetGlobalRankings() ([]models.UserRanking, errors.IE
 	var rankings []models.UserRanking
 	for userID, score := range userScores {
 		user := models.User{}
-		err := s.db.First(&user, userID).Error
+		err := s.Db.First(&user, userID).Error
 		if err != nil {
 			return nil, errors.NewErrorResponse(500, err.Error())
 		}
@@ -435,7 +431,7 @@ func (s *TournamentService) GetGlobalRankings() ([]models.UserRanking, errors.IE
 }
 
 func (s *TournamentService) GetAll(models interface{}, filterParams FilterParams, preloads ...string) errors.IError {
-	query := s.db
+	query := s.Db
 
 	for _, preload := range preloads {
 		query = query.Preload(preload)
@@ -448,6 +444,9 @@ func (s *TournamentService) GetAll(models interface{}, filterParams FilterParams
 
 	if _, ok := filterParams.Fields["GameID"]; ok {
 		query = query.Where("tournaments.game_id = ?", filterParams.Fields["GameID"])
+	}
+	if _, ok := filterParams.Fields["Name"]; ok {
+		query = query.Where("tournaments.name LIKE ?", "%"+filterParams.Fields["Name"].(string)+"%")
 	}
 
 	for _, sortField := range filterParams.Sort {
