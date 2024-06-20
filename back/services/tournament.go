@@ -6,6 +6,7 @@ import (
 	authentication_api "authentication-api/pb/github.com/lailacha/authentication-api"
 	"fmt"
 	"github.com/go-playground/validator/v10"
+	_ "github.com/go-playground/validator/v10"
 	"gorm.io/gorm"
 	"math/rand"
 	"sort"
@@ -308,6 +309,21 @@ func (s TournamentService) GenerateMatchesWithPosition(stepId uint, tournamentID
 		if i+1 < len(users) {
 			playerTwoID = users[i+1].ID
 		} else {
+			// Handle the case where there is an odd number of players
+			// Create a match with only one player and declare him as the winner
+			match := models.Match{
+				PlayerOneID:      playerOneID,
+				TournamentID:     tournamentID,
+				TournamentStepID: stepId,
+				MatchPosition:    matchPosition,
+				Status:           "finished",
+				WinnerID:         &playerOneID, // Set PlayerOne as the winner
+			}
+
+			if err := s.Db.Create(&match).Error; err != nil {
+				return errors.NewInternalServerError("Failed to generate matches", err)
+			}
+
 			continue
 		}
 
@@ -327,7 +343,6 @@ func (s TournamentService) GenerateMatchesWithPosition(stepId uint, tournamentID
 	}
 	return nil
 }
-
 func (s *TournamentService) CalculateRanking(filterParams *FilterParams) ([]models.UserRanking, errors.IError) {
 	var _ models.Tournament
 	var matches []models.Match
