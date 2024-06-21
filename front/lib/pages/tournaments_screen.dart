@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:front/pages/tournaments_registration_screen.dart';
 import 'package:front/service/tournament_service.dart';
 import 'package:front/utils/custom_future_builder.dart';
@@ -57,16 +58,18 @@ class _TournamentsPageState extends State<TournamentsPage> {
 
   @override
   Widget build(BuildContext context) {
+    var t = AppLocalizations.of(context)!;
     return Scaffold(
-      appBar: const TopAppBar(title: 'Tournois'),
+      appBar: TopAppBar(title: t.tournamentTitle),
       body: SingleChildScrollView(
         child: Column(
           children: [
-            const Padding(
-              padding: EdgeInsets.all(8.0),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
               child: Text(
-                'Tournois récents',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                t.recentTournaments,
+                style:
+                    const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
             ),
             CustomFutureBuilder(
@@ -78,11 +81,12 @@ class _TournamentsPageState extends State<TournamentsPage> {
                 );
               },
             ),
-            const Padding(
-              padding: EdgeInsets.all(8.0),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
               child: Text(
-                'Tous les tournois',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                t.allTournaments,
+                style:
+                    const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
             ),
             CustomFutureBuilder(
@@ -91,7 +95,7 @@ class _TournamentsPageState extends State<TournamentsPage> {
                 return AllTournamentsList(
                   allTournaments: tournaments,
                   onTournamentTapped: _onTournamentTapped,
-                  emptyMessage: 'Pas de tournois disponibles',
+                  emptyMessage: t.noAvailableTournaments,
                 );
               },
             ),

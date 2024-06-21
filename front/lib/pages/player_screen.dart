@@ -2,15 +2,15 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:front/extension/theme_extension.dart';
+import 'package:front/notifier/theme_notifier.dart';
 import 'package:front/service/match_service.dart';
+import 'package:front/utils/custom_future_builder.dart';
 import 'package:front/widget/app_bar.dart';
+import 'package:front/widget/bracket/match/match_tiles.dart';
 import 'package:front/widget/player/stats.dart';
 import 'package:provider/provider.dart';
-
-import '../main.dart';
-import '../utils/custom_future_builder.dart';
-import '../widget/bracket/match/match_tiles.dart';
 
 class PlayerPage extends StatefulWidget {
   const PlayerPage({super.key});
@@ -42,6 +42,7 @@ class _PlayerPageState extends State<PlayerPage> {
   @override
   Widget build(BuildContext context) {
     final isDarkMode = Provider.of<ThemeNotifier>(context).isDarkMode;
+    final t = AppLocalizations.of(context)!;
 
     Map<String, dynamic>? args =
         ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>?;
@@ -126,9 +127,7 @@ class _PlayerPageState extends State<PlayerPage> {
                     ),
                   ),
                 ),
-                Text(player.rank == 1
-                    ? '${player.rank}er'
-                    : '${player.rank}ème'),
+                Text('${player.rank}${t.playerRankingPosition(player.rank)}'),
               ],
             ),
           ),
@@ -144,11 +143,11 @@ class _PlayerPageState extends State<PlayerPage> {
                       height: 50,
                       color:
                           isDarkMode ? Colors.black : const Color(0xff1a4ccb),
-                      child: const TabBar(
+                      child: TabBar(
                         unselectedLabelColor: Colors.white,
                         tabs: [
-                          Tab(text: 'Résultats'),
-                          Tab(text: 'Statistiques'),
+                          Tab(text: t.playerResults),
+                          Tab(text: t.playerStatistics),
                         ],
                       ),
                     ),
@@ -161,8 +160,8 @@ class _PlayerPageState extends State<PlayerPage> {
                                     .fetchFinishedMatchesOfPlayer(playerId),
                                 onLoaded: (matches) {
                                   if (matches.isEmpty) {
-                                    return const Center(
-                                      child: Text('Aucun match trouvé'),
+                                    return Center(
+                                      child: Text(t.playerNoMatches),
                                     );
                                   }
                                   //if (isTournament) {

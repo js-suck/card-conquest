@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 
@@ -72,6 +73,7 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(),
       body: SingleChildScrollView(
@@ -89,21 +91,21 @@ class _LoginPageState extends State<LoginPage> {
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Connectez-vous à votre compte',
-                        style: TextStyle(
+                      Text(
+                        t.loginTitle,
+                        style: const TextStyle(
                             fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 20),
-                      const Text('Username',
-                          style: TextStyle(
+                      Text(t.username,
+                          style: const TextStyle(
                               fontSize: 14, fontWeight: FontWeight.bold)),
                       const SizedBox(height: 10),
                       TextFormField(
                         controller: _usernameController,
                         style: const TextStyle(color: Colors.black),
                         decoration: InputDecoration(
-                          hintText: 'username',
+                          hintText: t.username.toLowerCase(),
                           hintStyle: TextStyle(
                               color: const Color(0xFF888888).withOpacity(0.5)),
                           fillColor: Colors.grey[100],
@@ -117,14 +119,14 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
-                            return 'Veuillez entrer un username valide';
+                            return t.loginInvalidUsername;
                           }
                           return null;
                         },
                       ),
                       const SizedBox(height: 20),
-                      const Text('Mot de passe',
-                          style: TextStyle(
+                      Text(t.password,
+                          style: const TextStyle(
                               fontSize: 14, fontWeight: FontWeight.bold)),
                       const SizedBox(height: 10),
                       TextFormField(
@@ -148,7 +150,7 @@ class _LoginPageState extends State<LoginPage> {
                           if (value == null ||
                               value.isEmpty ||
                               value.length < 6) {
-                            return 'Le mot de passe doit contenir au moins 6 caractères';
+                            return t.invalidPassword;
                           }
                           return null;
                         },
@@ -162,22 +164,22 @@ class _LoginPageState extends State<LoginPage> {
                             borderRadius: BorderRadius.circular(10),
                           ),
                         ),
-                        child: const Text(
-                          'Connexion',
-                          style: TextStyle(
+                        child: Text(
+                          t.loginLogin,
+                          style: const TextStyle(
                               color: Colors.white,
                               fontSize: 16,
                               fontWeight: FontWeight.bold),
                         ),
                       ),
                       const SizedBox(height: 20),
-                      const Row(
+                      Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: <Widget>[
                           Flexible(
                             child: Text(
-                              'ou connectez-vous avec',
-                              style: TextStyle(fontSize: 14),
+                              t.loginAlternative,
+                              style: const TextStyle(fontSize: 14),
                             ),
                           ),
                         ],
@@ -205,10 +207,10 @@ class _LoginPageState extends State<LoginPage> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: <Widget>[
-                          const Flexible(
+                          Flexible(
                             child: Text(
-                              'Vous n\'avez pas de compte ?',
-                              style: TextStyle(fontSize: 14),
+                              t.loginNoAccount,
+                              style: const TextStyle(fontSize: 14),
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
@@ -216,9 +218,9 @@ class _LoginPageState extends State<LoginPage> {
                             onPressed: () {
                               Navigator.pushNamed(context, '/signup');
                             },
-                            child: const Text(
-                              'Inscrivez-vous',
-                              style: TextStyle(
+                            child: Text(
+                              t.loginSignup,
+                              style: const TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.bold,
                                 color: Color(0xFFFF933D),
