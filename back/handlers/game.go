@@ -208,9 +208,9 @@ func (h *GameHandler) GetGameByID(c *gin.Context) {
 		return
 	}
 
-	game, err := h.GameService.GetGameByID(uint(id))
-	if err != nil {
-		// c.JSON(err.Code(), err)
+	game, errGame := h.GameService.GetGameByID(uint(id))
+	if errGame != nil {
+		c.JSON(errGame.Code(), err)
 		return
 	}
 
