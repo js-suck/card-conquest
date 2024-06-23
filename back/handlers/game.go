@@ -80,7 +80,7 @@ func convertToReadable(games []models.Game) []models.GameRead {
 // @Failure 500 {object} errors.ErrorResponse
 // @Security BearerAuth
 // @Param Authorization header string true "Insert your access token" default(Bearer <Add access token here>)
-// @Router /games/{UserID}/rankings [get]
+// @Router /games/user/{UserID}/rankings [get]
 func (h *GameHandler) GetUserGameRankings(c *gin.Context) {
 	userID := c.Param("userID")
 	if userID == "" {
@@ -96,7 +96,6 @@ func (h *GameHandler) GetUserGameRankings(c *gin.Context) {
 
 	c.JSON(200, rankings)
 }
-
 
 // CreateGame godoc
 // @Summary Create a new game

@@ -63,12 +63,11 @@ func SetupRouter(db *gorm.DB) *gin.Engine {
 		protectedRoutes.GET("/matchs/between-users", matchHandler.GetMatchesBetweenUsers)
 
 		protectedRoutes.GET(("/games"), gameHandler.GetAllGames)
-		protectedRoutes.GET(("/games/:userID/rankings"), gameHandler.GetUserGameRankings)
+		protectedRoutes.GET(("/games/user/:userID/rankings"), gameHandler.GetUserGameRankings)
 		protectedRoutes.POST("/games", gameHandler.CreateGame)
 		protectedRoutes.PUT("/games/:id", gameHandler.UpdateGame)
 		protectedRoutes.DELETE("/games/:id", gameHandler.DeleteGame)
 		protectedRoutes.GET("/games/:id", gameHandler.GetGameByID)
-
 
 		protectedRoutes.GET(("/matchs"), matchHandler.GetAllMatchs)
 		protectedRoutes.GET(("/matchs/:id"), matchHandler.GetMatch)
