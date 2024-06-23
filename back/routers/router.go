@@ -57,6 +57,9 @@ func SetupRouter(db *gorm.DB) *gin.Engine {
 	protectedRoutes.GET("/guilds/:id", guildHandler.GetGuild)
 
 	protectedRoutes.GET("/users/:id", userHandler.GetUser())
+	protectedRoutes.GET("/guilds/user/:userId", guildHandler.GetGuildsByUserId)
+
+	protectedRoutes.GET("/tournaments/:id", tournamentHandler.GetTournament)
 
 	protectedRoutes.Use(middlewares.AuthenticationMiddleware())
 	{
@@ -70,7 +73,6 @@ func SetupRouter(db *gorm.DB) *gin.Engine {
 		protectedRoutes.POST("/tournaments", tournamentHandler.CreateTournament)
 
 		protectedRoutes.POST("/tournaments/:id/start", tournamentHandler.StartTournament)
-		protectedRoutes.GET("/tournaments/:id", tournamentHandler.GetTournament)
 		protectedRoutes.POST("/tournaments/:id/register/:userID", tournamentHandler.RegisterUser)
 		protectedRoutes.POST("/tournaments/:id/generate-matches", tournamentHandler.GenerateMatches)
 		protectedRoutes.GET("/tournaments/:id/matches", tournamentHandler.GetTournamentMatches)

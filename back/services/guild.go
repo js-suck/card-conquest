@@ -65,3 +65,13 @@ func (s GuildService) RemoveUser(u uint, u2 uint) errors.IError {
 	}
 	return nil
 }
+
+func (s *GuildService) GetGuildsByUserId(userId uint, guilds *[]models.Guild) errors.IError {
+	query := s.Db.Where("id IN (?)", s.Db.Table("guild_players").Select("guild_id").Where("user_id = ?", userId))
+
+	if err := query.Find(guilds).Error; err != nil {
+		return errors.NewInternalServerError("Error getting guilds", err)
+	}
+
+	return nil
+}

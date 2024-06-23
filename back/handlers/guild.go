@@ -284,3 +284,40 @@ func (h *GuildHandler) RemoveUserFromGuild(c *gin.Context) {
 
 	c.Status(http.StatusNoContent)
 }
+
+// GetGuildsByUserId godoc
+// @Summary Get guilds by user ID
+// @Description Get guilds by user ID
+// @Tags Guild
+// @Accept json
+// @Produce json
+// @Param userId path int true "User ID"
+// @Success 200 {array} models.GuildRead
+// @Failure 400 {object} errors.ErrorResponse
+// @Failure 404 {object} errors.ErrorResponse
+// @Failure 500 {object} errors.ErrorResponse
+// @Security BearerAuth
+// @Param Authorization header string true "Insert your access token" default(Bearer <Add access token here>)
+// @Router /guilds/user/{userId} [get]
+func (h *GuildHandler) GetGuildsByUserId(c *gin.Context) {
+	userIdStr := c.Param("userId")
+	userId, err := strconv.Atoi(userIdStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, errors.NewBadRequestError("Invalid user ID", err).ToGinH())
+		return
+	}
+
+	var guilds []models.Guild
+	errG := h.GuildService.GetGuildsByUserId(uint(userId), &guilds)
+	if errG != nil {
+		c.JSON(errG.Code(), err)
+		return
+	}
+
+	readableGuilds := make([]models.GuildRead, len(guilds))
+	for i, guild := range guilds {
+		readableGuilds[i] = guild.ToRead()
+	}
+
+	c.JSON(http.StatusOK, readableGuilds)
+}
