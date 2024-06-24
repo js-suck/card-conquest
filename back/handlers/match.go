@@ -212,6 +212,7 @@ func (h *MatchHandler) GetMatch(c *gin.Context) {
 // @Param Authorization header string true "Insert your access token" default(Bearer <Add access token here>)
 // @Param Player1ID query int true "Player1 ID"
 // @Param PlayerID2 query int true "Player2 ID"
+// @Param Status query string 0 "Search by Status"
 // @Router /matchs/between-users [get]
 func (h *MatchHandler) GetMatchesBetweenUsers(c *gin.Context) {
 	userID1, err := strconv.ParseUint(c.Query("Player1ID"), 10, 64)
@@ -225,8 +226,9 @@ func (h *MatchHandler) GetMatchesBetweenUsers(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid PlayerID2"})
 		return
 	}
+	filterParams := h.parseFilterParams(c)
 
-	matches, err := h.MatchService.GetMatchesBetweenUsers(uint(userID1), uint(userID2))
+	matches, err := h.MatchService.GetMatchesBetweenUsers(uint(userID1), uint(userID2), filterParams)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

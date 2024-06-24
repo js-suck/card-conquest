@@ -394,6 +394,8 @@ definitions:
         type: string
       id:
         type: integer
+      media:
+        $ref: '#/definitions/models.Media'
       username:
         type: string
     type: object
@@ -420,6 +422,8 @@ definitions:
         type: array
       id:
         type: integer
+      media:
+        $ref: '#/definitions/models.Media'
       rank:
         type: integer
       totalLosses:
@@ -815,6 +819,49 @@ paths:
       summary: Add a user to a guild
       tags:
       - Guild
+  /guilds/user/{userId}:
+    get:
+      consumes:
+      - application/json
+      description: Get guilds by user ID
+      parameters:
+      - description: User ID
+        in: path
+        name: userId
+        required: true
+        type: integer
+      - default: Bearer <Add access token here>
+        description: Insert your access token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.GuildRead'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get guilds by user ID
+      tags:
+      - Guild
   /images:
     post:
       consumes:
@@ -1004,6 +1051,10 @@ paths:
         name: PlayerID2
         required: true
         type: integer
+      - description: Search by Status
+        in: query
+        name: Status
+        type: string
       produces:
       - application/json
       responses:

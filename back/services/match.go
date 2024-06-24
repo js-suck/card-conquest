@@ -320,15 +320,20 @@ func (s *MatchService) GetAll(models interface{}, filterParams FilterParams, pre
 	return nil
 }
 
-func (s *MatchService) GetMatchesBetweenUsers(userID1, userID2 uint) ([]models.Match, errors.IError) {
+func (s *MatchService) GetMatchesBetweenUsers(userID1, userID2 uint, filter FilterParams) ([]models.Match, errors.IError) {
 	var matches []models.Match
 
-	if err := s.Db.Preload("Tournament").Preload("TournamentStep").Preload("PlayerOne").Preload("PlayerTwo").Preload("Winner").Preload("Scores").
+	query := s.Db.Preload("Tournament").Preload("TournamentStep").Preload("PlayerOne").Preload("PlayerTwo").Preload("Winner").
 		Where("(player_one_id = ? AND player_two_id = ?) OR (player_one_id = ? AND player_two_id = ?)", userID1, userID2, userID2, userID1).
 		Preload("PlayerOne").
 		Preload("PlayerTwo").
-		Preload("Winner").
-		Find(&matches).Error; err != nil {
+		Preload("Winner")
+
+	if status, ok := filter.Fields["Status"]; ok {
+		query = query.Where("status = ?", status)
+	}
+
+	if err := query.Find(&matches).Error; err != nil {
 		return nil, errors.NewInternalServerError("Failed to get matches", err)
 	}
 

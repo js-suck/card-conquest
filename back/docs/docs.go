@@ -278,6 +278,72 @@ const docTemplate = `{
                 }
             }
         },
+        "/guilds/user/{userId}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get guilds by user ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Guild"
+                ],
+                "summary": "Get guilds by user ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "User ID",
+                        "name": "userId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "default": "Bearer \u003cAdd access token here\u003e",
+                        "description": "Insert your access token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.GuildRead"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/errors.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/errors.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/errors.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/guilds/{id}": {
             "get": {
                 "security": [
@@ -775,6 +841,12 @@ const docTemplate = `{
                         "name": "PlayerID2",
                         "in": "query",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search by Status",
+                        "name": "Status",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -2749,6 +2821,9 @@ const docTemplate = `{
                 "id": {
                     "type": "integer"
                 },
+                "media": {
+                    "$ref": "#/definitions/models.Media"
+                },
                 "username": {
                     "type": "string"
                 }
@@ -2788,6 +2863,9 @@ const docTemplate = `{
                 },
                 "id": {
                     "type": "integer"
+                },
+                "media": {
+                    "$ref": "#/definitions/models.Media"
                 },
                 "rank": {
                     "type": "integer"
