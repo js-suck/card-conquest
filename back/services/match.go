@@ -323,7 +323,7 @@ func (s *MatchService) GetAll(models interface{}, filterParams FilterParams, pre
 func (s *MatchService) GetMatchesBetweenUsers(userID1, userID2 uint, filter FilterParams) ([]models.Match, errors.IError) {
 	var matches []models.Match
 
-	query := s.Db.Preload("Tournament").Preload("TournamentStep").Preload("PlayerOne").Preload("PlayerTwo").Preload("Winner").
+	query := s.Db.Preload("Tournament").Preload("TournamentStep").Preload("PlayerOne").Preload("PlayerTwo").Preload("Winner").Preload("Scores").
 		Where("(player_one_id = ? AND player_two_id = ?) OR (player_one_id = ? AND player_two_id = ?)", userID1, userID2, userID2, userID1).
 		Preload("PlayerOne").
 		Preload("PlayerTwo").
