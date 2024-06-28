@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:front/orga_manage.dart';
 import 'package:front/routes/routes.dart';
 import 'package:front/theme/dark_theme.dart' as dark_theme;
 import 'package:front/theme/theme.dart' as theme;
@@ -92,6 +93,16 @@ class MyApp extends StatelessWidget {
             initialRoute: '/orga/home',
             // initialRoute: '/orga/tounament',
             routes: routes,
+            onGenerateRoute: (settings) {
+              if (settings.name == '/orga/manage/tournament') {
+                final int tournamentId = settings.arguments as int;
+                return MaterialPageRoute(
+                  builder: (context) =>
+                      OrganizerManagePage(tournamentId: tournamentId),
+                );
+              }
+              return null; // Return null if the route name is not handled
+            },
             theme: notifier.getTheme(),
           );
         }));

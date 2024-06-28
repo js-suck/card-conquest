@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:front/auth/login_screen.dart';
 import 'package:front/auth/signup_screen.dart';
 import 'package:front/home_screen.dart';
+import 'package:front/orga_manage.dart';
 import 'package:front/main_screen.dart';
 import 'package:front/orga_new_tournament.dart';
 import 'package:front/orga_home.dart';
@@ -26,5 +27,6 @@ var routes = <String, WidgetBuilder>{
   '/player': (context) => PlayerPage(),
   '/scoreboard': (context) => const ScoreboardPage(),
   '/orga/add/tournament': (context) => const OrgaPage(),
+  //'/orga/manage/tournament': (context) => OrganizerManagePage(),
   '/orga/home': (context) => OrganizerHomePage(),
 };

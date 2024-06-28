@@ -40,19 +40,45 @@ class MyForm extends StatefulWidget {
 class _MyFormState extends State<MyForm> {
   final TextEditingController _designationController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _locationController = TextEditingController();
   final TextEditingController _typeController = TextEditingController();
   final TextEditingController _selectGameController = TextEditingController();
   final TextEditingController _sizeController = TextEditingController();
   final TextEditingController _descController = TextEditingController();
   static const colorBGInput = Color(0xfafafafa);
   File? _selectedImage;
+  int? _selectedValue;
+  List<dynamic> games = [];
+
+  Future<void> _loadGames() async {
+    try {
+      var response = await http.get(
+        Uri.parse('http://192.168.252.44:8080/api/v1/games'),
+        headers: {
+          'Authorization':
+              'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTk1OTI5MDgsIm5hbWUiOiJ1c2VyIiwicm9sZSI6ImFkbWluIiwidXNlcl9pZCI6MX0.QFT78-oBjAgr8brfBBQUhTJQ-FM4C1FU3looiY32mx4',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        setState(() {
+          games = json.decode(response.body);
+        });
+      } else {
+        print('Failed to load games: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Exception while loading games: $e');
+    }
+  }
 
   @override
   void initState() {
     super.initState();
     _typeController.text = 'TKO';
-    _selectGameController.text = 'Magic';
+    //_selectGameController.text = 'Magic';
     _sizeController.text = '8';
+    _loadGames(); // Charger les jeux au démarrage de la page
   }
 
   @override
@@ -113,6 +139,26 @@ class _MyFormState extends State<MyForm> {
                 ),
                 const SizedBox(height: 20),
                 const Text(
+                  'Adresse:',
+                  style: TextStyle(fontSize: 18.0),
+                ),
+                Container(
+                  decoration: BoxDecoration(
+                    color: colorBGInput, // Couleur du rectangle gris
+                    borderRadius: BorderRadius.circular(8.0), // Bords arrondis
+                  ),
+                  child: TextField(
+                    controller: _locationController,
+                    keyboardType: TextInputType.text,
+                    decoration: const InputDecoration(
+                      contentPadding: EdgeInsets.symmetric(horizontal: 10.0),
+                      border: InputBorder.none,
+                      labelText: 'ex: 10 rue des ananas',
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                const Text(
                   'Game:',
                   style: TextStyle(fontSize: 18.0),
                 ),
@@ -130,11 +176,12 @@ class _MyFormState extends State<MyForm> {
                     style: TextStyle(fontSize: 16.0),
                   ),
                   width: 300,
-                  dropdownMenuEntries: const [
-                    DropdownMenuEntry(value: 'hearstone', label: 'Hearstone'),
-                    DropdownMenuEntry(value: 'magic', label: 'Magic'),
-                    DropdownMenuEntry(value: 'yugi oh', label: 'Yugi oh'),
-                  ],
+                  dropdownMenuEntries: games.map<DropdownMenuEntry>((game) {
+                    return DropdownMenuEntry(
+                      value: game['id'],
+                      label: game['name'],
+                    );
+                  }).toList(),
                 ),
                 const SizedBox(height: 20),
                 const Text(
@@ -214,6 +261,13 @@ class _MyFormState extends State<MyForm> {
                     DropdownMenuEntry(value: 64, label: '64 places'),
                     DropdownMenuEntry(value: 128, label: '128 places'),
                   ],
+                  onSelected: (int? value) {
+                    setState(() {
+                      _selectedValue = value;
+                      _sizeController.text =
+                          value != null ? '$value places' : '';
+                    });
+                  },
                 ),
                 const SizedBox(height: 20),
                 const Text(
@@ -256,6 +310,7 @@ class _MyFormState extends State<MyForm> {
   void dispose() {
     _designationController.dispose();
     _emailController.dispose();
+    _locationController.dispose();
     _typeController.dispose();
     _selectGameController.dispose();
     _sizeController.dispose();
@@ -273,8 +328,11 @@ class _MyFormState extends State<MyForm> {
   }
 
   Future<void> _submitForm() async {
+    print("iciez1");
+
     if (_designationController.text.isEmpty ||
         _emailController.text.isEmpty ||
+        _locationController.text.isEmpty ||
         _descController.text.isEmpty) {
       showDialog(
         context: context,
@@ -294,43 +352,41 @@ class _MyFormState extends State<MyForm> {
     } else {
       // All required fields are filled, proceed to submit the form
       try {
-        var uri = Uri.parse('http://192.168.238.44:8080/api/v1/tournaments');
+        var uri = Uri.parse('http://192.168.252.44:8080/api/v1/tournaments');
         // var uri = Uri.parse('http://127.0.0.1:8080/api/v1/tournaments');
 
         var request = http.MultipartRequest('POST', uri)
           ..headers['Authorization'] =
-              'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTY5MjQzMTgsIm5hbWUiOiJ1c2VyIiwicm9sZSI6ImFkbWluIiwidXNlcl9pZCI6MX0.JZKNDO3Dweh27eIDd6afZr4I5HA8ZVWWTkAflTAI_TU';
+              'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTk1OTI5MDgsIm5hbWUiOiJ1c2VyIiwicm9sZSI6ImFkbWluIiwidXNlcl9pZCI6MX0.QFT78-oBjAgr8brfBBQUhTJQ-FM4C1FU3looiY32mx4';
 
         DateTime startDate = DateTime(2024, 4, 12);
         DateTime endDate = DateTime(2024, 5, 12);
+        print("iciez");
 
         String startDateIso = startDate.toUtc().toIso8601String();
         String endDateIso = endDate.toUtc().toIso8601String();
-
+        print(_selectGameController);
         // Ajoutez les champs de formulaire
         request.fields['name'] = _designationController.text;
         request.fields['description'] = _descController.text;
         request.fields['start_date'] = startDateIso;
         request.fields['end_date'] = endDateIso;
-        request.fields['location'] = '10 rue de la chaussette';
+        request.fields['location'] = _locationController.text;
         request.fields['organizer_id'] = '1';
         request.fields['game_id'] = '1';
-        request.fields['rounds'] = _sizeController.text;
+        request.fields['rounds'] = _selectedValue.toString();
         request.fields['max_players'] = '5';
-
         if (_selectedImage != null) {
           request.files.add(await http.MultipartFile.fromPath(
             'image', // le nom du champ de formulaire pour l'image
             _selectedImage!.path,
           ));
         }
-        var response = await request.send();
 
+        var response = await request.send();
         if (response.statusCode == 200) {
           // Traitement en cas de succès
           var responseData = await http.Response.fromStream(response);
-          print('Success: ${responseData.body}');
-
           // Vider le formulaire
           _designationController.clear();
           _emailController.clear();
