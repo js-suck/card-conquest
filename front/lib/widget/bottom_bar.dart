@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:front/pages/games_screen.dart';
-import 'package:front/home_screen.dart';
+import 'package:front/pages/home_user_screen.dart';
 import 'package:front/pages/tournaments_screen.dart';
-import 'package:front/pages/user_profile_screen.dart';
+import 'package:front/pages/tournament_history_screen.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:provider/provider.dart';
 
@@ -17,10 +17,10 @@ class _BottomBarState extends State<BottomBar> {
   int _selectedIndex = 0;
 
   final List<Widget> _pages = [
-    const HomePage(),
+    const HomeUserPage(),
     const TournamentsPage(),
     const GamesPage(),
-    const UserProfilePage(),
+  const TournamentHistoryPage(),
   ];
 
   void _onItemTapped(int index) {
@@ -36,6 +36,7 @@ class _BottomBarState extends State<BottomBar> {
 
   @override
   Widget build(BuildContext context) {
+    final selectedPageModel = Provider.of<SelectedPageModel>(context);
     return ClipRRect(
       borderRadius: const BorderRadius.only(
         topLeft: Radius.circular(20),
@@ -60,7 +61,7 @@ class _BottomBarState extends State<BottomBar> {
             label: 'Mes tournois',
           ),
         ],
-        currentIndex: _selectedIndex,
+        currentIndex: selectedPageModel.selectedIndex,
         onTap: _onItemTapped,
       ),
     );
@@ -68,7 +69,7 @@ class _BottomBarState extends State<BottomBar> {
 }
 
 class SelectedPageModel extends ChangeNotifier {
-  Widget _selectedPage = const HomePage();
+  Widget _selectedPage = const HomeUserPage();
   int _selectedIndex = 0;
 
   Widget get selectedPage => _selectedPage;

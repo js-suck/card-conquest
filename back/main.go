@@ -3,19 +3,19 @@ package main
 import (
 	dbService "authentication-api/db"
 	docs "authentication-api/docs"
-	grpcTounrnament "authentication-api/grpc"
+	grpcServices "authentication-api/grpc"
 	"authentication-api/models"
 	authentication_api "authentication-api/pb/github.com/lailacha/authentication-api"
 	"authentication-api/routers"
-	"fmt"
 	"github.com/joho/godotenv"
+	"github.com/sirupsen/logrus"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"google.golang.org/grpc"
-	"log"
 	"net"
 	"os"
 )
+
 import _ "github.com/swaggo/gin-swagger" // gin-swagger middleware
 import _ "github.com/swaggo/files"       // swagger embed files
 
@@ -40,59 +40,100 @@ import _ "github.com/swaggo/files"       // swagger embed files
 // @externalDocs.description  OpenAPI
 // @externalDocs.url          https://swagger.io/resources/open-api/
 func main() {
-	err := godotenv.Load(".env")
+	// Initialize logging
+	logrus.SetFormatter(&logrus.JSONFormatter{})
+
+	//firebaseClient, errF := firebase.NewFirebaseClient("./firebase/privateKey.json")
+	//if errF != nil {
+	//	log.Fatalf("Failed to initialize Firebase: %v", errF)
+	//}
+	//
+	//// Example: Send a notification
+	//token := "cxv_VendS7-FtM7jfzpeYi:APA91bGvkbXDDnPHb6jzSpFz6aArQhAzSJYW0F1cX4e1MMgKwX01sOvXdHS9TeiAOeV0L2RowrmEMtIPnFs0p4aVH4gRneq7WTTafBNuVzhyMStuMjmA3HDHGrYm-284aCNP8UxQe8mL"
+	//title := "Test Notification"
+	//body := "This is a test notification"
+	//response, err := firebaseClient.SendNotification(token, title, body)
+	//if err != nil {
+	//	log.Fatalf("Failed to send notification: %v", err)
+	//}
+	//fmt.Printf("Successfully sent notification: %s\n", response)
+
+	logFile, err := os.OpenFile("/var/log/myapp.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err != nil {
-		log.Fatalf("Erreur lors du chargement du fichier .env: %v", err)
+		logrus.Error("Failed to open log file: ", err)
+	} else {
+		defer logFile.Close()
+		logrus.SetOutput(logFile)
+	}
+
+	err = godotenv.Load(".env")
+	if err != nil {
+		logrus.Fatalf("Erreur lors du chargement du fichier .env: %v", err)
 	}
 
 	DB, err := dbService.InitDB()
-	DB.AutoMigrate(models.User{}, models.Tournament{}, models.Match{}, models.Score{}, models.TournamentStep{}, models.Media{}, models.TournamentStep{})
+	if err != nil {
+		logrus.Fatalf("Failed to initialize database: %v", err)
+	}
+
+	err = DB.AutoMigrate(models.User{}, models.Tournament{}, models.Match{}, models.Score{}, models.TournamentStep{}, models.Media{}, models.TournamentStep{}, models.GameScore{}, models.Guild{}, models.ChatMessage{})
+	if err != nil {
+		logrus.Fatalf("Failed to migrate database: %v", err)
+		return
+	}
 
 	if DB == nil {
 		return
 	}
 
 	if err != nil {
-		log.Fatalf("Failed to connect to database: %v", err)
+		logrus.Fatalf("Failed to connect to database: %v", err)
 		return
 	}
 
 	if len(os.Args) > 1 && os.Args[1] == "migrate" {
-		fmt.Println("Migrating the database...")
-		//// Migrate the schema
+		logrus.Info("Migrating the database...")
 		err := dbService.MigrateDatabase()
 		if err != nil {
-			return
+			logrus.Fatalf("Database migration failed: %v", err)
 		}
 
 		os.Exit(0)
 
 	} else {
-		fmt.Println("Aucun argument fourni.")
+		logrus.Info("Aucun argument fourni.")
 	}
 
 	if err != nil {
-		panic("failed to connect database")
+		logrus.Panic("failed to connect database")
 	}
 
 	docs.SwaggerInfo.BasePath = "/api/v1"
-
 	go func() {
 		lis, err := net.Listen("tcp", ":50051")
 		if err != nil {
-			log.Fatalf("Failed to listen: %v", err)
+			logrus.Fatalf("Failed to listen: %v", err)
 		}
+
 		s := grpc.NewServer()
-		authentication_api.RegisterTournamentServiceServer(s, grpcTounrnament.NewServer())
-		log.Println("Server is running on port 50051")
+
+		matchServiceServer := grpcServices.NewMatchServer()
+		chatServer := grpcServices.NewChatServer()
+		tournamentServiceServer := grpcServices.NewTournamentServer()
+
+		authentication_api.RegisterTournamentServiceServer(s, tournamentServiceServer)
+		authentication_api.RegisterChatServiceServer(s, chatServer)
+		authentication_api.RegisterMatchServiceServer(s, matchServiceServer)
+
+		logrus.Info("Server is running on port 50051")
 		if err := s.Serve(lis); err != nil {
-			log.Fatalf("Failed to serve: %v", err)
+			logrus.Fatalf("Failed to serve: %v", err)
 		}
 	}()
 
 	r := routers.SetupRouter(DB)
-	// !!!! http://localhost:8080/swagger/index.html to see it !!!!
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
-	r.Run(":8080")
-
+	if err := r.Run(":8080"); err != nil {
+		logrus.Fatalf("Failed to run server: %v", err)
+	}
 }

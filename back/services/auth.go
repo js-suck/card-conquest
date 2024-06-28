@@ -18,13 +18,13 @@ func NewAuthService(db *gorm.DB) *AuthService {
 	return &AuthService{db: db}
 }
 
-func (a AuthService) Login(user *models.User) error {
+func (a AuthService) Login(user *models.User) (*models.User, errors.IError) {
 	a.db.Where("username = ? AND password = ?", user.Username, user.Password).First(&user)
 	if user.ID == 0 {
-		return errors.NewBadRequestError("invalid credentials", nil)
+		return nil, errors.NewBadRequestError("invalid credentials", nil)
 	}
 
-	return nil
+	return user, nil
 }
 
 func (a AuthService) SendConfirmationEmail(to, name, token string) errors.IError {

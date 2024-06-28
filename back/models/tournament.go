@@ -12,8 +12,8 @@ const (
 )
 
 type UserReadTournament struct {
-	ID    uint   `gorm:"primarykey"`
-	Name  string `json:"name"`
+	ID    uint   `gorm:"primarykey" json:",omitempty"`
+	Name  string `json:"username"`
 	Email string `json:"email"`
 }
 
@@ -57,16 +57,18 @@ type Tournament struct {
 }
 
 type TournamentRead struct {
-	ID          uint               `json:"id"`
-	Name        string             `json:"name"`
-	Description string             `json:"description"`
-	Location    string             `json:"location"`
-	Organizer   UserReadTournament `json:"organizer"`
-	Game        GameReadTournament `json:"game"`
-	StartDate   time.Time          `json:"start_date"`
-	EndDate     time.Time          `json:"end_date"`
-	Media       *Media             `json:"media, omitempty"`
-	MaxPlayers  int                `json:"max_players"`
+	ID                uint               `json:"id"`
+	Name              string             `json:"name"`
+	Description       string             `json:"description"`
+	Location          string             `json:"location"`
+	Organizer         UserReadTournament `json:",omitempty"`
+	Game              GameReadTournament `json:"game"`
+	StartDate         time.Time          `json:"start_date"`
+	EndDate           time.Time          `json:"end_date"`
+	Media             *Media             `json:"media, omitempty"`
+	MaxPlayers        int                `json:"max_players"`
+	PlayersRegistered int                `json:"players_registered"`
+	Status            string             `json:"status"`
 }
 
 type NewTournamentPayload struct {
@@ -107,7 +109,9 @@ func (t Tournament) ToRead() TournamentRead {
 			Name:  t.User.Username,
 			Email: t.User.Email,
 		},
-		MaxPlayers: t.MaxPlayers,
+		MaxPlayers:        t.MaxPlayers,
+		PlayersRegistered: len(t.Users),
+		Status:            t.Status,
 	}
 
 	if t.MediaModel.Media != nil {
@@ -118,4 +122,8 @@ func (t Tournament) ToRead() TournamentRead {
 
 	return obj
 
+}
+
+func (m Tournament) IsOwner(userID uint) bool {
+	return true
 }

@@ -66,7 +66,7 @@ func (s *GenericService) Update(m models.IModel) errors.IError {
 	return nil
 }
 
-func (s *GenericService) Delete(id uint) error {
+func (s *GenericService) Delete(id uint) errors.IError {
 	result := s.db.Delete(s.model, id)
 
 	if result.RowsAffected == 0 {
@@ -75,7 +75,7 @@ func (s *GenericService) Delete(id uint) error {
 	}
 
 	if result.Error != nil {
-		return result.Error
+		return errors.NewErrorResponse(500, result.Error.Error())
 	}
 	return nil
 }

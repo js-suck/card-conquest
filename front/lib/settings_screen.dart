@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:front/utils/shared_pref_cached_data.dart';
 import 'package:front/widget/app_bar.dart';
 import 'package:provider/provider.dart';
 
@@ -18,6 +19,8 @@ class SettingsPage extends StatelessWidget {
             children: [
               ElevatedButton(
                 onPressed: () {
+                  var mySharedPreferences = MySharedPreferences();
+                  mySharedPreferences.clearData();
                   Navigator.of(context)
                       .pushNamed('/'); // Retour à la page de connexion
                 },

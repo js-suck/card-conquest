@@ -1,64 +1,72 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
-import 'package:front/widget/bracket/bracket.dart';
-import 'package:front/widget/bracket/match/match_tiles.dart';
+import 'package:front/models/match/match.dart';
+import 'package:front/service/match_service.dart';
 
-class Calendar extends StatelessWidget {
-  Calendar({super.key});
+import '../../utils/custom_future_builder.dart';
+import 'match/match_tiles.dart';
 
-  final List<Match> matches = [
-    Match(
-        player1: 'Alcaraz C',
-        player2: 'Medvedev D',
-        playerOneId: 1,
-        playerTwoId: 5,
-        status: 'not started',
-        time: '14:00',
-        date: '07.05.'),
-    Match(
-        player1: 'Federer R',
-        player2: 'Nadal R',
-        playerOneId: 3,
-        playerTwoId: 7,
-        status: 'not started',
-        time: '15:00',
-        date: '07.05.'),
-    Match(
-        player1: 'Djokovic N',
-        player2: 'Shapovalov D',
-        playerOneId: 9,
-        playerTwoId: 12,
-        status: 'not started',
-        time: '16:00',
-        date: '07.05.'),
-    Match(
-        player1: 'Auger-Aliassime F',
-        player2: 'Monfils G',
-        playerOneId: 14,
-        playerTwoId: 15,
-        status: 'not started',
-        time: '17:00',
-        date: '08.05.'),
-    Match(
-        player1: 'Rublev A',
-        player2: 'Sinner J',
-        playerOneId: 13,
-        playerTwoId: 21,
-        status: 'not started',
-        time: '18:00',
-        date: '08.05.'),
-    Match(
-      player1: 'Tsitsipas S',
-      player2: 'Zverev A',
-      playerOneId: 11,
-      playerTwoId: 10,
-      status: 'not started',
-      time: '19:00',
-      date: '08.05.',
-    ),
-  ];
+class Calendar extends StatefulWidget {
+  const Calendar({super.key, required this.tournamentId});
+
+  final int tournamentId;
+
+  @override
+  State<Calendar> createState() => _CalendarState();
+}
+
+class _CalendarState extends State<Calendar> {
+  late MatchService matchService;
+  late Future<List<Match>> matchesFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    matchService = MatchService();
+    matchesFuture = fetchMatches();
+  }
+
+  Future<List<Match>> fetchMatches() {
+    return matchService.fetchUnfinishedMatchesOfTournament(_tournamentId);
+  }
+
+  Future<void> _refreshMatches() async {
+    setState(() {
+      matchesFuture = fetchMatches();
+    });
+  }
+
+  get _tournamentId => widget.tournamentId;
 
   @override
   Widget build(BuildContext context) {
+    return RefreshIndicator(
+      onRefresh: _refreshMatches,
+      child: CustomFutureBuilder(
+          future: matchesFuture,
+          onLoaded: (matches) {
+            final groupedMatches =
+                groupBy(matches, (match) => match.tournamentStep.sequence);
+            List<Widget> tournamentStepWidgets = [];
+            groupedMatches.forEach((sequence, matches) {
+              tournamentStepWidgets.add(
+                MatchTiles(
+                  matches: matches,
+                  isSteps: true,
+                ),
+              );
+            });
+
+            return SingleChildScrollView(
+              child: Column(
+                children: tournamentStepWidgets,
+              ),
+            );
+          }),
+    );
+    /* TODO: Add matches for the calendar
     return MatchTiles(matches: matches, isPast: false);
+
+     */
   }
 }

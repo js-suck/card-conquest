@@ -22,3 +22,7 @@ func (t Tag) GetTableName() string {
 type NewTagPayload struct {
 	Label string `json:"label" validate:"required"`
 }
+
+func (m Tag) IsOwner(userID uint) bool {
+	return true
+}

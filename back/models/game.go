@@ -3,7 +3,8 @@ package models
 type Game struct {
 	BaseModel
 	MediaModel
-	Name string `json:"name"`
+	Name        string       `json:"name"`
+	Tournaments []Tournament `json:"-" gorm:"foreignKey:GameID"`
 }
 
 type GameRead struct {
@@ -33,4 +34,8 @@ func (g Game) ToRead() GameRead {
 	}
 
 	return obj
+}
+
+func (g Game) IsOwner(userID uint) bool {
+	return true
 }
