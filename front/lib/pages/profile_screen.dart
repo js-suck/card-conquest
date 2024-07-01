@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:front/service/user_service.dart';
 import 'package:front/utils/custom_future_builder.dart';
@@ -114,9 +115,10 @@ class _ProfilePageState extends State<ProfilePage> {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: TopAppBar(
-        title: 'Profile',
+        title: t.profileTitle,
         isPage: true,
         isAvatar: false,
       ),
@@ -137,18 +139,18 @@ class _ProfilePageState extends State<ProfilePage> {
                         if (_image != null) Image.file(File(_image!.path)),
                         ElevatedButton(
                           onPressed: _pickImage,
-                          child: const Text('Change Profile Picture'),
+                          child: Text(t.profileChangeProfilePicture),
                         ),
-                        const Text(
-                          'Update Your Profile',
-                          style: TextStyle(
+                        Text(
+                          t.profileUpdateProfileTitle,
+                          style: const TextStyle(
                               fontSize: 24, fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 20),
                         TextFormField(
                           initialValue: user.username,
                           decoration: InputDecoration(
-                            labelText: 'Username',
+                            labelText: t.username,
                             fillColor: Colors.grey[100],
                             filled: true,
                             contentPadding: const EdgeInsets.symmetric(
@@ -164,7 +166,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         TextFormField(
                           initialValue: user.email,
                           decoration: InputDecoration(
-                            labelText: 'Email',
+                            labelText: t.email,
                             fillColor: Colors.grey[100],
                             filled: true,
                             contentPadding: const EdgeInsets.symmetric(
@@ -187,9 +189,9 @@ class _ProfilePageState extends State<ProfilePage> {
                               borderRadius: BorderRadius.circular(10),
                             ),
                           ),
-                          child: const Text(
-                            'Update Profile',
-                            style: TextStyle(
+                          child: Text(
+                            t.profileUpdateProfile,
+                            style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold),

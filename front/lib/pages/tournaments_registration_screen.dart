@@ -2,12 +2,13 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:front/models/tag.dart';
 import 'package:front/service/tournament_service.dart';
+import 'package:front/utils/custom_future_builder.dart';
+import 'package:front/widget/app_bar.dart';
 import 'package:http/http.dart' as http;
-
-import '../utils/custom_future_builder.dart';
 
 class RegistrationPage extends StatefulWidget {
   final int tournamentId;
@@ -45,18 +46,19 @@ class _RegistrationPageState extends State<RegistrationPage> {
         },
       );
 
+      final t = AppLocalizations.of(context)!;
+
       if (response.statusCode == 200) {
         // Inscription réussie
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Inscription réussie !')),
+          SnackBar(content: Text(t.tournamentRegistrationRegistered)),
         );
         // Rediriger vers la page principale
         Navigator.of(context).pop();
       } else {
         // Gérer les erreurs
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content: Text('Échec de l\'inscription. Veuillez réessayer.')),
+          SnackBar(content: Text(t.tournamentRegistrationFailed)),
         );
       }
     } else {
@@ -67,20 +69,14 @@ class _RegistrationPageState extends State<RegistrationPage> {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
+
     return Scaffold(
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(60.0),
-        child: AppBar(
-          title: const Text('Inscription au tournoi'),
-          centerTitle: true,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () {
-              Navigator.pop(context);
-            },
-          ),
-        ),
-      ),
+      appBar: TopAppBar(
+          title: t.tournamentRegistrationTitle,
+          isSettings: false,
+          isPage: true,
+          isAvatar: false),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: CustomFutureBuilder(
@@ -150,7 +146,8 @@ class _RegistrationPageState extends State<RegistrationPage> {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    tournament.description ?? 'Description',
+                    tournament.description ??
+                        t.tournamentRegistrationDescription,
                     style: const TextStyle(fontSize: 16),
                   ),
                   const SizedBox(height: 16),
@@ -165,9 +162,9 @@ class _RegistrationPageState extends State<RegistrationPage> {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 50, vertical: 15),
                       ),
-                      child: const Text(
-                        'S\'inscrire',
-                        style: TextStyle(
+                      child: Text(
+                        t.tournamentRegistrationRegister,
+                        style: const TextStyle(
                             color: Colors.white,
                             fontSize: 16,
                             fontWeight: FontWeight.bold),
