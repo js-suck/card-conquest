@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
+import 'package:jwt_decoder/jwt_decoder.dart';
 
 Future<void> login(
     BuildContext context, String username, String password) async {
@@ -20,14 +21,23 @@ Future<void> login(
       'password': password,
     }),
   );
+  String userRole = '';
 
   if (response.statusCode == 200) {
     var responseData = jsonDecode(response.body);
     String token = responseData['token'];
-
-    // Store the token in secure storage
     await storage.write(key: 'jwt_token', value: token);
-    Navigator.pushReplacementNamed(context, '/main');
+    if (token != null) {
+      Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
+      userRole = decodedToken['role'];
+    }
+    print('USERROOOOOOOOLE');
+    print(userRole);
+    if (userRole == 'admin') {
+      Navigator.pushReplacementNamed(context, '/orga/home');
+    } else {
+      Navigator.pushReplacementNamed(context, '/main');
+    }
   } else {
     // Handle error in login
     ScaffoldMessenger.of(context).showSnackBar(

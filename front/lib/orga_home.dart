@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:front/widget/app_bar.dart';
 import 'package:provider/src/provider.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class Tournament {
   final int id;
@@ -43,24 +45,6 @@ class Tournament {
 
 //Image.network(
 //           'https://docs.flutter.dev/assets/images/dash/dash-fainting.gif');
-Future<List<Tournament>> fetchTournaments() async {
-  final response = await http.get(
-    Uri.parse('http://192.168.252.44:8080/api/v1/tournaments'),
-    headers: {
-      'Authorization':
-          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTk1OTI5MDgsIm5hbWUiOiJ1c2VyIiwicm9sZSI6ImFkbWluIiwidXNlcl9pZCI6MX0.QFT78-oBjAgr8brfBBQUhTJQ-FM4C1FU3looiY32mx4',
-    },
-  );
-
-  if (response.statusCode == 200) {
-    List jsonResponse = json.decode(response.body);
-    return jsonResponse
-        .map((tournament) => Tournament.fromJson(tournament))
-        .toList();
-  } else {
-    throw Exception('Failed to load tournaments');
-  }
-}
 
 class OrganizerHomePage extends StatefulWidget {
   @override
@@ -68,12 +52,32 @@ class OrganizerHomePage extends StatefulWidget {
 }
 
 class _OrganizerHomePageState extends State<OrganizerHomePage> {
+  final storage = const FlutterSecureStorage();
   late Future<List<Tournament>> futureTournaments;
 
   @override
   void initState() {
     super.initState();
     futureTournaments = fetchTournaments();
+  }
+
+  Future<List<Tournament>> fetchTournaments() async {
+    String? token = await storage.read(key: 'jwt_token');
+    final response = await http.get(
+      Uri.parse('${dotenv.env['API_URL']}tournaments'),
+      headers: {
+        'Authorization': '$token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      List jsonResponse = json.decode(response.body);
+      return jsonResponse
+          .map((tournament) => Tournament.fromJson(tournament))
+          .toList();
+    } else {
+      throw Exception('Failed to load tournaments');
+    }
   }
 
   @override
@@ -157,7 +161,7 @@ class _OrganizerHomePageState extends State<OrganizerHomePage> {
                                 borderRadius: BorderRadius.circular(10),
                                 image: DecorationImage(
                                   image: NetworkImage(
-                                      'http://192.168.252.44:8080/api/v1/images/${tournament.imageFilename}'),
+                                      '${dotenv.env['MEDIA_URL']}${tournament.imageFilename}'),
                                   fit: BoxFit.cover,
                                 ),
                               ),

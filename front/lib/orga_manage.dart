@@ -4,8 +4,12 @@ import 'package:front/main.dart';
 import 'package:front/widget/app_bar.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
+import 'package:dotted_border/dotted_border.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class OrganizerManagePage extends StatefulWidget {
   final int tournamentId;
@@ -21,30 +25,42 @@ class _OrganizerManagePageState extends State<OrganizerManagePage>
   late Future<Tournament> futureTournament;
   late TabController _tabController;
   final _formKey = GlobalKey<FormState>();
+  final storage = const FlutterSecureStorage();
 
   late TextEditingController _nameController;
   late TextEditingController _descriptionController;
   late TextEditingController _locationController;
+  late TextEditingController _roundsController;
+  late TextEditingController _maxPlayersController;
   late TextEditingController _startDateController;
   late TextEditingController _endDateController;
-  late TextEditingController _maxPlayersController;
+
+  File? _selectedImage;
 
   @override
   void initState() {
     super.initState();
     futureTournament = fetchTournament(widget.tournamentId);
     _tabController = TabController(length: 2, vsync: this);
+    _nameController = TextEditingController();
+    _descriptionController = TextEditingController();
+    _locationController = TextEditingController();
+    _roundsController = TextEditingController();
+    _maxPlayersController = TextEditingController();
+    _startDateController = TextEditingController();
+    _endDateController = TextEditingController();
   }
 
   Future<Tournament> fetchTournament(int id) async {
+    String? token = await storage.read(key: 'jwt_token');
+
     final response = await http.get(
-      Uri.parse('http://192.168.252.44:8080/api/v1/tournaments/$id'),
+      Uri.parse('${dotenv.env['API_URL']}tournaments/$id'),
       headers: {
-        'Authorization':
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTk1OTI5MDgsIm5hbWUiOiJ1c2VyIiwicm9sZSI6ImFkbWluIiwidXNlcl9pZCI6MX0.QFT78-oBjAgr8brfBBQUhTJQ-FM4C1FU3looiY32mx4',
+        'Authorization': '$token',
       },
     );
-
+    debugPrint(response.body);
     if (response.statusCode == 200) {
       return Tournament.fromJson(json.decode(response.body));
     } else {
@@ -53,27 +69,21 @@ class _OrganizerManagePageState extends State<OrganizerManagePage>
   }
 
   Future<void> updateTournament(Tournament tournament) async {
-    print(_nameController.text);
-    print(_descriptionController.text);
-    print(_locationController.text);
-    print(_startDateController.text);
-    print(_endDateController.text);
-
+    String? token = await storage.read(key: 'jwt_token');
     final response = await http.put(
-      Uri.parse(
-          'http://192.168.252.44:8080/api/v1/tournaments/${tournament.id}'),
+      Uri.parse('${dotenv.env['API_URL']}tournaments/${tournament.id}'),
       headers: {
         'Content-Type': 'application/json; charset=UTF-8',
-        'Authorization':
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTk1OTI5MDgsIm5hbWUiOiJ1c2VyIiwicm9sZSI6ImFkbWluIiwidXNlcl9pZCI6MX0.QFT78-oBjAgr8brfBBQUhTJQ-FM4C1FU3looiY32mx4',
+        'Authorization': '$token',
       },
       body: jsonEncode({
         'name': _nameController.text,
         'description': _descriptionController.text,
         'location': _locationController.text,
+        'rounds': int.parse(_roundsController.text),
+        'max_players': int.parse(_maxPlayersController.text),
         'start_date': _startDateController.text,
         'end_date': _endDateController.text,
-        'max_players': '5',
         // Ajoutez d'autres attributs selon vos besoins
       }),
     );
@@ -87,6 +97,16 @@ class _OrganizerManagePageState extends State<OrganizerManagePage>
         SnackBar(
             content: Text('Failed to update tournament: ${response.body}')),
       );
+    }
+  }
+
+  Future<void> _pickImageFromGallery() async {
+    final pickedImage =
+        await ImagePicker().pickImage(source: ImageSource.gallery);
+    if (pickedImage != null) {
+      setState(() {
+        _selectedImage = File(pickedImage.path);
+      });
     }
   }
 
@@ -113,17 +133,13 @@ class _OrganizerManagePageState extends State<OrganizerManagePage>
             Tournament tournament = snapshot.data!;
 
             // Initialisation des contrôleurs de texte avec les valeurs actuelles du tournoi
-            _nameController = TextEditingController(text: tournament.name);
-            _descriptionController =
-                TextEditingController(text: tournament.description);
-            _locationController =
-                TextEditingController(text: tournament.location);
-            _startDateController =
-                TextEditingController(text: tournament.startDate);
-            _endDateController =
-                TextEditingController(text: tournament.endDate);
-            _maxPlayersController =
-                TextEditingController(text: tournament.maxPlayers.toString());
+            _nameController.text = tournament.name;
+            _descriptionController.text = tournament.description;
+            _locationController.text = tournament.location;
+            _roundsController.text = tournament.rounds.toString();
+            _maxPlayersController.text = tournament.maxPlayers.toString();
+            _startDateController.text = tournament.startDate;
+            _endDateController.text = tournament.endDate;
 
             return Column(
               children: [
@@ -146,14 +162,28 @@ class _OrganizerManagePageState extends State<OrganizerManagePage>
                   child: TabBarView(
                     controller: _tabController,
                     children: [
-                      const Center(
-                          child: Text('Arbre du tournoi (vue de test)')),
+                      tournament.users.isNotEmpty
+                          ? ListView.builder(
+                              itemCount: tournament.users.length,
+                              itemBuilder: (context, index) {
+                                User user = tournament.users[index];
+                                return ListTile(
+                                  title: Text(user.username),
+                                );
+                              },
+                            )
+                          : const Center(
+                              child: Text('Aucun utilisateur inscrit')),
                       Padding(
                         padding: const EdgeInsets.all(16.0),
                         child: Form(
                           key: _formKey,
-                          child: Column(
+                          child: ListView(
                             children: [
+                              const Text(
+                                'Designation du tournoi:',
+                                style: TextStyle(fontSize: 18.0),
+                              ),
                               Container(
                                 decoration: BoxDecoration(
                                   color: colorBGInput,
@@ -166,11 +196,14 @@ class _OrganizerManagePageState extends State<OrganizerManagePage>
                                     contentPadding:
                                         EdgeInsets.symmetric(horizontal: 10.0),
                                     border: InputBorder.none,
-                                    labelText: 'Nom du tournoi',
                                   ),
                                 ),
                               ),
                               const SizedBox(height: 20),
+                              const Text(
+                                'Email:',
+                                style: TextStyle(fontSize: 18.0),
+                              ),
                               Container(
                                 decoration: BoxDecoration(
                                   color: colorBGInput,
@@ -211,6 +244,40 @@ class _OrganizerManagePageState extends State<OrganizerManagePage>
                                   borderRadius: BorderRadius.circular(8.0),
                                 ),
                                 child: TextFormField(
+                                  controller: _maxPlayersController,
+                                  keyboardType: TextInputType.number,
+                                  decoration: const InputDecoration(
+                                    contentPadding:
+                                        EdgeInsets.symmetric(horizontal: 10.0),
+                                    border: InputBorder.none,
+                                    labelText: 'Nombre max de joueurs',
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 20),
+                              Container(
+                                decoration: BoxDecoration(
+                                  color: colorBGInput,
+                                  borderRadius: BorderRadius.circular(8.0),
+                                ),
+                                child: TextFormField(
+                                  controller: _roundsController,
+                                  keyboardType: TextInputType.number,
+                                  decoration: const InputDecoration(
+                                    contentPadding:
+                                        EdgeInsets.symmetric(horizontal: 10.0),
+                                    border: InputBorder.none,
+                                    labelText: 'Nombre de rounds',
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 20),
+                              Container(
+                                decoration: BoxDecoration(
+                                  color: colorBGInput,
+                                  borderRadius: BorderRadius.circular(8.0),
+                                ),
+                                child: TextFormField(
                                   controller: _startDateController,
                                   keyboardType: TextInputType.datetime,
                                   decoration: const InputDecoration(
@@ -239,19 +306,28 @@ class _OrganizerManagePageState extends State<OrganizerManagePage>
                                 ),
                               ),
                               const SizedBox(height: 20),
-                              Container(
-                                decoration: BoxDecoration(
-                                  color: colorBGInput,
-                                  borderRadius: BorderRadius.circular(8.0),
-                                ),
-                                child: TextFormField(
-                                  controller: _maxPlayersController,
-                                  keyboardType: TextInputType.number,
-                                  decoration: const InputDecoration(
-                                    contentPadding:
-                                        EdgeInsets.symmetric(horizontal: 10.0),
-                                    border: InputBorder.none,
-                                    labelText: 'Nombre max de joueurs',
+                              GestureDetector(
+                                onTap: _pickImageFromGallery,
+                                child: DottedBorder(
+                                  color: Colors.grey,
+                                  strokeWidth: 1,
+                                  dashPattern: const [5, 5],
+                                  child: Container(
+                                    height: 150,
+                                    width: double.infinity,
+                                    color: colorBGInput,
+                                    child: _selectedImage != null
+                                        ? Image.file(
+                                            _selectedImage!,
+                                            fit: BoxFit.cover,
+                                          )
+                                        : const Center(
+                                            child: Icon(
+                                              Icons.image,
+                                              size: 40,
+                                              color: Colors.grey,
+                                            ),
+                                          ),
                                   ),
                                 ),
                               ),
@@ -262,7 +338,7 @@ class _OrganizerManagePageState extends State<OrganizerManagePage>
                                     updateTournament(tournament);
                                   }
                                 },
-                                child: const Text('Sauvegarder'),
+                                child: const Text('Modifier le tournoi'),
                               ),
                             ],
                           ),
@@ -287,10 +363,28 @@ class _OrganizerManagePageState extends State<OrganizerManagePage>
     _nameController.dispose();
     _descriptionController.dispose();
     _locationController.dispose();
+    _roundsController.dispose();
+    _maxPlayersController.dispose();
     _startDateController.dispose();
     _endDateController.dispose();
-    _maxPlayersController.dispose();
     super.dispose();
+  }
+}
+
+class User {
+  final int id;
+  final String username;
+
+  User({
+    required this.id,
+    required this.username,
+  });
+
+  factory User.fromJson(Map<String, dynamic> json) {
+    return User(
+      id: json['id'],
+      username: json['username'],
+    );
   }
 }
 
@@ -303,6 +397,8 @@ class Tournament {
   final String endDate;
   final String imageFilename;
   final int maxPlayers;
+  final int rounds;
+  final List<User> users;
 
   Tournament({
     required this.id,
@@ -313,9 +409,12 @@ class Tournament {
     required this.endDate,
     required this.imageFilename,
     required this.maxPlayers,
+    required this.rounds,
+    required this.users,
   });
 
   factory Tournament.fromJson(Map<String, dynamic> json) {
+    print(json);
     return Tournament(
       id: json['id'],
       name: json['name'],
@@ -324,7 +423,12 @@ class Tournament {
       startDate: json['start_date'],
       endDate: json['end_date'],
       imageFilename: json['media']['file_name'],
-      maxPlayers: json['max_players'],
+      maxPlayers: json['max_players'] ?? 0,
+      rounds: json['rounds'] ?? 0,
+      users: (json['user_tournaments'] as List<dynamic>?)
+              ?.map((userJson) => User.fromJson(userJson))
+              .toList() ??
+          [], // Utiliser une liste vide si null
     );
   }
 }

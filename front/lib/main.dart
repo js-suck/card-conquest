@@ -107,8 +107,8 @@ class MyApp extends StatelessWidget {
         child: Consumer(builder: (context, ThemeNotifier notifier, child) {
           return MaterialApp(
             debugShowCheckedModeBanner: false,
-            //initialRoute: '/',
-            initialRoute: '/orga/home',
+            initialRoute: '/',
+            //initialRoute: '/orga/home',
             // initialRoute: '/orga/tounament',
             routes: routes,
             onGenerateRoute: (settings) {

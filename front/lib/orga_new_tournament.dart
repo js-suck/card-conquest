@@ -1,5 +1,5 @@
 //import 'dart:html';
-
+import 'dart:math';
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
@@ -7,6 +7,10 @@ import 'package:flutter/material.dart';
 import 'package:front/widget/app_bar.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:dotted_border/dotted_border.dart';
+import 'package:jwt_decoder/jwt_decoder.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:intl/intl.dart';
 
 class OrgaPage extends StatelessWidget {
   const OrgaPage({super.key});
@@ -38,6 +42,7 @@ class MyForm extends StatefulWidget {
 }
 
 class _MyFormState extends State<MyForm> {
+  final storage = const FlutterSecureStorage();
   final TextEditingController _designationController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _locationController = TextEditingController();
@@ -46,17 +51,57 @@ class _MyFormState extends State<MyForm> {
   final TextEditingController _sizeController = TextEditingController();
   final TextEditingController _descController = TextEditingController();
   static const colorBGInput = Color(0xfafafafa);
+  final TextEditingController _startDateController = TextEditingController();
+  final TextEditingController _endDateController = TextEditingController();
+
+  DateTime? _startDate;
+  DateTime? _endDate;
   File? _selectedImage;
   int? _selectedValue;
   List<dynamic> games = [];
 
+  Future<void> _selectStartDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _startDate ?? DateTime.now(),
+      firstDate: DateTime.now(),
+      lastDate: DateTime(2100),
+    );
+    if (picked != null && picked != _startDate) {
+      setState(() {
+        _startDate = picked;
+        _startDateController.text = _formatDate(picked);
+      });
+    }
+  }
+
+  Future<void> _selectEndDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _endDate ?? DateTime.now(),
+      firstDate: DateTime.now(),
+      lastDate: DateTime(2100),
+    );
+    if (picked != null && picked != _endDate) {
+      setState(() {
+        _endDate = picked;
+        _endDateController.text = _formatDate(picked);
+      });
+    }
+  }
+
+  String _formatDate(DateTime date) {
+    return DateFormat('yyyy-MM-ddTHH:mm:ss.SSSZ').format(date.toUtc());
+  }
+
   Future<void> _loadGames() async {
     try {
+      String? token = await storage.read(key: 'jwt_token');
+
       var response = await http.get(
-        Uri.parse('http://192.168.252.44:8080/api/v1/games'),
+        Uri.parse('${dotenv.env['API_URL']}games'),
         headers: {
-          'Authorization':
-              'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTk1OTI5MDgsIm5hbWUiOiJ1c2VyIiwicm9sZSI6ImFkbWluIiwidXNlcl9pZCI6MX0.QFT78-oBjAgr8brfBBQUhTJQ-FM4C1FU3looiY32mx4',
+          'Authorization': '$token',
         },
       );
 
@@ -154,6 +199,40 @@ class _MyFormState extends State<MyForm> {
                       contentPadding: EdgeInsets.symmetric(horizontal: 10.0),
                       border: InputBorder.none,
                       labelText: 'ex: 10 rue des ananas',
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                const Text(
+                  'Date de début du tournoi:',
+                  style: TextStyle(fontSize: 18.0),
+                ),
+                InkWell(
+                  onTap: () => _selectStartDate(context),
+                  child: IgnorePointer(
+                    child: TextFormField(
+                      controller: _startDateController,
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                        labelText: 'Sélectionnez une date',
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                const Text(
+                  'Date de fin du tournoi:',
+                  style: TextStyle(fontSize: 18.0),
+                ),
+                InkWell(
+                  onTap: () => _selectEndDate(context),
+                  child: IgnorePointer(
+                    child: TextFormField(
+                      controller: _endDateController,
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                        labelText: 'Sélectionnez une date',
+                      ),
                     ),
                   ),
                 ),
@@ -352,30 +431,25 @@ class _MyFormState extends State<MyForm> {
     } else {
       // All required fields are filled, proceed to submit the form
       try {
-        var uri = Uri.parse('http://192.168.252.44:8080/api/v1/tournaments');
-        // var uri = Uri.parse('http://127.0.0.1:8080/api/v1/tournaments');
+        var uri = Uri.parse('${dotenv.env['API_URL']}tournaments');
+        String? token = await storage.read(key: 'jwt_token');
 
         var request = http.MultipartRequest('POST', uri)
-          ..headers['Authorization'] =
-              'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTk1OTI5MDgsIm5hbWUiOiJ1c2VyIiwicm9sZSI6ImFkbWluIiwidXNlcl9pZCI6MX0.QFT78-oBjAgr8brfBBQUhTJQ-FM4C1FU3looiY32mx4';
+          ..headers['Authorization'] = '$token';
 
-        DateTime startDate = DateTime(2024, 4, 12);
-        DateTime endDate = DateTime(2024, 5, 12);
-        print("iciez");
-
-        String startDateIso = startDate.toUtc().toIso8601String();
-        String endDateIso = endDate.toUtc().toIso8601String();
-        print(_selectGameController);
         // Ajoutez les champs de formulaire
         request.fields['name'] = _designationController.text;
         request.fields['description'] = _descController.text;
-        request.fields['start_date'] = startDateIso;
-        request.fields['end_date'] = endDateIso;
+        request.fields['start_date'] = _formatDate(_startDate!);
+        request.fields['end_date'] = _formatDate(_endDate!);
         request.fields['location'] = _locationController.text;
         request.fields['organizer_id'] = '1';
         request.fields['game_id'] = '1';
-        request.fields['rounds'] = _selectedValue.toString();
-        request.fields['max_players'] = '5';
+        num selectedValue = num.parse(_selectedValue.toString());
+        int rounds = (log(selectedValue) / log(2)).ceil();
+        request.fields['rounds'] = rounds.toString();
+        request.fields['rounds'] = rounds.toString();
+        request.fields['max_players'] = _selectedValue.toString();
         if (_selectedImage != null) {
           request.files.add(await http.MultipartFile.fromPath(
             'image', // le nom du champ de formulaire pour l'image
@@ -408,6 +482,7 @@ class _MyFormState extends State<MyForm> {
                 TextButton(
                   onPressed: () {
                     Navigator.pop(context);
+                    Navigator.pushNamed(context, '/orga/home');
                   },
                   child: const Text('OK'),
                 ),
