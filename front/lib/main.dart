@@ -1,12 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:front/pages/bracket_screen.dart';
 import 'package:front/routes/routes.dart';
+import 'package:front/service/user_service.dart';
 import 'package:front/theme/dark_theme.dart' as dark_theme;
 import 'package:front/theme/theme.dart' as theme;
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:front/widget/bottom_bar.dart';
 
-void main() {
-  runApp(const MyApp());
+Future main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load(fileName: "lib/.env");
+  runApp(
+    MultiProvider(
+      providers: [
+        Provider(create: (_) => UserService()),
+        ChangeNotifierProvider(create: (_) => TournamentNotifier()),
+        ChangeNotifierProvider(create: (context) => SelectedPageModel(), ),
+      ],
+      child: const MyApp(),
+    ),
+  );
 }
 
 class ThemeColors {
@@ -14,6 +29,7 @@ class ThemeColors {
   final Color backgroundAccentColor;
   final Color invertedBackgroundColor;
   final Color secondaryBackgroundAccentColor;
+  final Color secondaryBackgroundAccentActiveColor;
   final Color accentColor;
   final Color fontColor;
 
@@ -22,6 +38,7 @@ class ThemeColors {
     required this.backgroundAccentColor,
     required this.invertedBackgroundColor,
     required this.secondaryBackgroundAccentColor,
+    required this.secondaryBackgroundAccentActiveColor,
     required this.accentColor,
     required this.fontColor,
   });
@@ -59,6 +76,9 @@ class ThemeNotifier with ChangeNotifier {
         secondaryBackgroundAccentColor: _isDarkMode
             ? dark_theme.secondaryAccentBackgroundColor
             : theme.secondaryAccentBackgroundColor,
+        secondaryBackgroundAccentActiveColor: _isDarkMode
+            ? dark_theme.secondaryBackgroundAccentActiveColor
+            : theme.secondaryBackgroundAccentActiveColor,
         accentColor: _isDarkMode ? dark_theme.accentColor : theme.accentColor,
         fontColor: _isDarkMode ? dark_theme.fontColor : theme.fontColor);
   }

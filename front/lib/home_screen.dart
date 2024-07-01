@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:front/widget/app_bar.dart';
 import 'auth/login_screen.dart';
 import 'auth/signup_screen.dart';
 
@@ -15,7 +14,6 @@ class HomePage extends StatelessWidget {
       Future.microtask(() => _showVerificationDialog(context));
     }
     return Scaffold(
-      appBar: const TopAppBar(title: 'Accueil', isAvatar: true, isPage: false),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -44,6 +42,7 @@ class HomePage extends StatelessWidget {
             ),
             ElevatedButton(
               onPressed: () {
+
                 // Naviguer vers la page principale
                 Navigator.pushNamed(context, '/main');
               },

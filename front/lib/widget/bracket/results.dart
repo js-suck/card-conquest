@@ -1,67 +1,71 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
-import 'package:front/widget/bracket/bracket.dart';
+import 'package:front/models/match/match.dart';
+import 'package:front/service/match_service.dart';
 import 'package:front/widget/bracket/match/match_tiles.dart';
 
-class Results extends StatelessWidget {
-  Results({super.key});
+import '../../utils/custom_future_builder.dart';
 
-  final List<Match> matches = [
-    Match(
-      player1: 'Alcaraz C',
-      player2: 'Medvedev D',
-      playerOneId: 1,
-      playerTwoId: 5,
-      status: 'finished',
-      score1: '2',
-      score2: '0',
-      winnerId: 1,
-    ),
-    Match(
-      player1: 'Federer R',
-      player2: 'Nadal R',
-      playerOneId: 3,
-      playerTwoId: 7,
-      status: 'finished',
-      score1: '2',
-      score2: '1',
-      winnerId: 3,
-    ),
-    Match(
-      player1: 'Djokovic N',
-      player2: 'Shapovalov D',
-      playerOneId: 9,
-      playerTwoId: 12,
-      status: 'finished',
-      score1: '2',
-      score2: '0',
-      winnerId: 9,
-    ),
-    Match(
-      player1: 'Auger-Aliassime F',
-      player2: 'Monfils G',
-      playerOneId: 14,
-      playerTwoId: 15,
-      status: 'finished',
-      score1: '1',
-      score2: '2',
-      winnerId: 15,
-    ),
-    Match(
-      player1: 'Rublev A',
-      player2: 'Sinner J',
-      playerOneId: 13,
-      playerTwoId: 21,
-      status: 'finished',
-      score1: '0',
-      score2: '2',
-      winnerId: 21,
-    ),
-  ];
+class Results extends StatefulWidget {
+  const Results({super.key, required this.tournamentId});
+
+  final int tournamentId;
+
+  @override
+  State<Results> createState() => _ResultsState();
+}
+
+class _ResultsState extends State<Results> {
+  late MatchService matchService;
+  late Future<List<Match>> matchesFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    matchService = MatchService();
+    matchesFuture = fetchMatches();
+  }
+
+  Future<List<Match>> fetchMatches() {
+    return matchService.fetchFinishedMatchesOfTournament(_tournamentId);
+  }
+
+  Future<void> _refreshMatches() async {
+    setState(() {
+      matchesFuture = fetchMatches();
+    });
+  }
+
+  get _tournamentId => widget.tournamentId;
 
   @override
   Widget build(BuildContext context) {
-    return MatchTiles(
-      matches: matches,
+    return RefreshIndicator(
+      onRefresh: _refreshMatches,
+      child: CustomFutureBuilder(
+        future: matchesFuture,
+        onLoaded: (matches) {
+          final groupedMatches =
+              groupBy(matches, (match) => match.tournamentStep.sequence);
+          final sortedMatches = groupedMatches.keys.toList()
+            ..sort((a, b) => b.compareTo(a));
+          List<Widget> tournamentStepWidgets = [];
+          for (var step in sortedMatches) {
+            tournamentStepWidgets.add(
+              MatchTiles(
+                matches: groupedMatches[step]!,
+                isSteps: true,
+              ),
+            );
+          }
+
+          return SingleChildScrollView(
+            child: Column(
+              children: tournamentStepWidgets,
+            ),
+          );
+        },
+      ),
     );
   }
 }

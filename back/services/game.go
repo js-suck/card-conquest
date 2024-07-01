@@ -3,6 +3,7 @@ package services
 import (
 	"authentication-api/errors"
 	"authentication-api/models"
+
 	"gorm.io/gorm"
 )
 
@@ -90,4 +91,40 @@ func (s *GameService) CalculateUserRankingsForGames(userID string) ([]models.Use
 	}
 
 	return userRankings, nil
+}
+
+func (s *GameService) CreateGame(game *models.Game) errors.IError {
+	if err := s.db.Create(game).Error; err != nil {
+		return errors.NewInternalServerError("Failed to create game", err)
+	}
+	return nil
+}
+
+func (s *GameService) UpdateGame(id uint, game *models.Game) errors.IError {
+	existingGame := models.Game{}
+	if err := s.db.First(&existingGame, id).Error; err != nil {
+		return errors.NewNotFoundError("Game not found", err)
+	}
+
+	if err := s.db.Model(&existingGame).Updates(game).Error; err != nil {
+		return errors.NewInternalServerError("Failed to update game", err)
+	}
+
+	return nil
+}
+
+
+func (s *GameService) DeleteGame(id uint) errors.IError {
+	if err := s.db.Delete(&models.Game{}, id).Error; err != nil {
+		return errors.NewInternalServerError("Failed to delete game", err)
+	}
+	return nil
+}
+
+func (s *GameService) GetGameByID(id uint) (*models.Game, errors.IError) {
+	var game models.Game
+	if err := s.db.First(&game, id).Error; err != nil {
+		return nil, errors.NewNotFoundError("Game not found", err)
+	}
+	return &game, nil
 }

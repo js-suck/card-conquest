@@ -6,6 +6,7 @@ import (
 	"authentication-api/models"
 	"authentication-api/permissions"
 	"authentication-api/services"
+
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
@@ -66,7 +67,7 @@ func SetupRouter(db *gorm.DB) *gin.Engine {
 		publicRoutes.POST("/images", uploadFileHandler.UploadImage)
 
 		protectedRoutes.POST("/users", permissions.PermissionMiddleware(permissions.PermissionCreateUser), userHandler.PostUser)
-		protectedRoutes.PUT("/users/:id", middlewares.OwnerMiddleware("user", &models.User{}), permissions.PermissionMiddleware(permissions.PermissionUpdateUser), userHandler.UpdateUser)
+		protectedRoutes.PUT("/users/:id", userHandler.UpdateUser)
 		protectedRoutes.DELETE("/users/:id", middlewares.OwnerMiddleware("user", &models.User{}), permissions.PermissionMiddleware(permissions.PermissionDeleteUser), userHandler.DeleteUser)
 		protectedRoutes.POST("/users/:id/upload/picture", middlewares.OwnerMiddleware("user", &models.User{}), permissions.PermissionMiddleware(permissions.PermissionUpdateUser), userHandler.UploadPicture)
 
@@ -79,6 +80,15 @@ func SetupRouter(db *gorm.DB) *gin.Engine {
 
 		//protectedRoutes.POST("/matches/:id/finish", tournamentHandler.FinishMatch)
 		protectedRoutes.POST("/matches/update/score", matchHandler.UpdateScore)
+
+		protectedRoutes.GET("/matchs/between-users", matchHandler.GetMatchesBetweenUsers)
+
+		protectedRoutes.GET(("/games"), gameHandler.GetAllGames)
+		protectedRoutes.GET(("/games/user/:userID/rankings"), gameHandler.GetUserGameRankings)
+		protectedRoutes.POST("/games", gameHandler.CreateGame)
+		protectedRoutes.PUT("/games/:id", gameHandler.UpdateGame)
+		protectedRoutes.DELETE("/games/:id", gameHandler.DeleteGame)
+		protectedRoutes.GET("/games/:id", gameHandler.GetGameByID)
 
 		protectedRoutes.PUT(("/matchs/:id"), matchHandler.UpdateMatch)
 

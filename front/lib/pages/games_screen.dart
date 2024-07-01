@@ -1,125 +1,116 @@
-import 'dart:convert';
-import 'dart:io';
-
 import 'package:flutter/material.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:front/utils/custom_future_builder.dart';
 import 'package:front/widget/app_bar.dart';
-import 'package:front/widget/game_card.dart';
-import 'package:http/http.dart' as http;
-
-Future<List<Game>> fetchGames() async {
-  final storage = new FlutterSecureStorage();
-  String? token = await storage.read(key: 'jwt_token');
-
-  final response = await http.get(
-    Uri.parse('http://10.0.2.2:8080/api/v1/games'),
-    headers: {
-      HttpHeaders.authorizationHeader: '$token',
-    },
-  );
-
-  final List<dynamic> responseJson = jsonDecode(response.body) as List<dynamic>;
-
-  return responseJson.map((json) => Game.fromJson(json)).toList();
-}
-
-class Game {
-  final String name;
-
-  Game({
-    required this.name,
-  });
-
-  factory Game.fromJson(Map<String, dynamic> json) {
-    return switch (json) {
-      {
-        'name': String name,
-      } =>
-        Game(
-          name: name,
-        ),
-      _ => throw const FormatException('Failed to load game.'),
-    };
-  }
-}
+import 'package:front/widget/games/all_games_list.dart';
+import 'package:front/widget/games/games_list.dart';
+import '../service/game_service.dart';
+import '../models/game.dart';
+import 'package:front/pages/game_detail_screen.dart';
 
 class GamesPage extends StatefulWidget {
   const GamesPage({super.key});
 
   @override
-  State<GamesPage> createState() => _GamesPageState();
+  _GamesPageState createState() => _GamesPageState();
 }
 
 class _GamesPageState extends State<GamesPage> {
-  late Future<List<Game>> futureGames;
+  late GameService gameService;
+  final TextEditingController _searchController = TextEditingController();
+  List<Game> _allGames = [];
+  List<Game> _filteredGames = [];
+  List<Game> _trendyGames = [];
 
   @override
   void initState() {
     super.initState();
-    futureGames = fetchGames();
+    gameService = GameService();
+    _fetchGames();
+    _fetchTrendyGames();
   }
+
+  Future<void> _fetchGames() async {
+    final games = await gameService.fetchGames();
+    setState(() {
+      _allGames = games;
+      _filteredGames = games;
+    });
+  }
+
+  Future<void> _fetchTrendyGames() async {
+    final games = await gameService.fetchTrendyGames();
+    setState(() {
+      _trendyGames = games;
+    });
+  }
+
+  void _onSearchChanged() {
+    final query = _searchController.text.toLowerCase();
+    setState(() {
+      _filteredGames = _allGames.where((game) {
+        final gameName = game.name.toLowerCase();
+        return gameName.contains(query);
+      }).toList();
+    });
+  }
+
+  Future<void> _onGameTapped(int id) async {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => GameDetailPage(gameId: id),
+      ),
+    );
+  }
+
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: const TopAppBar(title: 'Jeux'),
-      // list of cards with games
-      body: Container(
-        padding: const EdgeInsets.only(left: 12, right: 12, top: 12),
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text('Les jeux du moment',
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-              SizedBox(
-                height: 180,
-                child: GridView.count(
-                  scrollDirection: Axis.horizontal,
-                  crossAxisCount: 1,
-                  children: List.generate(
-                    10,
-                    (index) {
-                      return GameCard(
-                        imageName: 'images/img.png',
-                        gameName: 'Jeu $index',
-                      );
-                    },
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            const Padding(
+              padding: EdgeInsets.all(8.0),
+              child: Text(
+                'Jeux populaires',
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              ),
+            ),
+            CustomFutureBuilder(
+                future: gameService.fetchTrendyGames(),
+                onLoaded: (List<Game> games) {
+                  return GamesList(games: games);
+                }),
+            const Padding(
+              padding: EdgeInsets.all(8.0),
+              child: Text(
+                'Tous les jeux',
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: TextField(
+                controller: _searchController,
+                onChanged: (value) => _onSearchChanged(),
+                decoration: InputDecoration(
+                  labelText: 'Rechercher des jeux',
+                  prefixIcon: Icon(Icons.search),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
                   ),
                 ),
               ),
-              const SizedBox(height: 20),
-              const Text('Tous les jeux',
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-              SizedBox(
-                height: 540,
-                child: FutureBuilder<List<Game>>(
-                  future: futureGames,
-                  builder: (context, snapshot) {
-                    if (snapshot.hasData) {
-                      return GridView.count(
-                        scrollDirection: Axis.vertical,
-                        crossAxisCount: 2,
-                        children: List.generate(
-                          snapshot.data!.length,
-                          (index) {
-                            return GameCard(
-                              imageName: 'images/img.png',
-                              gameName: snapshot.data![index].name,
-                            );
-                          },
-                        ),
-                      );
-                    } else if (snapshot.hasError) {
-                      return Text('${snapshot.error}');
-                    }
-
-                    return const CircularProgressIndicator();
-                  },
-                ),
-              ),
-            ],
-          ),
+            ),
+            _filteredGames.isEmpty
+                ? const Center(child: Text('No games found'))
+                : AllGamesList(
+              allGames: _filteredGames,
+              onGameTapped: _onGameTapped,
+            ),
+          ],
         ),
       ),
     );

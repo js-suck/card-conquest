@@ -5,9 +5,10 @@ import (
 	"authentication-api/models"
 	"authentication-api/permissions"
 	"authentication-api/services"
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
+
+	"github.com/gin-gonic/gin"
 )
 
 type UserHandler struct {
@@ -241,6 +242,7 @@ func (h *UserHandler) UpdateUser(c *gin.Context) {
 
 	c.JSON(http.StatusOK, "User updated successfully")
 }
+
 
 // UploadPicture godoc
 // @basePath: /api/v1

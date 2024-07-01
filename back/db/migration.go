@@ -23,11 +23,11 @@ func gameMigration(db *gorm.DB) (*models.Game, error) {
 		game := models.Game{
 			Name: fmt.Sprintf("Test%d", i),
 		}
-    
-    if err != nil {
-		  fmt.Println(err.Error())
-		  return nil, err
-	  }
+
+		if err != nil {
+			fmt.Println(err.Error())
+			return nil, err
+		}
 
 		db.Create(&game)
 	}
