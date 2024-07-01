@@ -5,11 +5,11 @@ import 'package:front/utils/custom_future_builder.dart';
 import 'package:front/widget/app_bar.dart';
 import 'package:front/widget/tournaments/all_tournaments_list.dart';
 import 'package:front/widget/tournaments/recent_tournaments_list.dart';
-
+import '../models/match/tournament.dart';
 import 'bracket_screen.dart';
 
 class TournamentsPage extends StatefulWidget {
-  const TournamentsPage({super.key});
+  const TournamentsPage({super.key, required searchQuery});
 
   @override
   _TournamentsPageState createState() => _TournamentsPageState();
@@ -17,13 +17,23 @@ class TournamentsPage extends StatefulWidget {
 
 class _TournamentsPageState extends State<TournamentsPage> {
   late TournamentService tournamentService;
+  List<Tournament> allTournaments = [];
+  List<Tournament> filteredTournaments = [];
+  String searchQuery = '';
 
   @override
   void initState() {
     super.initState();
     tournamentService = TournamentService();
-    tournamentService.fetchTournaments();
-    tournamentService.fetchRecentTournaments();
+    _fetchTournaments();
+  }
+
+  Future<void> _fetchTournaments() async {
+    var tournaments = await tournamentService.fetchTournaments();
+    setState(() {
+      allTournaments = tournaments;
+      filteredTournaments = tournaments;
+    });
   }
 
   Future<void> _onTournamentTapped(int tournamentId, String status) async {
@@ -33,26 +43,34 @@ class _TournamentsPageState extends State<TournamentsPage> {
         page = RegistrationPage(tournamentId: tournamentId);
         break;
       case 'started':
-        // Ajoutez un id pour la page bracket
         page = BracketPage(tournamentID: tournamentId);
         break;
       case 'finished':
-        // Ajoutez un id pour la page bracket
         page = BracketPage(tournamentID: tournamentId);
         break;
       case 'canceled':
-        // Ajoutez la page correspondante pour les tournois annulés
         page = BracketPage(tournamentID: tournamentId);
         break;
       default:
-        page = RegistrationPage(
-            tournamentId:
-                tournamentId); // Par défaut, redirigez vers la page d'inscription
+        page = RegistrationPage(tournamentId: tournamentId);
     }
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => page),
     );
+  }
+
+  void _filterTournaments(String query) {
+    final filtered = allTournaments.where((tournament) {
+      final nameLower = tournament.name.toLowerCase();
+      final searchLower = query.toLowerCase();
+      return nameLower.contains(searchLower);
+    }).toList();
+
+    setState(() {
+      searchQuery = query;
+      filteredTournaments = filtered;
+    });
   }
 
   @override
@@ -85,15 +103,23 @@ class _TournamentsPageState extends State<TournamentsPage> {
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
             ),
-            CustomFutureBuilder(
-              future: tournamentService.fetchTournaments(),
-              onLoaded: (tournaments) {
-                return AllTournamentsList(
-                  allTournaments: tournaments,
-                  onTournamentTapped: _onTournamentTapped,
-                  emptyMessage: 'Pas de tournois disponibles',
-                );
-              },
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: TextField(
+                onChanged: _filterTournaments,
+                decoration: InputDecoration(
+                  hintText: 'Rechercher des tournois...',
+                  prefixIcon: const Icon(Icons.search),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+            ),
+            AllTournamentsList(
+              allTournaments: filteredTournaments,
+              onTournamentTapped: _onTournamentTapped,
+              emptyMessage: 'Pas de tournois disponibles',
             ),
           ],
         ),

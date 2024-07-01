@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:front/models/tag.dart';
+import 'package:front/extension/theme_extension.dart';
 import 'package:front/service/tournament_service.dart';
 import 'package:http/http.dart' as http;
 
@@ -33,8 +33,9 @@ class _RegistrationPageState extends State<RegistrationPage> {
   Future<void> _registerForTournament() async {
     String? token = await storage.read(key: 'jwt_token');
     if (token != null) {
-      String? userId = jsonDecode(ascii.decode(
-              base64.decode(base64.normalize(token.split(".")[1]))))['user_id']
+      String? userId = jsonDecode(
+          ascii.decode(base64.decode(base64.normalize(token.split(".")[1]))))
+      ['user_id']
           .toString();
 
       final response = await http.post(
@@ -71,10 +72,10 @@ class _RegistrationPageState extends State<RegistrationPage> {
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(60.0),
         child: AppBar(
-          title: const Text('Inscription au tournoi'),
+          title: const Text('Inscription au tournoi', style: TextStyle(color: Colors.white)),
           centerTitle: true,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
+            icon: const Icon(Icons.arrow_back, color: Colors.white,),
             onPressed: () {
               Navigator.pop(context);
             },
@@ -101,7 +102,10 @@ class _RegistrationPageState extends State<RegistrationPage> {
                       borderRadius: BorderRadius.circular(12),
                       image: DecorationImage(
                         image: NetworkImage(
-                            '${dotenv.env['API_URL']}images/${tournament.media?.fileName}'),
+                          tournament.media?.fileName != null
+                              ? '${dotenv.env['API_URL']}images/${tournament.media?.fileName}'
+                              : '${dotenv.env['API_URL']}images/yugiho.webp'
+                        ),
                         fit: BoxFit.cover,
                       ),
                     ),
@@ -114,7 +118,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                '${tournament.startDate.day.toString().padLeft(2, '0')}/${tournament.startDate.month.toString().padLeft(2, '0')}/${tournament.startDate.year}}',
+                                '${tournament.startDate.day.toString().padLeft(2, '0')}/${tournament.startDate.month.toString().padLeft(2, '0')}/${tournament.startDate.year}',
                                 style: const TextStyle(
                                     color: Colors.white,
                                     fontSize: 18,
@@ -128,23 +132,6 @@ class _RegistrationPageState extends State<RegistrationPage> {
                             ],
                           ),
                         ),
-                        Positioned(
-                          bottom: 10,
-                          right: 10,
-                          child: Wrap(
-                            spacing: 8,
-                            children: tournament.tags != null
-                                ? (tournament.tags as List<Tag>)
-                                    .map((tag) => Chip(
-                                          label: Text(tag.name ?? 'Tag',
-                                              style: const TextStyle(
-                                                  color: Colors.white)),
-                                          backgroundColor: Colors.orange,
-                                        ))
-                                    .toList()
-                                : [],
-                          ),
-                        ),
                       ],
                     ),
                   ),
@@ -152,6 +139,45 @@ class _RegistrationPageState extends State<RegistrationPage> {
                   Text(
                     tournament.description ?? 'Description',
                     style: const TextStyle(fontSize: 16),
+                  ),
+                  const SizedBox(height: 16),
+                  Wrap(
+                    spacing: 8,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 4),
+                        decoration: BoxDecoration(
+                          color: context.themeColors.accentColor,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          'J: ${tournament.playersRegistered}/${tournament.maxPlayers}',
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.teal[400],
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          'Jeu: ${tournament.game.name}',
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.redAccent,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          'Status: ${tournament.status}',
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 16),
                   Center(
