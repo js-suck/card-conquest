@@ -9,7 +9,7 @@ import '../models/match/tournament.dart';
 import 'bracket_screen.dart';
 
 class TournamentsPage extends StatefulWidget {
-  const TournamentsPage({super.key});
+  const TournamentsPage({super.key, required searchQuery});
 
   @override
   _TournamentsPageState createState() => _TournamentsPageState();

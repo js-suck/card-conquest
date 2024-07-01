@@ -39,4 +39,23 @@ class GameService {
     final List<dynamic> trendyGamesJson = responseJson['trendyGames'];
     return trendyGamesJson.map((json) => Game.fromJson(json)).toList();
   }
+
+  Future<Game> fetchGameById(int id) async {
+    String? token = await storage.read(key: 'jwt_token');
+
+    final response = await http.get(
+      Uri.parse('${dotenv.env['API_URL']}games/$id'),
+      headers: {
+        HttpHeaders.authorizationHeader: '$token',
+      },
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to load game');
+    }
+
+    final Map<String, dynamic> responseJson = jsonDecode(response.body);
+    return Game.fromJson(responseJson);
+  }
+
 }

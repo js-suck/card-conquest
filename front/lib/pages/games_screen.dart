@@ -5,6 +5,7 @@ import 'package:front/widget/games/all_games_list.dart';
 import 'package:front/widget/games/games_list.dart';
 import '../service/game_service.dart';
 import '../models/game.dart';
+import 'package:front/pages/game_detail_screen.dart';
 
 class GamesPage extends StatefulWidget {
   const GamesPage({super.key});
@@ -54,8 +55,14 @@ class _GamesPageState extends State<GamesPage> {
   }
 
   Future<void> _onGameTapped(int id) async {
-    // Logique pour gérer le tap sur un jeu, par exemple naviguer vers une page de détails
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => GameDetailPage(gameId: id),
+      ),
+    );
   }
+
 
   @override
   Widget build(BuildContext context) {

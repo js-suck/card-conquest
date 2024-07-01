@@ -7,6 +7,7 @@ import 'package:front/theme/dark_theme.dart' as dark_theme;
 import 'package:front/theme/theme.dart' as theme;
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:front/widget/bottom_bar.dart';
 
 Future main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -16,6 +17,7 @@ Future main() async {
       providers: [
         Provider(create: (_) => UserService()),
         ChangeNotifierProvider(create: (_) => TournamentNotifier()),
+        ChangeNotifierProvider(create: (context) => SelectedPageModel(), ),
       ],
       child: const MyApp(),
     ),
