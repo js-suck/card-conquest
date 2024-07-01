@@ -60,7 +60,7 @@ class _MatchTilesState extends State<MatchTiles> {
   Widget build(BuildContext context) {
     final tournament = context.watch<TournamentNotifier>().tournament;
     final players = tournament?.playersRegistered;
-    final tournamentSize = (log(players as int) / log(2)).ceil();
+    final tournamentSize = players != null ? (log(players) / log(2)).ceil() : 0;
     final newTabs = tabs.sublist(tabs.length - tournamentSize);
 
     return Column(

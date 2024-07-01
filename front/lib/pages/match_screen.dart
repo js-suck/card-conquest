@@ -108,8 +108,9 @@ class _MatchPageState extends State<MatchPage> {
                                         shape: BoxShape.rectangle,
                                         borderRadius: BorderRadius.circular(10),
                                         image: DecorationImage(
-                                          image: matchInfo.playerOne.media !=
-                                                  null
+                                          image: matchInfo.playerOne.media
+                                                      ?.fileName !=
+                                                  ''
                                               ? NetworkImage(
                                                       '${dotenv.env['MEDIA_URL']}${matchInfo.playerOne.media?.fileName}')
                                                   as ImageProvider<Object>
@@ -214,8 +215,9 @@ class _MatchPageState extends State<MatchPage> {
                                         shape: BoxShape.rectangle,
                                         borderRadius: BorderRadius.circular(10),
                                         image: DecorationImage(
-                                          image: matchInfo.playerTwo.media !=
-                                                  null
+                                          image: matchInfo.playerTwo.media
+                                                      ?.fileName !=
+                                                  ''
                                               ? NetworkImage(
                                                       '${dotenv.env['MEDIA_URL']}${matchInfo.playerTwo.media?.fileName}')
                                                   as ImageProvider<Object>
