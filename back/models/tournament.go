@@ -62,20 +62,21 @@ type Tournament struct {
 }
 
 type TournamentRead struct {
-	ID                uint               `json:"id"`
-	Name              string             `json:"name"`
-	Description       string             `json:"description"`
-	Location          string             `json:"location"`
-	Organizer         UserReadTournament `json:",omitempty"`
-	Game              GameReadTournament `json:"game"`
-	StartDate         time.Time          `json:"start_date"`
-	EndDate           time.Time          `json:"end_date"`
-	Media             *Media             `json:"media, omitempty"`
-	MaxPlayers        int                `json:"max_players"`
-	PlayersRegistered int                `json:"players_registered"`
-	Status            string             `json:"status"`
-	Longitude         float64            `json:"longitude"`
-	Latitude          float64            `json:"latitude"`
+	ID                uint                 `json:"id"`
+	Name              string               `json:"name"`
+	Description       string               `json:"description"`
+	Location          string               `json:"location"`
+	Organizer         UserReadTournament   `json:",omitempty"`
+	Game              GameReadTournament   `json:"game"`
+	StartDate         time.Time            `json:"start_date"`
+	EndDate           time.Time            `json:"end_date"`
+	Media             *Media               `json:"media, omitempty"`
+	MaxPlayers        int                  `json:"max_players"`
+	PlayersRegistered int                  `json:"players_registered"`
+	Status            string               `json:"status"`
+	Longitude         float64              `json:"longitude"`
+	Latitude          float64              `json:"latitude"`
+	Players           []UserReadTournament `json:"players"`
 }
 
 type NewTournamentPayload struct {
@@ -127,6 +128,26 @@ func (t Tournament) ToRead() TournamentRead {
 		obj.Media = &Media{FileName: t.MediaModel.Media.FileName, FileExtension: t.MediaModel.Media.FileExtension, BaseModel: BaseModel{
 			ID: t.MediaModel.Media.GetID(),
 		}}
+	}
+
+	// add players registered
+
+	if t.Users != nil && len(t.Users) > 0 {
+		players := make([]UserReadTournament, len(t.Users))
+
+		for i, player := range t.Users {
+			players[i] = UserReadTournament{
+				ID:    player.ID,
+				Name:  player.Username,
+				Email: player.Email,
+			}
+
+			if player.MediaModel.Media != nil {
+				players[i].Media = player.MediaModel.Media
+			}
+		}
+
+		obj.Players = players
 	}
 
 	return obj

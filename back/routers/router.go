@@ -44,14 +44,6 @@ func SetupRouter(db *gorm.DB) *gin.Engine {
 	protectedRoutes.GET("/tournaments/rankings", tournamentHandler.GetTournamentRankings)
 	protectedRoutes.GET("/tournaments", tournamentHandler.GetTournaments)
 
-	protectedRoutes.GET(("/games"), gameHandler.GetAllGames)
-	protectedRoutes.GET(("/games/:userID/rankings"), gameHandler.GetUserGameRankings)
-
-	protectedRoutes.GET("/matchs/between-users", matchHandler.GetMatchesBetweenUsers)
-
-	protectedRoutes.GET(("/matchs"), matchHandler.GetAllMatchs)
-	protectedRoutes.GET(("/matchs/:id"), matchHandler.GetMatch)
-
 	protectedRoutes.GET("/tags", tagHandler.GetAllTags)
 
 	protectedRoutes.GET("/guilds", guildHandler.GetAllGuilds)
@@ -67,11 +59,11 @@ func SetupRouter(db *gorm.DB) *gin.Engine {
 		publicRoutes.POST("/images", uploadFileHandler.UploadImage)
 
 		protectedRoutes.POST("/users", permissions.PermissionMiddleware(permissions.PermissionCreateUser), userHandler.PostUser)
-		protectedRoutes.PUT("/users/:id", userHandler.UpdateUser)
-		protectedRoutes.DELETE("/users/:id", middlewares.OwnerMiddleware("user", &models.User{}), permissions.PermissionMiddleware(permissions.PermissionDeleteUser), userHandler.DeleteUser)
-		protectedRoutes.POST("/users/:id/upload/picture", middlewares.OwnerMiddleware("user", &models.User{}), permissions.PermissionMiddleware(permissions.PermissionUpdateUser), userHandler.UploadPicture)
+		protectedRoutes.PUT("/users/:id", middlewares.OwnerMiddleware("user", models.User{}), permissions.PermissionMiddleware(permissions.PermissionUpdateUser), userHandler.UpdateUser)
+		protectedRoutes.DELETE("/users/:id", middlewares.OwnerMiddleware("user", models.User{}), permissions.PermissionMiddleware(permissions.PermissionDeleteUser), userHandler.DeleteUser)
+		protectedRoutes.POST("/users/:id/upload/picture", middlewares.OwnerMiddleware("user", models.User{}), permissions.PermissionMiddleware(permissions.PermissionUpdateUser), userHandler.UploadPicture)
 
-		protectedRoutes.POST("/tournaments", tournamentHandler.CreateTournament)
+		protectedRoutes.POST("/tournaments", permissions.PermissionMiddleware(permissions.PermissionCreateTournament), tournamentHandler.CreateTournament)
 
 		protectedRoutes.POST("/tournaments/:id/start", tournamentHandler.StartTournament)
 		protectedRoutes.POST("/tournaments/:id/register/:userID", tournamentHandler.RegisterUser)
@@ -79,9 +71,12 @@ func SetupRouter(db *gorm.DB) *gin.Engine {
 		protectedRoutes.GET("/tournaments/:id/matches", tournamentHandler.GetTournamentMatches)
 
 		//protectedRoutes.POST("/matches/:id/finish", tournamentHandler.FinishMatch)
-		protectedRoutes.POST("/matches/update/score", matchHandler.UpdateScore)
+		protectedRoutes.POST("/matches/update/score", permissions.PermissionMiddleware(permissions.PermissionUpdateMatch), matchHandler.UpdateScore)
 
+		protectedRoutes.PUT("/matchs/:id", permissions.PermissionMiddleware(permissions.PermissionUpdateMatch), matchHandler.UpdateMatch)
 		protectedRoutes.GET("/matchs/between-users", matchHandler.GetMatchesBetweenUsers)
+		protectedRoutes.GET(("/matchs"), matchHandler.GetAllMatchs)
+		protectedRoutes.GET(("/matchs/:id"), matchHandler.GetMatch)
 
 		protectedRoutes.GET(("/games"), gameHandler.GetAllGames)
 		protectedRoutes.GET(("/games/user/:userID/rankings"), gameHandler.GetUserGameRankings)
@@ -90,15 +85,15 @@ func SetupRouter(db *gorm.DB) *gin.Engine {
 		protectedRoutes.DELETE("/games/:id", gameHandler.DeleteGame)
 		protectedRoutes.GET("/games/:id", gameHandler.GetGameByID)
 
-		protectedRoutes.PUT(("/matchs/:id"), matchHandler.UpdateMatch)
+		protectedRoutes.POST("/tags", permissions.PermissionMiddleware(permissions.PermissionCreateTag), tagHandler.CreateTag)
+		protectedRoutes.PUT("/tags/:id", permissions.PermissionMiddleware(permissions.PermissionUpdateTag), tagHandler.UpdateTag)
+		protectedRoutes.DELETE("/tags/:id", permissions.PermissionMiddleware(permissions.PermissionDeleteTags), tagHandler.DeleteTag)
 
-		protectedRoutes.POST("/tags", tagHandler.CreateTag)
-
-		protectedRoutes.POST("/guilds", guildHandler.CreateGuild)
-		protectedRoutes.PUT("/guilds/:id", guildHandler.UpdateGuild)
-		protectedRoutes.DELETE("/guilds/:id", guildHandler.DeleteGuild)
-		protectedRoutes.DELETE("/guilds/:id/users/:userID", guildHandler.RemoveUserFromGuild)
-		protectedRoutes.POST("/guilds/:id/users/:userID", guildHandler.AddUserToGuild)
+		protectedRoutes.POST("/guilds", permissions.PermissionMiddleware(permissions.PermissionCreateGuild), guildHandler.CreateGuild)
+		protectedRoutes.PUT("/guilds/:id", permissions.PermissionMiddleware(permissions.PermissionUpdateGuild), guildHandler.UpdateGuild)
+		protectedRoutes.DELETE("/guilds/:id", permissions.PermissionMiddleware(permissions.PermissionDeleteGuild), guildHandler.DeleteGuild)
+		protectedRoutes.DELETE("/guilds/:id/users/:userID", permissions.PermissionMiddleware(permissions.PermissionUpdateGuild), guildHandler.RemoveUserFromGuild)
+		protectedRoutes.POST("/guilds/:id/users/:userID", permissions.PermissionMiddleware(permissions.PermissionUpdateGuild), guildHandler.AddUserToGuild)
 		//protectedRoutes.DELETE("/guilds/:id/users/:userID", guildHandler.RemoveUserFromGuild)
 
 	}

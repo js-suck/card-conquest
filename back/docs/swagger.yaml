@@ -222,7 +222,7 @@ definitions:
         type: array
       id:
         type: integer
-      name:
+      label:
         type: string
       tournaments:
         items:
@@ -231,7 +231,7 @@ definitions:
       updated_at:
         type: string
     required:
-    - name
+    - label
     type: object
   models.Tournament:
     properties:
@@ -514,7 +514,151 @@ paths:
       summary: Get all games
       tags:
       - Game
-  /games/{UserID}/rankings:
+    post:
+      consumes:
+      - application/json
+      description: Create a new game
+      parameters:
+      - description: Game object
+        in: body
+        name: game
+        required: true
+        schema:
+          $ref: '#/definitions/models.Game'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Game'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create a new game
+      tags:
+      - Game
+  /games/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a game
+      parameters:
+      - description: Game ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete a game
+      tags:
+      - Game
+    get:
+      consumes:
+      - application/json
+      description: Get a game by ID
+      parameters:
+      - description: Game ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - default: Bearer <Add access token here>
+        description: Insert your access token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Game'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get a game by ID
+      tags:
+      - Game
+    put:
+      consumes:
+      - application/json
+      description: Update an existing game
+      parameters:
+      - description: Game ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Game object
+        in: body
+        name: game
+        required: true
+        schema:
+          $ref: '#/definitions/models.Game'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Game'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update an existing game
+      tags:
+      - Game
+  /games/user/{UserID}/rankings:
     get:
       consumes:
       - application/json
@@ -1201,6 +1345,75 @@ paths:
       security:
       - BearerAuth: []
       summary: Create a tag
+      tags:
+      - Tag
+  /tags/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a tag
+      parameters:
+      - description: Tag ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - default: Bearer <Add access token here>
+        description: Insert your access token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete a tag
+      tags:
+      - Tag
+    put:
+      consumes:
+      - application/json
+      description: Update a tag
+      parameters:
+      - description: Tag ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Tag object that needs to be updated
+        in: body
+        name: tag
+        required: true
+        schema:
+          $ref: '#/definitions/models.Tag'
+      - default: Bearer <Add access token here>
+        description: Insert your access token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Tag'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update a tag
       tags:
       - Tag
   /tournaments:
