@@ -247,8 +247,12 @@ definitions:
         type: integer
       id:
         type: integer
+      latitude:
+        type: number
       location:
         type: string
+      longitude:
+        type: number
       maxPlayers:
         example: 32
         type: integer
@@ -390,6 +394,8 @@ definitions:
         type: string
       id:
         type: integer
+      media:
+        $ref: '#/definitions/models.Media'
       username:
         type: string
     type: object
@@ -401,6 +407,8 @@ definitions:
         type: integer
       media:
         $ref: '#/definitions/models.Media'
+      score:
+        type: integer
       username:
         type: string
     type: object
@@ -414,6 +422,8 @@ definitions:
         type: array
       id:
         type: integer
+      media:
+        $ref: '#/definitions/models.Media'
       rank:
         type: integer
       totalLosses:
@@ -809,6 +819,49 @@ paths:
       summary: Add a user to a guild
       tags:
       - Guild
+  /guilds/user/{userId}:
+    get:
+      consumes:
+      - application/json
+      description: Get guilds by user ID
+      parameters:
+      - description: User ID
+        in: path
+        name: userId
+        required: true
+        type: integer
+      - default: Bearer <Add access token here>
+        description: Insert your access token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.GuildRead'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get guilds by user ID
+      tags:
+      - Guild
   /images:
     post:
       consumes:
@@ -998,6 +1051,10 @@ paths:
         name: PlayerID2
         required: true
         type: integer
+      - description: Search by Status
+        in: query
+        name: Status
+        type: string
       produces:
       - application/json
       responses:
@@ -1160,6 +1217,10 @@ paths:
         in: query
         name: UserID
         type: integer
+      - description: Search by gameID
+        in: query
+        name: GameID
+        type: integer
       - description: Search by name
         in: query
         name: Name
@@ -1193,45 +1254,48 @@ paths:
       description: Create a new tournament
       parameters:
       - description: Tournament name
-        example: s
+        example: '"My Tournament"'
         in: formData
         name: name
         required: true
         type: string
       - description: Tournament description
-        example: s
+        example: '"Description of my tournament"'
         in: formData
         name: description
         required: true
         type: string
       - description: Tournament start date
-        example: s
+        example: '"2024-04-12T00:00:00Z"'
         in: formData
         name: start_date
         required: true
         type: string
       - description: Tournament end date
-        example: s
+        example: '"2024-04-15T00:00:00Z"'
         in: formData
         name: end_date
         required: true
         type: string
       - description: Organizer ID
+        example: 1
         in: formData
         name: organizer_id
         required: true
         type: integer
       - description: Game ID
+        example: 1
         in: formData
         name: game_id
         required: true
         type: integer
       - description: Number of rounds
+        example: 3
         in: formData
         name: rounds
         required: true
         type: integer
-      - collectionFormat: csv
+      - collectionFormat: multi
         description: Array of tag IDs
         in: formData
         items:
@@ -1245,16 +1309,29 @@ paths:
         required: true
         type: file
       - description: Location
-        example: s
+        example: '"New York"'
         in: formData
         name: location
         required: true
         type: string
       - description: Maximum number of players
+        example: 32
         in: formData
         name: max_players
         required: true
         type: integer
+      - description: Longitude
+        example: 40.7128
+        in: formData
+        name: longitude
+        required: true
+        type: number
+      - description: Latitude
+        example: 74.006
+        in: formData
+        name: latitude
+        required: true
+        type: number
       - default: Bearer <Add access token here>
         description: Insert your access token
         in: header
@@ -1270,8 +1347,12 @@ paths:
             $ref: '#/definitions/models.Tournament'
         "400":
           description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
         "500":
           description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Create a new tournament

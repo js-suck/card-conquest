@@ -15,6 +15,7 @@ type UserReadTournament struct {
 	ID    uint   `gorm:"primarykey" json:",omitempty"`
 	Name  string `json:"username"`
 	Email string `json:"email"`
+	Media *Media `json:"media"`
 }
 
 type GameReadTournament struct {
@@ -23,17 +24,19 @@ type GameReadTournament struct {
 }
 
 type CreateTournamentPayload struct {
-	Name        string `form:"name" json:"name" validate:"required"`
-	Description string `form:"description" json:"description" validate:"required"`
-	Location    string `form:"location" json:"location"`
-	UserID      uint   `form:"organizer_id" json:"organizer_id"`
-	GameID      uint   `form:"game_id" json:"game_id" validate:"required"`
-	StartDate   string `form:"start_date" json:"start_date" validate:"required"`
-	EndDate     string `form:"end_date" json:"end_date" validate:"required"`
-	Rounds      int    `form:"rounds" json:"rounds" validate:"required"`
-	TagsIDs     []uint `form:"tags_ids" json:"tags_ids" validate:"required"`
-	Image       []byte `gorm:"type:longblob" json:"-"`
-	MaxPlayers  int    `form:"max_players" json:"max_players" validate:"required"`
+	Name        string  `form:"name" json:"name" validate:"required"`
+	Description string  `form:"description" json:"description" validate:"required"`
+	Location    string  `form:"location" json:"location"`
+	UserID      uint    `form:"organizer_id" json:"organizer_id"`
+	GameID      uint    `form:"game_id" json:"game_id" validate:"required"`
+	StartDate   string  `form:"start_date" json:"start_date" validate:"required"`
+	EndDate     string  `form:"end_date" json:"end_date" validate:"required"`
+	Rounds      int     `form:"rounds" json:"rounds" validate:"required"`
+	TagsIDs     []uint  `form:"tags_ids" json:"tags_ids" validate:"required"`
+	Image       []byte  `gorm:"type:longblob" json:"-"`
+	MaxPlayers  int     `form:"max_players" json:"max_players" validate:"required"`
+	Longitude   float64 `form:"longitude" json:"longitude"`
+	Latitude    float64 `form:"latitude" json:"latitude"`
 }
 
 type Tournament struct {
@@ -54,6 +57,8 @@ type Tournament struct {
 	Rounds      int              `json:"rounds" validate:"required"`
 	MaxPlayers  int              `json:"maxPlayers" validate:"required" example:"32"`
 	Steps       []TournamentStep `json:"tournament_steps" gorm:"foreignKey:TournamentID"`
+	Longitude   float64          `json:"longitude"`
+	Latitude    float64          `json:"latitude"`
 }
 
 type TournamentRead struct {
@@ -69,6 +74,8 @@ type TournamentRead struct {
 	MaxPlayers        int                `json:"max_players"`
 	PlayersRegistered int                `json:"players_registered"`
 	Status            string             `json:"status"`
+	Longitude         float64            `json:"longitude"`
+	Latitude          float64            `json:"latitude"`
 }
 
 type NewTournamentPayload struct {
@@ -112,6 +119,8 @@ func (t Tournament) ToRead() TournamentRead {
 		MaxPlayers:        t.MaxPlayers,
 		PlayersRegistered: len(t.Users),
 		Status:            t.Status,
+		Longitude:         t.Longitude,
+		Latitude:          t.Latitude,
 	}
 
 	if t.MediaModel.Media != nil {

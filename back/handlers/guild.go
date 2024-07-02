@@ -2,9 +2,12 @@ package handlers
 
 import (
 	"authentication-api/errors"
+	"authentication-api/firebase"
 	"authentication-api/models"
 	"authentication-api/services"
+	"fmt"
 	"github.com/gin-gonic/gin"
+	"log"
 	"net/http"
 	"strconv"
 )
@@ -71,7 +74,7 @@ func (h *GuildHandler) GetGuild(c *gin.Context) {
 	}
 
 	guild := models.Guild{}
-	errGet := h.GuildService.Get(&guild, uint(idInt))
+	errGet := h.GuildService.Get(&guild, uint(idInt), "Players", "Media", "Players.Media")
 	if errGet != nil {
 		c.JSON(errGet.Code(), errGet)
 		return
@@ -95,6 +98,7 @@ func (h *GuildHandler) GetGuild(c *gin.Context) {
 // @Router /guilds [post]
 func (h *GuildHandler) CreateGuild(c *gin.Context) {
 	var guild models.Guild
+	userId, _ := c.Get("user_id")
 
 	if err := c.ShouldBindJSON(&guild); err != nil {
 		c.JSON(http.StatusBadRequest, errors.NewBadRequestError("Invalid data", err).ToGinH())
@@ -102,7 +106,10 @@ func (h *GuildHandler) CreateGuild(c *gin.Context) {
 	}
 
 	err := h.GuildService.Create(&guild)
-	if err != nil {
+
+	errAdd := h.GuildService.AddAdminToTheGuild(guild.ID, uint(userId.(float64)))
+
+	if errAdd != nil {
 		c.JSON(err.Code(), err)
 		return
 	}
@@ -214,6 +221,29 @@ func (h *GuildHandler) AddUserToGuild(c *gin.Context) {
 		return
 	}
 
+	admin := models.User{}
+	userService := services.NewUserService(h.GuildService.Db)
+	errGet := userService.Get(&admin, uint(userID))
+
+	if errGet != nil {
+		c.JSON(errGet.Code(), errGet)
+		return
+	}
+
+	firebaseClient, errF := firebase.NewFirebaseClient("./firebase/privateKey.json")
+	if errF != nil {
+		log.Fatalf("Failed to initialize Firebase: %v", errF)
+	}
+
+	token := admin.FCMToken
+	title := "New player joined your guild"
+	body := "A new player has joined your guild"
+	response, err := firebaseClient.SendNotification(token, title, body)
+	if err != nil {
+		log.Fatalf("Failed to send notification: %v", err)
+	}
+	fmt.Printf("Successfully sent notification: %s\n", response)
+
 	c.Status(http.StatusOK)
 }
 
@@ -253,4 +283,41 @@ func (h *GuildHandler) RemoveUserFromGuild(c *gin.Context) {
 	}
 
 	c.Status(http.StatusNoContent)
+}
+
+// GetGuildsByUserId godoc
+// @Summary Get guilds by user ID
+// @Description Get guilds by user ID
+// @Tags Guild
+// @Accept json
+// @Produce json
+// @Param userId path int true "User ID"
+// @Success 200 {array} models.GuildRead
+// @Failure 400 {object} errors.ErrorResponse
+// @Failure 404 {object} errors.ErrorResponse
+// @Failure 500 {object} errors.ErrorResponse
+// @Security BearerAuth
+// @Param Authorization header string true "Insert your access token" default(Bearer <Add access token here>)
+// @Router /guilds/user/{userId} [get]
+func (h *GuildHandler) GetGuildsByUserId(c *gin.Context) {
+	userIdStr := c.Param("userId")
+	userId, err := strconv.Atoi(userIdStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, errors.NewBadRequestError("Invalid user ID", err).ToGinH())
+		return
+	}
+
+	var guilds []models.Guild
+	errG := h.GuildService.GetGuildsByUserId(uint(userId), &guilds)
+	if errG != nil {
+		c.JSON(errG.Code(), err)
+		return
+	}
+
+	readableGuilds := make([]models.GuildRead, len(guilds))
+	for i, guild := range guilds {
+		readableGuilds[i] = guild.ToRead()
+	}
+
+	c.JSON(http.StatusOK, readableGuilds)
 }

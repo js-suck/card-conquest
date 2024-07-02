@@ -278,6 +278,72 @@ const docTemplate = `{
                 }
             }
         },
+        "/guilds/user/{userId}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get guilds by user ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Guild"
+                ],
+                "summary": "Get guilds by user ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "User ID",
+                        "name": "userId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "default": "Bearer \u003cAdd access token here\u003e",
+                        "description": "Insert your access token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.GuildRead"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/errors.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/errors.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/errors.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/guilds/{id}": {
             "get": {
                 "security": [
@@ -775,6 +841,12 @@ const docTemplate = `{
                         "name": "PlayerID2",
                         "in": "query",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search by Status",
+                        "name": "Status",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -1136,6 +1208,12 @@ const docTemplate = `{
                         "in": "query"
                     },
                     {
+                        "type": "integer",
+                        "description": "Search by gameID",
+                        "name": "GameID",
+                        "in": "query"
+                    },
+                    {
                         "type": "string",
                         "description": "Search by name",
                         "name": "Name",
@@ -1185,7 +1263,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "example": "s",
+                        "example": "\"My Tournament\"",
                         "description": "Tournament name",
                         "name": "name",
                         "in": "formData",
@@ -1193,7 +1271,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "example": "s",
+                        "example": "\"Description of my tournament\"",
                         "description": "Tournament description",
                         "name": "description",
                         "in": "formData",
@@ -1201,7 +1279,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "example": "s",
+                        "example": "\"2024-04-12T00:00:00Z\"",
                         "description": "Tournament start date",
                         "name": "start_date",
                         "in": "formData",
@@ -1209,7 +1287,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "example": "s",
+                        "example": "\"2024-04-15T00:00:00Z\"",
                         "description": "Tournament end date",
                         "name": "end_date",
                         "in": "formData",
@@ -1217,6 +1295,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "example": 1,
                         "description": "Organizer ID",
                         "name": "organizer_id",
                         "in": "formData",
@@ -1224,6 +1303,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "example": 1,
                         "description": "Game ID",
                         "name": "game_id",
                         "in": "formData",
@@ -1231,6 +1311,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "example": 3,
                         "description": "Number of rounds",
                         "name": "rounds",
                         "in": "formData",
@@ -1241,7 +1322,7 @@ const docTemplate = `{
                         "items": {
                             "type": "integer"
                         },
-                        "collectionFormat": "csv",
+                        "collectionFormat": "multi",
                         "description": "Array of tag IDs",
                         "name": "tagsIDs[]",
                         "in": "formData",
@@ -1256,7 +1337,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "example": "s",
+                        "example": "\"New York\"",
                         "description": "Location",
                         "name": "location",
                         "in": "formData",
@@ -1264,8 +1345,25 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "example": 32,
                         "description": "Maximum number of players",
                         "name": "max_players",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "number",
+                        "example": 40.7128,
+                        "description": "Longitude",
+                        "name": "longitude",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "number",
+                        "example": 74.006,
+                        "description": "Latitude",
+                        "name": "latitude",
                         "in": "formData",
                         "required": true
                     },
@@ -1286,10 +1384,16 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Bad Request"
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/errors.ErrorResponse"
+                        }
                     },
                     "500": {
-                        "description": "Internal Server Error"
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/errors.ErrorResponse"
+                        }
                     }
                 }
             }
@@ -2507,8 +2611,14 @@ const docTemplate = `{
                 "id": {
                     "type": "integer"
                 },
+                "latitude": {
+                    "type": "number"
+                },
                 "location": {
                     "type": "string"
+                },
+                "longitude": {
+                    "type": "number"
                 },
                 "maxPlayers": {
                     "type": "integer",
@@ -2711,6 +2821,9 @@ const docTemplate = `{
                 "id": {
                     "type": "integer"
                 },
+                "media": {
+                    "$ref": "#/definitions/models.Media"
+                },
                 "username": {
                     "type": "string"
                 }
@@ -2727,6 +2840,9 @@ const docTemplate = `{
                 },
                 "media": {
                     "$ref": "#/definitions/models.Media"
+                },
+                "score": {
+                    "type": "integer"
                 },
                 "username": {
                     "type": "string"
@@ -2747,6 +2863,9 @@ const docTemplate = `{
                 },
                 "id": {
                     "type": "integer"
+                },
+                "media": {
+                    "$ref": "#/definitions/models.Media"
                 },
                 "rank": {
                     "type": "integer"
