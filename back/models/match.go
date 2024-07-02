@@ -7,7 +7,7 @@ import (
 type Match struct {
 	BaseModel        ``
 	TournamentID     uint
-	Tournament       Tournament `gorm:"foreignKey:TournamentID"`
+	Tournament       Tournament `gorm:"foreignKey:TournamentID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 	PlayerOneID      uint       `gorm:"column:player_one_id"`
 	PlayerOne        User       `gorm:"foreignKey:PlayerOneID"`
 	PlayerTwoID      *uint      `gorm:"column:player_two_id"`
@@ -19,7 +19,7 @@ type Match struct {
 	Winner           User    `gorm:"foreignKey:WinnerID"`
 	Scores           []Score `gorm:"foreignKey:MatchID"`
 	TournamentStepID uint
-	TournamentStep   TournamentStep `gorm:"foreignKey:TournamentStepID"`
+	TournamentStep   TournamentStep `gorm:"foreignKey:TournamentStepID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 	MatchPosition    int            `gorm:"default:0"`
 	Location         string
 }

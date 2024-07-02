@@ -53,6 +53,7 @@ func SetupRouter(db *gorm.DB) *gin.Engine {
 	protectedRoutes.GET("/guilds/user/:userId", guildHandler.GetGuildsByUserId)
 
 	protectedRoutes.GET("/tournaments/:id", tournamentHandler.GetTournament)
+	protectedRoutes.GET("/tournaments/:id/matches", tournamentHandler.GetTournamentMatches)
 
 	protectedRoutes.Use(middlewares.AuthenticationMiddleware())
 	{
@@ -64,11 +65,12 @@ func SetupRouter(db *gorm.DB) *gin.Engine {
 		protectedRoutes.POST("/users/:id/upload/picture", middlewares.OwnerMiddleware("user", models.User{}), permissions.PermissionMiddleware(permissions.PermissionUpdateUser), userHandler.UploadPicture)
 
 		protectedRoutes.POST("/tournaments", permissions.PermissionMiddleware(permissions.PermissionCreateTournament), tournamentHandler.CreateTournament)
+		protectedRoutes.PUT("/tournaments/:id", permissions.PermissionMiddleware(permissions.PermissionUpdateTournament), tournamentHandler.UpdateTournament)
+		protectedRoutes.DELETE("/tournaments/:id", permissions.PermissionMiddleware(permissions.PermissionDeleteTournament), tournamentHandler.DeleteTournament)
 
 		protectedRoutes.POST("/tournaments/:id/start", tournamentHandler.StartTournament)
 		protectedRoutes.POST("/tournaments/:id/register/:userID", tournamentHandler.RegisterUser)
 		protectedRoutes.POST("/tournaments/:id/generate-matches", tournamentHandler.GenerateMatches)
-		protectedRoutes.GET("/tournaments/:id/matches", tournamentHandler.GetTournamentMatches)
 
 		//protectedRoutes.POST("/matches/:id/finish", tournamentHandler.FinishMatch)
 		protectedRoutes.POST("/matches/update/score", permissions.PermissionMiddleware(permissions.PermissionUpdateMatch), matchHandler.UpdateScore)
