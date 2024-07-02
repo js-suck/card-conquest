@@ -1,33 +1,8 @@
-import 'dart:convert';
-import 'dart:io';
-
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:front/extension/theme_extension.dart';
-import 'package:http/http.dart' as http;
 
-import '../../models/stat/stat.dart';
+import '../../service/stat_service.dart';
 import '../../utils/custom_future_builder.dart';
-
-Future<Stat> fetchStats(playerId) async {
-  final storage = new FlutterSecureStorage();
-  String? token = await storage.read(key: 'jwt_token');
-
-  final response = await http.get(
-    Uri.parse('${dotenv.env['API_URL']}users/$playerId/stats'),
-    headers: {
-      HttpHeaders.authorizationHeader: '$token',
-    },
-  );
-
-  if (response.statusCode != 200) {
-    throw Exception('Failed to load stats');
-  }
-
-  final responseJson = jsonDecode(response.body);
-  return Stat.fromJson(responseJson);
-}
 
 class StatsWidget extends StatefulWidget {
   const StatsWidget({super.key, required this.playerId});
@@ -39,17 +14,29 @@ class StatsWidget extends StatefulWidget {
 }
 
 class _StatsWidgetState extends State<StatsWidget> {
+  late StatService statService;
+
   @override
   void initState() {
     super.initState();
-    fetchStats(widget.playerId);
+    statService = StatService();
+    statService.fetchStats(widget.playerId);
   }
 
   @override
   Widget build(BuildContext context) {
     return CustomFutureBuilder(
-      future: fetchStats(widget.playerId),
+      future: statService.fetchStats(widget.playerId),
+      onError: (error) {
+        return Center(
+            child: Text(error,
+                style: TextStyle(color: context.themeColors.fontColor)));
+      },
       onLoaded: (playerStats) {
+        final playerRatio = playerStats.totalMatches > 0
+            ? ((playerStats.totalWins / playerStats.totalMatches) * 100)
+                .toStringAsFixed(2)
+            : '0';
         return Column(
           children: [
             const SizedBox(
@@ -128,8 +115,7 @@ class _StatsWidgetState extends State<StatsWidget> {
                 ),
                 Expanded(
                   flex: 3,
-                  child: Text(
-                      'Ratio : ${((playerStats.totalWins / playerStats.totalMatches) * 100).toStringAsFixed(2)}%'),
+                  child: Text('Ratio : $playerRatio%'),
                 ),
                 Expanded(
                   flex: 2,

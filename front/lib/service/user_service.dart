@@ -1,7 +1,9 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:front/models/stat/ranking.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -42,6 +44,23 @@ class UserService {
     } catch (error) {
       throw Exception(error);
     }
+  }
+
+  Future<List<Ranking>> fetchRanking() async {
+    String? token = await storage.read(key: 'jwt_token');
+
+    final response = await http.get(
+      Uri.parse('${dotenv.env['API_URL']}users/ranks'),
+      headers: {
+        HttpHeaders.authorizationHeader: '$token',
+      },
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to load recent tournaments');
+    }
+    final List<dynamic> responseJson = jsonDecode(response.body);
+    return responseJson.map((json) => Ranking.fromJson(json)).toList();
   }
 
   Future<User?> fetchUserBis(int userId) async {

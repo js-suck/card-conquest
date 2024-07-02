@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:front/pages/games_screen.dart';
 import 'package:front/pages/home_user_screen.dart';
-import 'package:front/pages/tournaments_screen.dart';
+import 'package:front/pages/scoreboard_screen.dart';
 import 'package:front/pages/tournament_history_screen.dart';
+import 'package:front/pages/tournaments_screen.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:provider/provider.dart';
 
@@ -19,8 +20,9 @@ class _BottomBarState extends State<BottomBar> {
   final List<Widget> _pages = [
     const HomeUserPage(),
     const TournamentsPage(searchQuery: null,),
+    const ScoreboardPage(),
     const GamesPage(),
-  const TournamentHistoryPage(),
+    const TournamentHistoryPage(),
   ];
 
   void _onItemTapped(int index) {
@@ -53,6 +55,10 @@ class _BottomBarState extends State<BottomBar> {
             label: 'Tournois',
           ),
           const BottomNavigationBarItem(
+            icon: Icon(Icons.leaderboard),
+            label: 'Classement',
+          ),
+          const BottomNavigationBarItem(
             icon: Icon(Icons.videogame_asset_rounded),
             label: 'Jeux',
           ),
@@ -73,6 +79,7 @@ class SelectedPageModel extends ChangeNotifier {
   int _selectedIndex = 0;
 
   Widget get selectedPage => _selectedPage;
+
   int get selectedIndex => _selectedIndex;
 
   void changePage(Widget page, int index) {
