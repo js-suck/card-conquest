@@ -40,8 +40,8 @@ type User struct {
 	GlobalScore       int           `gorm:"default:0" json:"global_score"`
 	VerificationToken string        `gorm:"type:varchar(255);default:null" json:"-"`
 	IsVerified        bool          `gorm:"default:false" json:"is_verified"`
-	Tournaments       []*Tournament `gorm:"many2many:user_tournaments;"`
-	Matches           []Match       `gorm:"foreignKey:PlayerOneID;references:ID"`
+	Tournaments       []*Tournament `gorm:"many2many:user_tournaments;constraint:OnDelete:CASCADE;"`
+	Matches           []Match       `gorm:"foreignKey:PlayerOneID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 	GamesScores       []GameScore   `gorm:"foreignKey:UserID;references:ID"`
 	Guilds            []Guild       `gorm:"many2many:guild_players;"`
 	FCMToken          string        `gorm:"type:varchar(255);default:null" json:"fcm_token"; default:null`

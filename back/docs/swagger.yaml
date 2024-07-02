@@ -1572,6 +1572,40 @@ paths:
       tags:
       - tournament
   /tournaments/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a tournament
+      parameters:
+      - description: Tournament ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - default: Bearer <Add access token here>
+        description: Insert your access token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete a tournament
+      tags:
+      - tournament
     get:
       consumes:
       - application/json
@@ -1606,6 +1640,108 @@ paths:
       security:
       - BearerAuth: []
       summary: Get a tournament
+      tags:
+      - tournament
+    put:
+      consumes:
+      - application/json
+      description: Update a tournament
+      parameters:
+      - description: Tournament ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Tournament name
+        example: '"My Tournament"'
+        in: formData
+        name: name
+        type: string
+      - description: Tournament description
+        example: '"Description of my tournament"'
+        in: formData
+        name: description
+        type: string
+      - description: Tournament start date
+        example: '"2024-04-12T00:00:00Z"'
+        in: formData
+        name: start_date
+        type: string
+      - description: Tournament end date
+        example: '"2024-04-15T00:00:00Z"'
+        in: formData
+        name: end_date
+        type: string
+      - description: Organizer ID
+        example: 1
+        in: formData
+        name: organizer_id
+        type: integer
+      - description: Game ID
+        example: 1
+        in: formData
+        name: game_id
+        type: integer
+      - description: Number of rounds
+        example: 3
+        in: formData
+        name: rounds
+        type: integer
+      - collectionFormat: multi
+        description: Array of tag IDs
+        in: formData
+        items:
+          type: integer
+        name: tagsIDs[]
+        type: array
+      - description: Image file
+        in: formData
+        name: image
+        type: file
+      - description: Location
+        example: '"New York"'
+        in: formData
+        name: location
+        type: string
+      - description: Maximum number of players
+        example: 32
+        in: formData
+        name: max_players
+        type: integer
+      - description: Longitude
+        example: 40.7128
+        in: formData
+        name: longitude
+        type: number
+      - description: Latitude
+        example: 74.006
+        in: formData
+        name: latitude
+        type: number
+      - default: Bearer <Add access token here>
+        description: Insert your access token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update a tournament
       tags:
       - tournament
   /tournaments/{id}/generate-matches:

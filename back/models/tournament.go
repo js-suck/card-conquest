@@ -42,21 +42,22 @@ type CreateTournamentPayload struct {
 type Tournament struct {
 	BaseModel
 	MediaModel
+	ID          uint             `json:"id"`
 	Name        string           `json:"name" validate:"required"`
 	Description string           `json:"description" validate:"required"`
 	Location    string           `json:"location"`
 	UserID      uint             `json:"organizer_id" `
-	User        *User            `gorm:"foreignKey:UserID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
+	User        *User            `gorm:"foreignKey:UserID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 	GameID      uint             `json:"game_id" validate:"required"`
-	Game        Game             `gorm:"foreignKey:GameID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
+	Game        Game             `gorm:"foreignKey:GameID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 	StartDate   string           `json:"start_date" validate:"required"`
 	EndDate     string           `json:"end_date" validate:"required"`
 	Status      string           `json:"status" gorm:"default:opened"`
-	Users       []*User          `gorm:"many2many:user_tournaments;"`
+	Users       []*User          `gorm:"many2many:user_tournaments;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 	Tags        []*Tag           `json:"tags" gorm:"many2many:tag_tournaments;"`
 	Rounds      int              `json:"rounds" validate:"required"`
 	MaxPlayers  int              `json:"maxPlayers" validate:"required" example:"32"`
-	Steps       []TournamentStep `json:"tournament_steps" gorm:"foreignKey:TournamentID"`
+	Steps       []TournamentStep `json:"tournament_steps" gorm:"foreignKey:TournamentID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 	Longitude   float64          `json:"longitude"`
 	Latitude    float64          `json:"latitude"`
 }
@@ -90,6 +91,22 @@ type NewTournamentPayload struct {
 	Rounds      int       `json:"rounds" validate:"required" example:"3"`
 	TagsIDs     []uint    `json:"tags_idss" validate:"required"`
 	MaxPlayers  int       `json:"max_players" validate:"required" example:"32"`
+}
+
+type UpdateTournamentPayload struct {
+	Name        string  `json:"name" example:"Tournament 1" form:"name"`
+	Description string  `json:"description" example:"Tournament 1 description" form:"description"`
+	Location    string  `json:"location" example:"New York" form:"location"`
+	UserID      uint    `json:"organizer_id" example:"1" form:"organizer_id"`
+	GameID      uint    `json:"game_id" example:"1" form:"game_id"`
+	StartDate   string  `json:"start_date" json:"start_date" form:"start_date"`
+	EndDate     string  `json:"end_date" json:"end_date" form:"end_date"`
+	Rounds      int     `json:"rounds" example:"3" form:"rounds"`
+	TagsIDs     []uint  `json:"tags_idss" form:"tags_ids"`
+	MaxPlayers  int     `json:"max_players" example:"32" form:"max_players"`
+	Longitude   float64 `json:"longitude" form:"longitude"`
+	Latitude    float64 `json:"latitude" form:"latitude"`
+	Image       []byte  `gorm:"type:longblob" json:"-"`
 }
 
 func (t Tournament) GetTableName() string {
