@@ -28,25 +28,25 @@ func NewMatchService(db *gorm.DB) *MatchService {
 
 func (s MatchService) UpdateScore(matchId uint, score *models.Score, userId int) errors.IError {
 	match := models.Match{}
-	tournamentService := NewTournamentService(s.db)
+	tournamentService := NewTournamentService(s.Db)
 
-	if err := s.db.First(&match, matchId).Error; err != nil {
+	if err := s.Db.First(&match, matchId).Error; err != nil {
 		return errors.NewNotFoundError("Match not found", err)
 	}
 
 	var scores []models.Score
-	s.db.Model(&match).Association("Scores").Find(&scores, "player_id = ?", userId)
+	s.Db.Model(&match).Association("Scores").Find(&scores, "player_id = ?", userId)
 
 	if scores == nil || len(scores) == 0 {
 		score.MatchID = match.ID
 		score.PlayerID = uint(userId)
-		if err := s.db.Create(&score).Error; err != nil {
+		if err := s.Db.Create(&score).Error; err != nil {
 			return errors.NewInternalServerError("Failed to create score", err)
 		}
 	} else {
 		score.ID = scores[0].ID
 
-		if err := s.db.Save(&score).Error; err != nil {
+		if err := s.Db.Save(&score).Error; err != nil {
 			return errors.NewInternalServerError("Failed to update score", err)
 		}
 	}
@@ -54,26 +54,26 @@ func (s MatchService) UpdateScore(matchId uint, score *models.Score, userId int)
 	if score.Score == 2 {
 		match.WinnerID = &score.PlayerID
 		match.Status = "finished"
-		if err := s.db.Save(&match).Error; err != nil {
+		if err := s.Db.Save(&match).Error; err != nil {
 			return errors.NewInternalServerError("Failed to finish match", err)
 		}
 
 		// check if there is still matches in the current step that are not finished
 		var matches []models.Match
-		s.db.Find(&matches, "tournament_step_id = ? AND status != ?", match.TournamentStepID, "finished")
+		s.Db.Find(&matches, "tournament_step_id = ? AND status != ?", match.TournamentStepID, "finished")
 
 		// verify if there are more than one match in the current step
 		var matchCount int64
-		s.db.Model(&models.Match{}).Where("tournament_id = ? AND tournament_step_id = ?", match.TournamentID, match.TournamentStepID).Count(&matchCount)
+		s.Db.Model(&models.Match{}).Where("tournament_id = ? AND tournament_step_id = ?", match.TournamentID, match.TournamentStepID).Count(&matchCount)
 
 		if matchCount == 1 {
 			match.WinnerID = &score.PlayerID
 			match.Status = "finished"
-			s.db.Save(&match)
+			s.Db.Save(&match)
 			tournament := models.Tournament{}
-			s.db.First(&tournament, match.TournamentID)
+			s.Db.First(&tournament, match.TournamentID)
 			tournament.Status = "finished"
-			s.db.Save(&tournament)
+			s.Db.Save(&tournament)
 
 			go tournamentService.SendTournamentUpdatesForGRPC(match.TournamentID)
 			go s.SendMatchUpdatesForGRPC(match.ID)
@@ -101,13 +101,13 @@ func (s MatchService) GenerateFuturMatchesAndNewStep(tournamentId uint) errors.I
 
 	// get the last step
 	lastStep := models.TournamentStep{}
-	if err := s.db.Last(&lastStep, "tournament_id = ?", tournamentId).Error; err != nil {
+	if err := s.Db.Last(&lastStep, "tournament_id = ?", tournamentId).Error; err != nil {
 		return errors.NewNotFoundError("Step not found", err)
 	}
 
 	// get all matches in the last step
 	matches := []models.Match{}
-	if err := s.db.Find(&matches, "tournament_step_id = ?", lastStep.ID).Error; err != nil {
+	if err := s.Db.Find(&matches, "tournament_step_id = ?", lastStep.ID).Error; err != nil {
 		return errors.NewNotFoundError("Matches not found", err)
 	}
 
@@ -125,7 +125,7 @@ func (s MatchService) GenerateFuturMatchesAndNewStep(tournamentId uint) errors.I
 		Sequence:     lastStep.Sequence + 1,
 	}
 
-	if err := s.db.Create(&nextStep).Error; err != nil {
+	if err := s.Db.Create(&nextStep).Error; err != nil {
 		return errors.NewInternalServerError("Failed to create step", err)
 
 	}
@@ -134,7 +134,7 @@ func (s MatchService) GenerateFuturMatchesAndNewStep(tournamentId uint) errors.I
 	var sortedWinners []models.User
 	for winnerID := range lastMatchWinners {
 		winner := models.User{}
-		if err := s.db.First(&winner, winnerID).Error; err != nil {
+		if err := s.Db.First(&winner, winnerID).Error; err != nil {
 			return errors.NewNotFoundError("Winner not found", err)
 		}
 		sortedWinners = append(sortedWinners, winner)
@@ -154,7 +154,7 @@ func (s MatchService) GenerateFuturMatchesAndNewStep(tournamentId uint) errors.I
 				TournamentStepID: nextStep.ID,
 				MatchPosition:    int(matchPosition),
 			}
-			if err := s.db.Create(&match).Error; err != nil {
+			if err := s.Db.Create(&match).Error; err != nil {
 				return errors.NewInternalServerError("Failed to generate matches", err)
 			}
 		} else if i == len(sortedWinners)-1 { // If we have an odd number of winners
@@ -167,7 +167,7 @@ func (s MatchService) GenerateFuturMatchesAndNewStep(tournamentId uint) errors.I
 				WinnerID:         &sortedWinners[i].ID, // Declare the match winner
 				Status:           "finished",           // Mark the match as finished
 			}
-			if err := s.db.Create(&match).Error; err != nil {
+			if err := s.Db.Create(&match).Error; err != nil {
 				return errors.NewInternalServerError("Failed to generate matches", err)
 			}
 		}
@@ -179,28 +179,28 @@ func (s MatchService) GenerateFuturMatchesAndNewStep(tournamentId uint) errors.I
 
 func (s MatchService) GenerateMatches(tournamentId uint) errors.IError {
 	tournament := models.Tournament{}
-	if err := s.db.First(&tournament, tournamentId).Error; err != nil {
+	if err := s.Db.First(&tournament, tournamentId).Error; err != nil {
 		return errors.NewNotFoundError("Tournament not found", err)
 	}
 
 	// get all users in the tournament
 	var users []models.User
-	err := s.db.Model(&tournament).Association("Users").Find(&users)
+	err := s.Db.Model(&tournament).Association("Users").Find(&users)
 	if err != nil {
 		return errors.NewNotFoundError("Users not found", err)
 	}
 	// get all steps in the tournament
 	var steps []models.TournamentStep
-	s.db.Find(&steps, "tournament_id = ?", tournamentId)
+	s.Db.Find(&steps, "tournament_id = ?", tournamentId)
 	// get the last step
 	lastStep := steps[len(steps)-1]
 
 	// if the last step has less than two matches, finish the tournament
 	matches := []models.Match{}
-	s.db.Find(&matches, "tournament_step_id = ?", lastStep.ID)
+	s.Db.Find(&matches, "tournament_step_id = ?", lastStep.ID)
 	if len(matches) < 2 {
 		tournament.Status = "finished"
-		if err := s.db.Save(&tournament).Error; err != nil {
+		if err := s.Db.Save(&tournament).Error; err != nil {
 			return errors.NewInternalServerError("Failed to finish tournament", err)
 		}
 		return nil
@@ -219,7 +219,7 @@ func (s MatchService) GenerateMatches(tournamentId uint) errors.IError {
 			TournamentID: tournament.ID,
 			Sequence:     1,
 		}
-		if err := s.db.Create(&step).Error; err != nil {
+		if err := s.Db.Create(&step).Error; err != nil {
 			return errors.NewInternalServerError("Failed to create step", err)
 		}
 		return s.generateMatchesForStep(users, step.ID, tournament.ID)
@@ -230,14 +230,14 @@ func (s MatchService) GenerateMatches(tournamentId uint) errors.IError {
 		TournamentID: tournament.ID,
 		Sequence:     lastStep.Sequence + 1,
 	}
-	if err := s.db.Create(&nextStep).Error; err != nil {
+	if err := s.Db.Create(&nextStep).Error; err != nil {
 		return errors.NewInternalServerError("Failed to create step", err)
 	}
 
 	winners := []models.User{}
 	for _, match := range matches {
 		winner := models.User{}
-		if err := s.db.First(&winner, match.WinnerID).Error; err != nil {
+		if err := s.Db.First(&winner, match.WinnerID).Error; err != nil {
 			return errors.NewNotFoundError("Winner not found", err)
 		}
 		winners = append(winners, winner)
@@ -266,7 +266,7 @@ func (s MatchService) generateMatchesForStep(users []models.User, stepId uint, t
 			TournamentStepID: stepId,
 		}
 
-		if err := s.db.Create(&match).Error; err != nil {
+		if err := s.Db.Create(&match).Error; err != nil {
 			return errors.NewInternalServerError("Failed to generate matches", err)
 		}
 	}
@@ -275,14 +275,14 @@ func (s MatchService) generateMatchesForStep(users []models.User, stepId uint, t
 
 func (s MatchService) GetTournamentMatches(u uint) ([]models.Match, errors.IError) {
 	var matches []models.Match
-	if err := s.db.Find(&matches, "tournament_id = ?", u).Error; err != nil {
+	if err := s.Db.Find(&matches, "tournament_id = ?", u).Error; err != nil {
 		return nil, errors.NewInternalServerError("Failed to get matches", err)
 	}
 	return matches, nil
 }
 
 func (s *MatchService) GetAll(models interface{}, filterParams FilterParams, preloads ...string) errors.IError {
-	query := s.db
+	query := s.Db
 
 	if userID, ok := filterParams.Fields["UserID"]; ok {
 		query = query.Where("player_one_id = ? OR player_two_id = ?", userID, userID)
@@ -320,15 +320,20 @@ func (s *MatchService) GetAll(models interface{}, filterParams FilterParams, pre
 	return nil
 }
 
-func (s *MatchService) GetMatchesBetweenUsers(userID1, userID2 uint) ([]models.Match, errors.IError) {
+func (s *MatchService) GetMatchesBetweenUsers(userID1, userID2 uint, filter FilterParams) ([]models.Match, errors.IError) {
 	var matches []models.Match
 
-	if err := s.db.Preload("Tournament").Preload("TournamentStep").Preload("PlayerOne").Preload("PlayerTwo").Preload("Winner").Preload("Scores").
+	query := s.Db.Preload("Tournament").Preload("TournamentStep").Preload("PlayerOne").Preload("PlayerTwo").Preload("Winner").Preload("Scores").
 		Where("(player_one_id = ? AND player_two_id = ?) OR (player_one_id = ? AND player_two_id = ?)", userID1, userID2, userID2, userID1).
 		Preload("PlayerOne").
 		Preload("PlayerTwo").
-		Preload("Winner").
-		Find(&matches).Error; err != nil {
+		Preload("Winner")
+
+	if status, ok := filter.Fields["Status"]; ok {
+		query = query.Where("status = ?", status)
+	}
+
+	if err := query.Find(&matches).Error; err != nil {
 		return nil, errors.NewInternalServerError("Failed to get matches", err)
 	}
 
@@ -339,7 +344,7 @@ func (s MatchService) GetTotalMatchByUserID(id uint) (int64, errors.IError) {
 
 	var totalMatch int64
 
-	err := s.db.Model(&models.Match{}).Where("player_one_id = ? OR player_two_id = ?", id, id).Count(&totalMatch).Error
+	err := s.Db.Model(&models.Match{}).Where("player_one_id = ? OR player_two_id = ?", id, id).Count(&totalMatch).Error
 
 	if err != nil {
 		return 0, errors.NewInternalServerError("Failed to get total match", nil)
@@ -352,7 +357,7 @@ func (s MatchService) GetTotalWinningsByUserID(id uint) (int64, errors.IError) {
 
 	var totalWinnings int64
 
-	err := s.db.Model(&models.Match{}).Where("winner_id = ?", id).Count(&totalWinnings).Error
+	err := s.Db.Model(&models.Match{}).Where("winner_id = ?", id).Count(&totalWinnings).Error
 
 	if err != nil {
 		return 0, errors.NewInternalServerError("Failed to get total winnings", nil)
@@ -365,7 +370,7 @@ func (s MatchService) GetTotalLossesByUserID(id uint) (int64, errors.IError) {
 
 	var totalLosses int64
 
-	err := s.db.Model(&models.Match{}).Where("(player_one_id = ? OR player_two_id = ?) AND winner_id != ?", id, id, id).Count(&totalLosses).Error
+	err := s.Db.Model(&models.Match{}).Where("(player_one_id = ? OR player_two_id = ?) AND winner_id != ?", id, id, id).Count(&totalLosses).Error
 
 	if err != nil {
 		return 0, errors.NewInternalServerError("Failed to get total losses", nil)
@@ -378,7 +383,7 @@ func (s MatchService) SendMatchUpdatesForGRPC(u uint) {
 
 	match := models.Match{}
 
-	if err := s.db.Preload("PlayerOne").
+	if err := s.Db.Preload("PlayerOne").
 		Preload("PlayerTwo").
 		Preload("PlayerTwo.Media").
 		Preload("PlayerOne.Media").
@@ -411,7 +416,7 @@ func (s MatchService) SendMatchUpdatesForGRPC(u uint) {
 		}
 	}
 
-	userService := NewUserService(s.db)
+	userService := NewUserService(s.Db)
 	userRank, err := userService.GetRankByUserID(match.PlayerOneID)
 	if err != nil {
 		fmt.Println(err)

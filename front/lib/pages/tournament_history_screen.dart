@@ -28,8 +28,6 @@ class _TournamentHistoryPageState extends State<TournamentHistoryPage>
     super.initState();
     tournamentService = TournamentService();
     _fetchUserId();
-    tournamentService.fetchPastTournamentsOfUser(userId);
-    tournamentService.fetchUpcomingTournamentsOfUser(userId);
   }
 
   Future<void> _fetchUserId() async {
@@ -47,21 +45,12 @@ class _TournamentHistoryPageState extends State<TournamentHistoryPage>
         page = RegistrationPage(tournamentId: tournamentId);
         break;
       case 'started':
-        // Ajoutez un id pour la page bracket
-        page = BracketPage(tournamentID: tournamentId);
-        break;
       case 'finished':
-        // Ajoutez un id pour la page bracket
-        page = BracketPage(tournamentID: tournamentId);
-        break;
       case 'canceled':
-        // Ajoutez la page correspondante pour les tournois annulés
         page = BracketPage(tournamentID: tournamentId);
         break;
       default:
-        page = RegistrationPage(
-            tournamentId:
-                tournamentId); // Par défaut, redirigez vers la page d'inscription
+        page = RegistrationPage(tournamentId: tournamentId);
     }
     Navigator.push(
       context,
@@ -99,17 +88,20 @@ class _TournamentHistoryPageState extends State<TournamentHistoryPage>
         ),
         body: TabBarView(
           children: [
-            CustomFutureBuilder(
-                future:
-                    tournamentService.fetchUpcomingTournamentsOfUser(userId),
+            SingleChildScrollView(
+              child: CustomFutureBuilder(
+                future: tournamentService.fetchUpcomingTournamentsOfUser(userId),
                 onLoaded: (upcomingTournaments) {
                   return AllTournamentsList(
                     allTournaments: upcomingTournaments,
                     onTournamentTapped: _onTournamentTapped,
                     emptyMessage: 'Pas de tournois à venir',
                   );
-                }),
-            CustomFutureBuilder(
+                },
+              ),
+            ),
+            SingleChildScrollView(
+              child: CustomFutureBuilder(
                 future: tournamentService.fetchPastTournamentsOfUser(userId),
                 onLoaded: (pastTournaments) {
                   return AllTournamentsList(
@@ -117,7 +109,9 @@ class _TournamentHistoryPageState extends State<TournamentHistoryPage>
                     onTournamentTapped: _onTournamentTapped,
                     emptyMessage: 'Pas de tournois passés',
                   );
-                }),
+                },
+              ),
+            ),
           ],
         ),
       ),

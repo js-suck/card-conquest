@@ -3,15 +3,18 @@ package main
 import (
 	dbService "authentication-api/db"
 	docs "authentication-api/docs"
+	feature_flag "authentication-api/feature-flag"
 	grpcServices "authentication-api/grpc"
 	"authentication-api/models"
 	authentication_api "authentication-api/pb/github.com/lailacha/authentication-api"
 	"authentication-api/routers"
+	"fmt"
 	"github.com/joho/godotenv"
 	"github.com/sirupsen/logrus"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"google.golang.org/grpc"
+	"log"
 	"net"
 	"os"
 )
@@ -107,6 +110,13 @@ func main() {
 	if err != nil {
 		logrus.Panic("failed to connect database")
 	}
+
+	flags, err := feature_flag.LoadConfig("configuration.yaml")
+	if err != nil {
+		log.Fatalf("Erreur lors du chargement des flags de fonctionnalité: %v", err)
+	}
+
+	fmt.Println("Feature Flags:", flags)
 
 	docs.SwaggerInfo.BasePath = "/api/v1"
 	go func() {

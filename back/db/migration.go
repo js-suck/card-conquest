@@ -102,7 +102,7 @@ func registrationsTournamentMigrations(db *gorm.DB) {
 	for i := 0; i < 10; i++ {
 		user := models.User{
 			Username: fmt.Sprintf("Test%d", i),
-			Password: "Test",
+			Password: "$2a$14$FEB9c6k0pEXUZB3txwOFCeurpu",
 			Email:    fmt.Sprintf("Test%d•gmail.com", i),
 			Role:     "user",
 		}
@@ -259,7 +259,7 @@ func MigrateDatabase() error {
 	_, err = mediaMigration(db)
 
 	if user.ID == 0 {
-		user = models.User{Username: "user", Password: "password", Email: "test@example.com", Role: "admin"}
+		user = models.User{Username: "user", Password: "$2a$14$FEB9c6k0pEXUZB3txwOFCeurpu/j/wY5StHUykMXkZShMqdZi/Exm", Email: "test@example.com", Role: "admin"}
 		db.Create(&user)
 	}
 
@@ -279,65 +279,65 @@ func MigrateDatabase() error {
 
 	// Add triggers and functions
 	createFunction := `
-	CREATE OR REPLACE FUNCTION update_game_scores()
-	RETURNS TRIGGER AS $$
-	BEGIN
-		IF TG_OP = 'UPDATE' THEN
-			-- Mise à jour du score existant
-			UPDATE game_scores
-			SET total_score = total_score + NEW.score - OLD.score
-			WHERE user_id = NEW.player_id AND game_id = (
-				SELECT game_id
-				FROM tournaments
-				JOIN tournament_steps ON tournament_steps.tournament_id = tournaments.id
-				JOIN matches ON matches.tournament_step_id = tournament_steps.id
-				WHERE matches.id = NEW.match_id
-			);
-			UPDATE users
-			SET global_score = global_score + NEW.score - OLD.score
-			WHERE id = NEW.player_id;
-		ELSIF TG_OP = 'INSERT' THEN
-			-- Vérifier si l'enregistrement existe déjà
-			IF EXISTS (
-				SELECT 1
-				FROM game_scores
-				WHERE user_id = NEW.player_id AND game_id = (
-					SELECT game_id
-					FROM tournaments
-					JOIN tournament_steps ON tournament_steps.tournament_id = tournaments.id
-					JOIN matches ON matches.tournament_step_id = tournament_steps.id
-					WHERE matches.id = NEW.match_id
-				)
-			) THEN
-				-- Mise à jour de l'enregistrement existant
-				UPDATE game_scores
-				SET total_score = total_score + NEW.score
-				WHERE user_id = NEW.player_id AND game_id = (
-					SELECT game_id
-					FROM tournaments
-					JOIN tournament_steps ON tournament_steps.tournament_id = tournaments.id
-					JOIN matches ON matches.tournament_step_id = tournament_steps.id
-					WHERE matches.id = NEW.match_id
-				);
-			ELSE
-				-- Insertion d'un nouvel enregistrement
-				INSERT INTO game_scores (user_id, game_id, total_score)
-				VALUES (NEW.player_id, (
-					SELECT game_id
-					FROM tournaments
-					JOIN tournament_steps ON tournament_steps.tournament_id = tournaments.id
-					JOIN matches ON matches.tournament_step_id = tournament_steps.id
-					WHERE matches.id = NEW.match_id
-				), NEW.score);
-			END IF;
-			-- Mettre à jour le global_score
-			UPDATE users
-			SET global_score = global_score + NEW.score
-			WHERE id = NEW.player_id;
-		END IF;
-		RETURN NEW;
-	END;
-	$$ LANGUAGE plpgsql;
+CREATE OR REPLACE FUNCTION update_game_scores()
+RETURNS TRIGGER AS $$
+BEGIN
+ IF TG_OP = 'UPDATE' AND NEW.score = 2 THEN
+  -- Mise à jour du score existant
+  UPDATE game_scores
+  SET total_score = total_score + NEW.score - OLD.score
+  WHERE user_id = NEW.player_id AND game_id = (
+   SELECT game_id
+   FROM tournaments
+   JOIN tournament_steps ON tournament_steps.tournament_id = tournaments.id
+   JOIN matches ON matches.tournament_step_id = tournament_steps.id
+   WHERE matches.id = NEW.match_id
+  );
+  UPDATE users
+  SET global_score = global_score + NEW.score - OLD.score
+  WHERE id = NEW.player_id;
+ ELSIF TG_OP = 'INSERT' AND NEW.score = 2 THEN
+  -- Vérifier si l'enregistrement existe déjà
+  IF EXISTS (
+   SELECT 1
+   FROM game_scores
+   WHERE user_id = NEW.player_id AND game_id = (
+    SELECT game_id
+    FROM tournaments
+    JOIN tournament_steps ON tournament_steps.tournament_id = tournaments.id
+    JOIN matches ON matches.tournament_step_id = tournament_steps.id
+    WHERE matches.id = NEW.match_id
+   )
+  ) THEN
+   -- Mise à jour de l'enregistrement existant
+   UPDATE game_scores
+   SET total_score = total_score + NEW.score
+   WHERE user_id = NEW.player_id AND game_id = (
+    SELECT game_id
+    FROM tournaments
+    JOIN tournament_steps ON tournament_steps.tournament_id = tournaments.id
+    JOIN matches ON matches.tournament_step_id = tournament_steps.id
+    WHERE matches.id = NEW.match_id
+   );
+  ELSE
+   -- Insertion d'un nouvel enregistrement
+   INSERT INTO game_scores (user_id, game_id, total_score)
+   VALUES (NEW.player_id, (
+    SELECT game_id
+    FROM tournaments
+    JOIN tournament_steps ON tournament_steps.tournament_id = tournaments.id
+    JOIN matches ON matches.tournament_step_id = tournament_steps.id
+    WHERE matches.id = NEW.match_id
+   ), NEW.score);
+  END IF;
+  -- Mettre à jour le global_score
+  UPDATE users
+  SET global_score = global_score + NEW.score
+  WHERE id = NEW.player_id;
+ END IF;
+ RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
 	`
 
 	if err := db.Exec(createFunction).Error; err != nil {

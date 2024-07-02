@@ -57,6 +57,16 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		return
 	}
 
+	if !services.CheckPasswordHash(body.Password, userData.Password) {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
+		return
+	}
+
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
+		return
+	}
+
 	if body.FcmToken != "" {
 		err := h.UserService.AddFCMToken(userData.ID, body.FcmToken)
 		if err != nil {
@@ -95,22 +105,29 @@ func (h *AuthHandler) Register(c *gin.Context) {
 		return
 	}
 
-	err := h.UserService.Create(&user)
+	hashedPassword, err := services.HashPassword(user.Password)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error hashing password"})
+		return
+	}
+	user.Password = hashedPassword
+
+	errCreation := h.UserService.Create(&user)
 
 	if err != nil {
-		c.JSON(err.Code(), err)
+		c.JSON(errCreation.Code(), err)
 		return
 
 	}
 
-	err = h.AuthService.SendConfirmationEmail(user.Email, user.Username, user.VerificationToken)
-	if err != nil {
+	errConfirm := h.AuthService.SendConfirmationEmail(user.Email, user.Username, user.VerificationToken)
+	if errConfirm != nil {
 		if validationErr, ok := err.(*errors.ValidationError); ok {
 			c.JSON(http.StatusUnprocessableEntity, validationErr.ToGinH())
 			return
 		}
 
-		c.JSON(err.Code(), err)
+		c.JSON(errConfirm.Code(), err)
 		return
 	}
 

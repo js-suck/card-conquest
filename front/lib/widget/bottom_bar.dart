@@ -19,7 +19,7 @@ class _BottomBarState extends State<BottomBar> {
 
   final List<Widget> _pages = [
     const HomeUserPage(),
-    const TournamentsPage(),
+    const TournamentsPage(searchQuery: null,),
     const ScoreboardPage(),
     const GamesPage(),
     const TournamentHistoryPage(),
