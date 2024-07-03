@@ -3,7 +3,6 @@ import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:front/extension/theme_extension.dart';
-import 'package:front/generated/match.pb.dart' as tournament;
 import 'package:front/service/match_service.dart';
 import 'package:front/widget/app_bar.dart';
 import 'package:front/widget/player/stats.dart';
@@ -34,9 +33,10 @@ class _PlayerPageState extends State<PlayerPage> {
     super.didChangeDependencies();
     Map<String, dynamic>? args =
         ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>?;
-    final tournament.PlayerMatch player =
-        args!['player'] as tournament.PlayerMatch;
-    matchService.fetchFinishedMatchesOfPlayer(player.id);
+    final player = args!['player'];
+    final isTournament = args['isTournament'];
+    final playerId = isTournament ? player.id : player.user.id;
+    matchService.fetchFinishedMatchesOfPlayer(playerId);
   }
 
   @override
@@ -46,11 +46,20 @@ class _PlayerPageState extends State<PlayerPage> {
     Map<String, dynamic>? args =
         ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>?;
 
-    final tournament.PlayerMatch player =
-        args!['player'] as tournament.PlayerMatch;
+    final player = args!['player'];
+    final isTournament = args['isTournament'];
+
+    final playerId = isTournament ? player.id : player.user.id;
+    final playerName = isTournament ? player.username : player.user.username;
+    final playerMedia = isTournament
+        ? player.mediaUrl
+        : player.user.media != null
+            ? player.user.media.fileName
+            : '';
+
     return Scaffold(
       appBar: TopAppBar(
-        title: player.username,
+        title: playerName,
         isPage: true,
         isAvatar: false,
         isSettings: false,
@@ -71,9 +80,9 @@ class _PlayerPageState extends State<PlayerPage> {
                     shape: BoxShape.rectangle,
                     borderRadius: BorderRadius.circular(10),
                     image: DecorationImage(
-                      image: player.mediaUrl != ''
+                      image: playerMedia != ''
                           ? CachedNetworkImageProvider(
-                              '${dotenv.env['MEDIA_URL']}${player.mediaUrl}',
+                              '${dotenv.env['MEDIA_URL']}$playerMedia',
                             )
                           : const AssetImage('assets/images/avatar.png')
                               as ImageProvider,
@@ -86,7 +95,7 @@ class _PlayerPageState extends State<PlayerPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      player.username,
+                      playerName,
                       style: const TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
@@ -149,8 +158,13 @@ class _PlayerPageState extends State<PlayerPage> {
                           SingleChildScrollView(
                             child: CustomFutureBuilder(
                                 future: matchService
-                                    .fetchFinishedMatchesOfPlayer(player.id),
+                                    .fetchFinishedMatchesOfPlayer(playerId),
                                 onLoaded: (matches) {
+                                  if (matches.isEmpty) {
+                                    return const Center(
+                                      child: Text('Aucun match trouvé'),
+                                    );
+                                  }
                                   //if (isTournament) {
                                   final groupedMatches = groupBy(matches,
                                       (match) => match.tournament.name);
@@ -163,7 +177,8 @@ class _PlayerPageState extends State<PlayerPage> {
                                         matches: matches,
                                         isLastMatches: true,
                                         isScoreboard: true,
-                                        player: player,
+                                        player:
+                                            isTournament ? player : player.user,
                                       ),
                                     );
                                   });
@@ -179,7 +194,7 @@ class _PlayerPageState extends State<PlayerPage> {
                                        */
                                 }),
                           ),
-                          StatsWidget(playerId: player.id)
+                          StatsWidget(playerId: playerId)
                         ],
                       ),
                     ),

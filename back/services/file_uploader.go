@@ -51,7 +51,7 @@ func (f *FileService) UploadMedia(file *multipart.FileHeader) (*models.Media, st
 		FileExtension: file.Header.Get("Content-Type"),
 	}
 
-	mediaModel, errModel := persistMedia(f.db, media)
+	mediaModel, errModel := persistMedia(f.Db, media)
 
 	if errModel != nil {
 		return nil, "", errors.NewInternalServerError("something went wrong with file", err)

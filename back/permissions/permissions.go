@@ -48,9 +48,17 @@ var UserPermissions = []Permission{
 		Key:       PermissionReadTags,
 		CanAccess: true,
 	},
+	{
+		Key:       PermissionReadGuild,
+		CanAccess: true,
+	},
 }
 
 var OrganizerPermissions = []Permission{
+	{
+		Key:       PermissionsOrganizer,
+		CanAccess: true,
+	},
 	{
 		Key:       PermissionReadeUser,
 		CanAccess: true,
@@ -75,18 +83,70 @@ var OrganizerPermissions = []Permission{
 		Key:       PermissionCreateUser,
 		CanAccess: true,
 	},
+	{
+		Key:       PermissionCreateTournament,
+		CanAccess: true,
+	},
+	{
+		Key:       PermissionUpdateTournament,
+		CanAccess: true,
+	},
+	{
+		Key:       PermissionDeleteTournament,
+		CanAccess: true,
+	},
+	{
+		Key:       PermissionReadTournament,
+		CanAccess: true,
+	},
+	{
+		Key:       PermissionCreateGuild,
+		CanAccess: true,
+	},
+	{
+		Key:       PermissionUpdateGuild,
+		CanAccess: true,
+	},
+	{
+		Key:       PermissionDeleteGuild,
+		CanAccess: true,
+	},
+	{
+		Key:       PermissionReadGuild,
+		CanAccess: true,
+	},
 }
 
 const (
-	PermissionAllAccess  = "all_access"
-	PermissionCreateUser = "create_user"
-	PermissionDeleteUser = "delete_user"
-	PermissionUpdateUser = "update_user"
-	PermissionReadeUser  = "read_user"
-	PermissionCreateTags = "create_tags"
-	PermissionUpdateTags = "update_tags"
-	PermissionDeleteTags = "delete_tags"
-	PermissionReadTags   = "read_tags"
+	PermissionAllAccess        = "all_access"
+	PermissionCreateTournament = "create_tournament"
+	PermissionUpdateTournament = "update_tournament"
+	PermissionDeleteTournament = "delete_tournament"
+	PermissionReadTournament   = "read_tournament"
+	PermissionCreateUser       = "create_user"
+	PermissionDeleteUser       = "delete_user"
+	PermissionUpdateUser       = "update_user"
+	PermissionReadeUser        = "read_user"
+	PermissionCreateTags       = "create_tags"
+	PermissionUpdateTags       = "update_tags"
+	PermissionDeleteTags       = "delete_tags"
+	PermissionReadTags         = "read_tags"
+	PermissionsOrganizer       = "permissions_organizer"
+	PermissionsAdmin           = "permissions_admin" //
+	PermissionCreateGame       = "create_game"
+	PermissionUpdateGame       = "update_game"
+	PermissionDeleteGame       = "delete_game"
+	PermissionReadGame         = "read_game"
+	PermissionCreateGuild      = "create_guild"
+	PermissionUpdateGuild      = "update_guild"
+	PermissionDeleteGuild      = "delete_guild"
+	PermissionReadGuild        = "read_guild"
+	PermissionUpdateMatch      = "update_match"
+	PermissionReadMatch        = "read_match"
+	PermissionCreateMatch      = "create_match"
+	PermissionDeleteMatch      = "delete_match"
+	PermissionCreateTag        = "create_tag"
+	PermissionUpdateTag        = "update_tag"
 )
 
 func CanAccess(permissions []Permission, key string) bool {

@@ -9,7 +9,7 @@ import 'package:front/pages/home_user_screen.dart';
 import 'package:front/pages/match_screen.dart';
 import 'package:front/pages/player_screen.dart';
 import 'package:front/pages/profile_screen.dart';
-import 'package:front/pages/scoreboard_screen.dart';
+import 'package:front/pages/scoreboard_tournament_screen.dart';
 import 'package:front/settings_screen.dart';
 
 import '../grpc/tournament_update_screen.dart';
@@ -27,6 +27,6 @@ var routes = <String, WidgetBuilder>{
   '/bracket': (context) => const BracketPage(tournamentID: 1),
   '/match': (context) => MatchPage(),
   '/player': (context) => PlayerPage(),
-  '/scoreboard': (context) => const ScoreboardPage(),
+  '/scoreboard': (context) => const ScoreboardTournamentPage(),
   '/home_user': (context) => const HomeUserPage(),
 };

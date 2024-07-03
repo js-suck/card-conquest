@@ -10,7 +10,7 @@ type TournamentStep struct {
 	Tournament   Tournament `gorm:"foreignKey:TournamentID" json:"-"`
 	Name         string
 	Sequence     int
-	Matches      []Match `gorm:"foreignKey:TournamentStepID"`
+	Matches      []Match `gorm:"foreignKey:TournamentStepID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"-"`
 }
 
 func (t TournamentStep) ApplyReadPermissions() errors.IError {
