@@ -34,11 +34,6 @@ class AdminSidebar extends StatelessWidget {
           label: Text('Tournaments'),
         ),
         NavigationRailDestination(
-          icon: Icon(Icons.group),
-          selectedIcon: Icon(Icons.group),
-          label: Text('Guilds'),
-        ),
-        NavigationRailDestination(
           icon: Icon(Icons.videogame_asset_rounded),
           selectedIcon: Icon(Icons.videogame_asset_rounded),
           label: Text('Games'),
