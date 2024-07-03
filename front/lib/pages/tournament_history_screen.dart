@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:front/extension/theme_extension.dart';
+import 'package:front/pages/bracket_screen.dart';
 import 'package:front/pages/tournaments_registration_screen.dart';
+import 'package:front/service/tournament_service.dart';
+import 'package:front/utils/custom_future_builder.dart';
 import 'package:front/widget/app_bar.dart';
 import 'package:front/widget/tournaments/all_tournaments_list.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
-
-import '../service/tournament_service.dart';
-import '../utils/custom_future_builder.dart';
-import 'bracket_screen.dart';
 
 class TournamentHistoryPage extends StatefulWidget {
   const TournamentHistoryPage({super.key});
@@ -69,20 +69,22 @@ class _TournamentHistoryPageState extends State<TournamentHistoryPage>
 
   @override
   Widget build(BuildContext context) {
+    var t = AppLocalizations.of(context)!;
     return DefaultTabController(
       initialIndex: 0,
       length: 2,
       child: Scaffold(
         appBar: AppBar(
-          title: const TopAppBar(title: 'Historique'),
+          title: TopAppBar(title: t.tournamentHistoryTitle),
           automaticallyImplyLeading: false,
           bottom: TabBar(
+            isScrollable: true,
             labelColor: context.themeColors.accentColor,
             indicatorColor: context.themeColors.accentColor,
             unselectedLabelColor: Colors.white,
-            tabs: const [
-              Tab(text: 'Tournois à venir'),
-              Tab(text: 'Tournois Passés'),
+            tabs: [
+              Tab(text: t.tournamentHistoryUpcoming),
+              Tab(text: t.tournamentHistoryPast),
             ],
           ),
         ),
@@ -95,7 +97,7 @@ class _TournamentHistoryPageState extends State<TournamentHistoryPage>
                   return AllTournamentsList(
                     allTournaments: upcomingTournaments,
                     onTournamentTapped: _onTournamentTapped,
-                    emptyMessage: 'Pas de tournois à venir',
+                    emptyMessage: t.noUpcomingTournaments,
                   );
                 },
               ),
@@ -107,7 +109,7 @@ class _TournamentHistoryPageState extends State<TournamentHistoryPage>
                   return AllTournamentsList(
                     allTournaments: pastTournaments,
                     onTournamentTapped: _onTournamentTapped,
-                    emptyMessage: 'Pas de tournois passés',
+                    emptyMessage: t.noPastTournaments,
                   );
                 },
               ),

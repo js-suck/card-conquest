@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:front/pages/game_detail_screen.dart';
+import 'package:front/service/game_service.dart';
 import 'package:front/utils/custom_future_builder.dart';
 import 'package:front/widget/app_bar.dart';
 import 'package:front/widget/games/all_games_list.dart';
 import 'package:front/widget/games/games_list.dart';
-import '../service/game_service.dart';
+
 import '../models/game.dart';
-import 'package:front/pages/game_detail_screen.dart';
 
 class GamesPage extends StatefulWidget {
   const GamesPage({super.key});
@@ -63,19 +65,20 @@ class _GamesPageState extends State<GamesPage> {
     );
   }
 
-
   @override
   Widget build(BuildContext context) {
+    var t = AppLocalizations.of(context)!;
     return Scaffold(
-      appBar: const TopAppBar(title: 'Jeux'),
+      appBar: TopAppBar(title: t.gamesTitle),
       body: SingleChildScrollView(
         child: Column(
           children: [
-            const Padding(
-              padding: EdgeInsets.all(8.0),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
               child: Text(
-                'Jeux populaires',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                t.gamesPopular,
+                style:
+                    const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
             ),
             CustomFutureBuilder(
@@ -83,11 +86,12 @@ class _GamesPageState extends State<GamesPage> {
                 onLoaded: (List<Game> games) {
                   return GamesList(games: games);
                 }),
-            const Padding(
-              padding: EdgeInsets.all(8.0),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
               child: Text(
-                'Tous les jeux',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                t.gamesAll,
+                style:
+                    const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
             ),
             Padding(
@@ -96,8 +100,8 @@ class _GamesPageState extends State<GamesPage> {
                 controller: _searchController,
                 onChanged: (value) => _onSearchChanged(),
                 decoration: InputDecoration(
-                  labelText: 'Rechercher des jeux',
-                  prefixIcon: Icon(Icons.search),
+                  labelText: t.gamesSearchBar,
+                  prefixIcon: const Icon(Icons.search),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -105,11 +109,11 @@ class _GamesPageState extends State<GamesPage> {
               ),
             ),
             _filteredGames.isEmpty
-                ? const Center(child: Text('No games found'))
+                ? Center(child: Text(t.noGamesFound))
                 : AllGamesList(
-              allGames: _filteredGames,
-              onGameTapped: _onGameTapped,
-            ),
+                    allGames: _filteredGames,
+                    onGameTapped: _onGameTapped,
+                  ),
           ],
         ),
       ),
