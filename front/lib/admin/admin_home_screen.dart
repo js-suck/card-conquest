@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:front/admin/crud_user_screen.dart';
 import 'package:front/admin/crud_tournament_screen.dart';
-import 'package:front/admin/crud_guild_screen.dart';
 import 'package:front/admin/crud_game_screen.dart';
 import 'package:front/admin/crud_tag_screen.dart';
 import 'package:front/admin/admin_dashboard_screen.dart';
@@ -21,7 +20,6 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
     const AdminDashboardScreen(),
     const CrudUserScreen(),
     const CrudTournamentScreen(),
-    const CrudGuildScreen(),
     const CrudGameScreen(),
     const CrudTagScreen(),
   ];
