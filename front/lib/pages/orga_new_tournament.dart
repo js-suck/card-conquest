@@ -11,6 +11,7 @@ import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter_typeahead/flutter_typeahead.dart';
 
 class OrgaPage extends StatelessWidget {
   const OrgaPage({super.key});
@@ -70,7 +71,7 @@ class _MyFormState extends State<MyForm> {
     if (picked != null && picked != _startDate) {
       setState(() {
         _startDate = picked;
-        _startDateController.text = _formatDate(picked);
+        _startDateController.text = _formatDateForDisplay(picked);
       });
     }
   }
@@ -85,12 +86,16 @@ class _MyFormState extends State<MyForm> {
     if (picked != null && picked != _endDate) {
       setState(() {
         _endDate = picked;
-        _endDateController.text = _formatDate(picked);
+        _endDateController.text = _formatDateForDisplay(picked);
       });
     }
   }
 
-  String _formatDate(DateTime date) {
+  String _formatDateForDisplay(DateTime date) {
+    return DateFormat('dd-MM-yyyy').format(date);
+  }
+
+  String _formatDateForBackend(DateTime date) {
     return DateFormat('yyyy-MM-ddTHH:mm:ss.SSSZ').format(date.toUtc());
   }
 
@@ -117,13 +122,56 @@ class _MyFormState extends State<MyForm> {
     }
   }
 
+  Future<List<String>> _getSuggestions(String query) async {
+    String apiKey = dotenv.env['GOOGLE_API_KEY']!;
+    String url =
+        'https://maps.googleapis.com/maps/api/place/autocomplete/json?input=$query&key=$apiKey&language=fr';
+
+    var response = await http.get(Uri.parse(url));
+    if (response.statusCode == 200) {
+      var data = json.decode(response.body);
+      if (data['status'] == 'OK') {
+        return List<String>.from(
+            data['predictions'].map((prediction) => prediction['description']));
+      } else {
+        print('Places API returned status: ${data['status']}');
+        return [];
+      }
+    } else {
+      print('Failed to connect to the Places API: ${response.statusCode}');
+      return [];
+    }
+  }
+
+  Future<void> _getCoordinates(String address) async {
+    String apiKey = dotenv.env['GOOGLE_API_KEY']!;
+    String url =
+        'https://maps.googleapis.com/maps/api/geocode/json?address=$address&key=$apiKey';
+
+    var response = await http.get(Uri.parse(url));
+    if (response.statusCode == 200) {
+      var data = json.decode(response.body);
+      if (data['status'] == 'OK') {
+        var location = data['results'][0]['geometry']['location'];
+        setState(() {
+          _locationController.text = address;
+          // double latitude = location['lat'];
+          // double longitude = location['lng'];
+        });
+      } else {
+        print('Geocoding API returned status: ${data['status']}');
+      }
+    } else {
+      print('Failed to connect to the Geocoding API: ${response.statusCode}');
+    }
+  }
+
   @override
   void initState() {
     super.initState();
     _typeController.text = 'TKO';
-    //_selectGameController.text = 'Magic';
     _sizeController.text = '8';
-    _loadGames(); // Charger les jeux au démarrage de la page
+    _loadGames();
   }
 
   @override
@@ -189,18 +237,29 @@ class _MyFormState extends State<MyForm> {
                 ),
                 Container(
                   decoration: BoxDecoration(
-                    color: colorBGInput, // Couleur du rectangle gris
-                    borderRadius: BorderRadius.circular(8.0), // Bords arrondis
+                    color: colorBGInput,
+                    borderRadius: BorderRadius.circular(8.0),
                   ),
-                  child: TextField(
+                  child: TypeAheadField(
                     controller: _locationController,
-                    keyboardType: TextInputType.text,
-                    decoration: const InputDecoration(
-                      contentPadding: EdgeInsets.symmetric(horizontal: 10.0),
-                      border: InputBorder.none,
-                      labelText: 'ex: 10 rue des ananas',
+                    suggestionsCallback: _getSuggestions,
+                    itemBuilder: (context, suggestion) {
+                      return ListTile(
+                        title: Text(suggestion),
+                      );
+                    },
+                    onSelected: (suggestion) {
+                      _locationController.text = suggestion;
+                      _getCoordinates(suggestion); // Appel à votre fonction _getCoordinates
+                    },
+                    textFieldConfiguration: TextFieldConfiguration(
+                      decoration: InputDecoration(
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 10.0),
+                        border: InputBorder.none,
+                        labelText: 'ex: 10 rue des ananas',
+                      ),
                     ),
-                  ),
+                  );
                 ),
                 const SizedBox(height: 20),
                 const Text(
@@ -440,8 +499,8 @@ class _MyFormState extends State<MyForm> {
         // Ajoutez les champs de formulaire
         request.fields['name'] = _designationController.text;
         request.fields['description'] = _descController.text;
-        request.fields['start_date'] = _formatDate(_startDate!);
-        request.fields['end_date'] = _formatDate(_endDate!);
+        request.fields['start_date'] = _formatDateForBackend(_startDate!);
+        request.fields['end_date'] = _formatDateForBackend(_endDate!);
         request.fields['location'] = _locationController.text;
         request.fields['organizer_id'] = '1';
         request.fields['game_id'] = '1';

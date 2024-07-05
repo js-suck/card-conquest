@@ -10,6 +10,8 @@ import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:front/widget/expandable_fab.dart';
 
 class OrganizerManagePage extends StatefulWidget {
   final int tournamentId;
@@ -30,7 +32,6 @@ class _OrganizerManagePageState extends State<OrganizerManagePage>
   late TextEditingController _nameController;
   late TextEditingController _descriptionController;
   late TextEditingController _locationController;
-  late TextEditingController _roundsController;
   late TextEditingController _maxPlayersController;
   late TextEditingController _startDateController;
   late TextEditingController _endDateController;
@@ -45,7 +46,6 @@ class _OrganizerManagePageState extends State<OrganizerManagePage>
     _nameController = TextEditingController();
     _descriptionController = TextEditingController();
     _locationController = TextEditingController();
-    _roundsController = TextEditingController();
     _maxPlayersController = TextEditingController();
     _startDateController = TextEditingController();
     _endDateController = TextEditingController();
@@ -80,7 +80,6 @@ class _OrganizerManagePageState extends State<OrganizerManagePage>
         'name': _nameController.text,
         'description': _descriptionController.text,
         'location': _locationController.text,
-        'rounds': int.parse(_roundsController.text),
         'max_players': int.parse(_maxPlayersController.text),
         'start_date': _startDateController.text,
         'end_date': _endDateController.text,
@@ -110,13 +109,36 @@ class _OrganizerManagePageState extends State<OrganizerManagePage>
     }
   }
 
+  Future<void> _startTournament() async {
+    String? token = await storage.read(key: 'jwt_token');
+    int tournamentId = widget.tournamentId;
+
+    final response = await http.post(
+      Uri.parse('${dotenv.env['API_URL']}tournaments/$tournamentId/start'),
+      headers: {
+        'Authorization': '$token',
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Tournoi démarré avec succès')),
+      );
+      // Mettez à jour l'interface utilisateur ou effectuez d'autres actions nécessaires après le démarrage du tournoi
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: Text('Échec du démarrage du tournoi: ${response.body}')),
+      );
+    }
+  }
+
+  void _finishTournament() {
+    // Logique pour terminer le tournoi
+  }
   @override
   Widget build(BuildContext context) {
-    final isDarkMode = Provider.of<ThemeNotifier>(context).isDarkMode;
-    const colorBGInput = Color(0xfafafafa);
-    final fontColor =
-        isDarkMode ? const Color(0xff000000) : const Color(0xff1a4ccb);
-
     return Scaffold(
       appBar: const TopAppBar(
         title: 'Gestion',
@@ -136,7 +158,6 @@ class _OrganizerManagePageState extends State<OrganizerManagePage>
             _nameController.text = tournament.name;
             _descriptionController.text = tournament.description;
             _locationController.text = tournament.location;
-            _roundsController.text = tournament.rounds.toString();
             _maxPlayersController.text = tournament.maxPlayers.toString();
             _startDateController.text = tournament.startDate;
             _endDateController.text = tournament.endDate;
@@ -144,7 +165,7 @@ class _OrganizerManagePageState extends State<OrganizerManagePage>
             return Column(
               children: [
                 Container(
-                  color: fontColor,
+                  color: Theme.of(context).primaryColor,
                   child: TabBar(
                     controller: _tabController,
                     labelColor: Theme.of(context).tabBarTheme.labelColor,
@@ -162,18 +183,22 @@ class _OrganizerManagePageState extends State<OrganizerManagePage>
                   child: TabBarView(
                     controller: _tabController,
                     children: [
-                      tournament.users.isNotEmpty
-                          ? ListView.builder(
-                              itemCount: tournament.users.length,
+                      tournament.players.isEmpty
+                          ? const Center(
+                              child: Text('Aucun utilisateur inscrit'))
+                          : ListView.builder(
+                              itemCount: tournament.players.length,
                               itemBuilder: (context, index) {
-                                User user = tournament.users[index];
+                                final player = tournament.players[index];
                                 return ListTile(
-                                  title: Text(user.username),
+                                  leading: CircleAvatar(
+                                    child: Text(player['username'][0]),
+                                  ),
+                                  title: Text(player['username']),
+                                  subtitle: Text(player['email']),
                                 );
                               },
-                            )
-                          : const Center(
-                              child: Text('Aucun utilisateur inscrit')),
+                            ),
                       Padding(
                         padding: const EdgeInsets.all(16.0),
                         child: Form(
@@ -186,7 +211,7 @@ class _OrganizerManagePageState extends State<OrganizerManagePage>
                               ),
                               Container(
                                 decoration: BoxDecoration(
-                                  color: colorBGInput,
+                                  color: Colors.white,
                                   borderRadius: BorderRadius.circular(8.0),
                                 ),
                                 child: TextFormField(
@@ -201,12 +226,12 @@ class _OrganizerManagePageState extends State<OrganizerManagePage>
                               ),
                               const SizedBox(height: 20),
                               const Text(
-                                'Email:',
+                                'Description:',
                                 style: TextStyle(fontSize: 18.0),
                               ),
                               Container(
                                 decoration: BoxDecoration(
-                                  color: colorBGInput,
+                                  color: Colors.white,
                                   borderRadius: BorderRadius.circular(8.0),
                                 ),
                                 child: TextFormField(
@@ -216,14 +241,17 @@ class _OrganizerManagePageState extends State<OrganizerManagePage>
                                     contentPadding:
                                         EdgeInsets.symmetric(horizontal: 10.0),
                                     border: InputBorder.none,
-                                    labelText: 'Description',
                                   ),
                                 ),
                               ),
                               const SizedBox(height: 20),
+                              const Text(
+                                'Lieu:',
+                                style: TextStyle(fontSize: 18.0),
+                              ),
                               Container(
                                 decoration: BoxDecoration(
-                                  color: colorBGInput,
+                                  color: Colors.white,
                                   borderRadius: BorderRadius.circular(8.0),
                                 ),
                                 child: TextFormField(
@@ -233,14 +261,17 @@ class _OrganizerManagePageState extends State<OrganizerManagePage>
                                     contentPadding:
                                         EdgeInsets.symmetric(horizontal: 10.0),
                                     border: InputBorder.none,
-                                    labelText: 'Lieu',
                                   ),
                                 ),
                               ),
                               const SizedBox(height: 20),
+                              const Text(
+                                'Nombre max de joueurs:',
+                                style: TextStyle(fontSize: 18.0),
+                              ),
                               Container(
                                 decoration: BoxDecoration(
-                                  color: colorBGInput,
+                                  color: Colors.white,
                                   borderRadius: BorderRadius.circular(8.0),
                                 ),
                                 child: TextFormField(
@@ -250,31 +281,17 @@ class _OrganizerManagePageState extends State<OrganizerManagePage>
                                     contentPadding:
                                         EdgeInsets.symmetric(horizontal: 10.0),
                                     border: InputBorder.none,
-                                    labelText: 'Nombre max de joueurs',
                                   ),
                                 ),
                               ),
                               const SizedBox(height: 20),
-                              Container(
-                                decoration: BoxDecoration(
-                                  color: colorBGInput,
-                                  borderRadius: BorderRadius.circular(8.0),
-                                ),
-                                child: TextFormField(
-                                  controller: _roundsController,
-                                  keyboardType: TextInputType.number,
-                                  decoration: const InputDecoration(
-                                    contentPadding:
-                                        EdgeInsets.symmetric(horizontal: 10.0),
-                                    border: InputBorder.none,
-                                    labelText: 'Nombre de rounds',
-                                  ),
-                                ),
+                              const Text(
+                                'Date de début:',
+                                style: TextStyle(fontSize: 18.0),
                               ),
-                              const SizedBox(height: 20),
                               Container(
                                 decoration: BoxDecoration(
-                                  color: colorBGInput,
+                                  color: Colors.white,
                                   borderRadius: BorderRadius.circular(8.0),
                                 ),
                                 child: TextFormField(
@@ -284,14 +301,17 @@ class _OrganizerManagePageState extends State<OrganizerManagePage>
                                     contentPadding:
                                         EdgeInsets.symmetric(horizontal: 10.0),
                                     border: InputBorder.none,
-                                    labelText: 'Date de début',
                                   ),
                                 ),
                               ),
                               const SizedBox(height: 20),
+                              const Text(
+                                'Date de fin:',
+                                style: TextStyle(fontSize: 18.0),
+                              ),
                               Container(
                                 decoration: BoxDecoration(
-                                  color: colorBGInput,
+                                  color: Colors.white,
                                   borderRadius: BorderRadius.circular(8.0),
                                 ),
                                 child: TextFormField(
@@ -301,7 +321,6 @@ class _OrganizerManagePageState extends State<OrganizerManagePage>
                                     contentPadding:
                                         EdgeInsets.symmetric(horizontal: 10.0),
                                     border: InputBorder.none,
-                                    labelText: 'Date de fin',
                                   ),
                                 ),
                               ),
@@ -315,7 +334,7 @@ class _OrganizerManagePageState extends State<OrganizerManagePage>
                                   child: Container(
                                     height: 150,
                                     width: double.infinity,
-                                    color: colorBGInput,
+                                    color: Colors.white,
                                     child: _selectedImage != null
                                         ? Image.file(
                                             _selectedImage!,
@@ -354,6 +373,31 @@ class _OrganizerManagePageState extends State<OrganizerManagePage>
           }
         },
       ),
+      floatingActionButton: ExpandableFab(
+        distance: 112.0,
+        children: [
+          FloatingActionButton(
+            heroTag: "startTournament${widget.tournamentId}",
+            onPressed: _startTournament,
+            tooltip: 'Démarrer le tournoi',
+            child: const Icon(Icons.play_arrow),
+          ),
+          FloatingActionButton(
+            heroTag: "finishTournament${widget.tournamentId}",
+            onPressed: _finishTournament,
+            tooltip: 'Terminer le tournoi',
+            child: const Icon(Icons.stop),
+          ),
+          FloatingActionButton(
+            heroTag: "bracket${widget.tournamentId}",
+            onPressed: () {
+              Navigator.pushNamed(context, '/bracket');
+            },
+            tooltip: 'Voir le bracket',
+            child: const Icon(Icons.format_list_numbered),
+          ),
+        ],
+      ),
     );
   }
 
@@ -363,28 +407,10 @@ class _OrganizerManagePageState extends State<OrganizerManagePage>
     _nameController.dispose();
     _descriptionController.dispose();
     _locationController.dispose();
-    _roundsController.dispose();
     _maxPlayersController.dispose();
     _startDateController.dispose();
     _endDateController.dispose();
     super.dispose();
-  }
-}
-
-class User {
-  final int id;
-  final String username;
-
-  User({
-    required this.id,
-    required this.username,
-  });
-
-  factory User.fromJson(Map<String, dynamic> json) {
-    return User(
-      id: json['id'],
-      username: json['username'],
-    );
   }
 }
 
@@ -397,8 +423,7 @@ class Tournament {
   final String endDate;
   final String imageFilename;
   final int maxPlayers;
-  final int rounds;
-  final List<User> users;
+  final List<dynamic> players; // Changed type to dynamic
 
   Tournament({
     required this.id,
@@ -409,8 +434,7 @@ class Tournament {
     required this.endDate,
     required this.imageFilename,
     required this.maxPlayers,
-    required this.rounds,
-    required this.users,
+    required this.players,
   });
 
   factory Tournament.fromJson(Map<String, dynamic> json) {
@@ -424,11 +448,7 @@ class Tournament {
       endDate: json['end_date'],
       imageFilename: json['media']['file_name'],
       maxPlayers: json['max_players'] ?? 0,
-      rounds: json['rounds'] ?? 0,
-      users: (json['user_tournaments'] as List<dynamic>?)
-              ?.map((userJson) => User.fromJson(userJson))
-              .toList() ??
-          [], // Utiliser une liste vide si null
+      players: json['players'],
     );
   }
 }

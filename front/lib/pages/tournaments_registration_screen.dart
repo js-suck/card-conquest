@@ -124,23 +124,6 @@ class _RegistrationPageState extends State<RegistrationPage> {
                             ],
                           ),
                         ),
-                        Positioned(
-                          bottom: 10,
-                          right: 10,
-                          child: Wrap(
-                            spacing: 8,
-                            children: tournament.tags != null
-                                ? (tournament.tags as List<Tag>)
-                                    .map((tag) => Chip(
-                                          label: Text(tag.name ?? 'Tag',
-                                              style: const TextStyle(
-                                                  color: Colors.white)),
-                                          backgroundColor: Colors.orange,
-                                        ))
-                                    .toList()
-                                : [],
-                          ),
-                        ),
                       ],
                     ),
                   ),

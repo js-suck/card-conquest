@@ -66,6 +66,22 @@ class MatchService {
     return responseJson.map((json) => match.Match.fromJson(json)).toList();
   }
 
+  Future<void> updateMatchLocation(int matchId, String location) async {
+    final token = await storage.read(key: 'jwt_token');
+    final response = await http.put(
+      Uri.parse('${dotenv.env['API_URL']}matchs/$matchId'),
+      headers: {
+        'Authorization': '$token',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({'location': location}),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to update location');
+    }
+  }
+
   Future<match.Match> fetchMatch(int matchId) async {
     String? token = await storage.read(key: 'jwt_token');
 
@@ -80,6 +96,7 @@ class MatchService {
       throw Exception('Failed to load match');
     }
     final Map<String, dynamic> responseJson = jsonDecode(response.body);
+    print(responseJson);
     return match.Match.fromJson(responseJson);
   }
 

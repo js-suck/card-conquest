@@ -32,9 +32,7 @@ Future<void> login(
       Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
       userRole = decodedToken['role'];
     }
-    print('USERROOOOOOOOLE');
-    print(userRole);
-    if (userRole == 'admin') {
+    if (userRole == 'organizer') {
       Navigator.pushReplacementNamed(context, '/orga/home');
     } else {
       Navigator.pushReplacementNamed(context, '/main');
