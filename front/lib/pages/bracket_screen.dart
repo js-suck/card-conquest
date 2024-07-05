@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:front/extension/theme_extension.dart';
 import 'package:front/generated/tournament.pb.dart';
 import 'package:front/grpc/tournament_client.dart';
+import 'package:front/models/match/tournament.dart';
+import 'package:front/service/tournament_service.dart';
 import 'package:front/utils/custom_future_builder.dart';
+import 'package:front/utils/custom_stream_builder.dart';
 import 'package:front/widget/bracket/bracket.dart';
 import 'package:front/widget/bracket/calendar.dart';
 import 'package:front/widget/bracket/results.dart';
 import 'package:front/widget/bracket/scoreboard.dart';
 import 'package:provider/provider.dart';
-
-import '../models/match/tournament.dart';
-import '../service/tournament_service.dart';
-import '../utils/custom_stream_builder.dart';
 
 class BracketPage extends StatefulWidget {
   final int tournamentID;
@@ -44,6 +44,7 @@ class _BracketPageState extends State<BracketPage> {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     return DefaultTabController(
       initialIndex: 0,
       length: 3,
@@ -52,9 +53,9 @@ class _BracketPageState extends State<BracketPage> {
           iconTheme: const IconThemeData(
             color: Colors.white,
           ),
-          title: const Text(
-            'Tableau',
-            style: TextStyle(
+          title: Text(
+            t.bracketTitle,
+            style: const TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
               color: Colors.white,
@@ -74,10 +75,10 @@ class _BracketPageState extends State<BracketPage> {
             unselectedLabelColor: Colors.white,
             tabs: [
               isBracket
-                  ? const Tab(text: 'Tableau')
-                  : const Tab(text: 'Classement'),
-              const Tab(text: 'Résultats'),
-              const Tab(text: 'Calendrier'),
+                  ? Tab(text: t.bracketTitle)
+                  : Tab(text: t.bracketScoreboard),
+              Tab(text: t.bracketResults),
+              Tab(text: t.bracketCalendar),
             ],
           ),
         ),

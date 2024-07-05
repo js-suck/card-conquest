@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:front/models/stat/ranking.dart';
 import 'package:front/service/user_service.dart';
 import 'package:front/utils/custom_future_builder.dart';
-
-import '../models/stat/ranking.dart';
-import '../widget/app_bar.dart';
+import 'package:front/widget/app_bar.dart';
 
 class ScoreboardPage extends StatefulWidget {
   const ScoreboardPage({super.key});
@@ -24,8 +25,9 @@ class _ScoreboardPageState extends State<ScoreboardPage> {
 
   @override
   Widget build(BuildContext context) {
+    var t = AppLocalizations.of(context)!;
     return Scaffold(
-      appBar: const TopAppBar(title: 'Classement'),
+      appBar: TopAppBar(title: t.scoreboardTitle),
       body: CustomFutureBuilder<List<Ranking>>(
         future: userService.fetchRanking(),
         onLoaded: (rankings) {
@@ -40,7 +42,7 @@ class _ScoreboardPageState extends State<ScoreboardPage> {
                       : '${dotenv.env['MEDIA_URL']}${ranking.user.media?.fileName}'),
                 ),
                 title: Text(ranking.user.username),
-                subtitle: Text('Score: ${ranking.score}'),
+                subtitle: Text('${t.scoreboardScore}: ${ranking.score}'),
                 trailing: Text('#${ranking.rank}'),
                 onTap: () {
                   // Rediriger vers la page profile

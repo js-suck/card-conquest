@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:front/pages/tournaments_registration_screen.dart';
 import 'package:front/service/tournament_service.dart';
 import 'package:front/utils/custom_future_builder.dart';
 import 'package:front/widget/app_bar.dart';
 import 'package:front/widget/tournaments/all_tournaments_list.dart';
 import 'package:front/widget/tournaments/recent_tournaments_list.dart';
+
 import '../models/match/tournament.dart';
 import 'bracket_screen.dart';
 
@@ -75,16 +77,18 @@ class _TournamentsPageState extends State<TournamentsPage> {
 
   @override
   Widget build(BuildContext context) {
+    var t = AppLocalizations.of(context)!;
     return Scaffold(
-      appBar: const TopAppBar(title: 'Tournois'),
+      appBar: TopAppBar(title: t.tournamentTitle),
       body: SingleChildScrollView(
         child: Column(
           children: [
-            const Padding(
-              padding: EdgeInsets.all(8.0),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
               child: Text(
-                'Tournois récents',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                t.recentTournaments,
+                style:
+                    const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
             ),
             CustomFutureBuilder(
@@ -96,11 +100,12 @@ class _TournamentsPageState extends State<TournamentsPage> {
                 );
               },
             ),
-            const Padding(
-              padding: EdgeInsets.all(8.0),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
               child: Text(
-                'Tous les tournois',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                t.allTournaments,
+                style:
+                    const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
             ),
             Padding(
@@ -108,7 +113,7 @@ class _TournamentsPageState extends State<TournamentsPage> {
               child: TextField(
                 onChanged: _filterTournaments,
                 decoration: InputDecoration(
-                  hintText: 'Rechercher des tournois...',
+                  hintText: t.tournamentSearchBar,
                   prefixIcon: const Icon(Icons.search),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -119,7 +124,7 @@ class _TournamentsPageState extends State<TournamentsPage> {
             AllTournamentsList(
               allTournaments: filteredTournaments,
               onTournamentTapped: _onTournamentTapped,
-              emptyMessage: 'Pas de tournois disponibles',
+              emptyMessage: t.noAvailableTournaments,
             ),
           ],
         ),

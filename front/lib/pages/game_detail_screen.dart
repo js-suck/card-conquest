@@ -1,6 +1,10 @@
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'dart:convert';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:front/widget/app_bar.dart';
+import 'package:provider/provider.dart';
+
 import '../widget/bottom_bar.dart';
 
 class GameDetailPage extends StatefulWidget {
@@ -12,7 +16,8 @@ class GameDetailPage extends StatefulWidget {
   _GameDetailPageState createState() => _GameDetailPageState();
 }
 
-class _GameDetailPageState extends State<GameDetailPage> with SingleTickerProviderStateMixin {
+class _GameDetailPageState extends State<GameDetailPage>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
   late Map<String, dynamic> mockGame;
   late List<Map<String, dynamic>> mockLeaderboard;
@@ -48,26 +53,33 @@ class _GameDetailPageState extends State<GameDetailPage> with SingleTickerProvid
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
     mockGame = jsonDecode(gameJson);
-    mockLeaderboard = List<Map<String, dynamic>>.from(jsonDecode(leaderboardJson));
+    mockLeaderboard =
+        List<Map<String, dynamic>>.from(jsonDecode(leaderboardJson));
   }
 
   Future<void> _onTournamentPageTapped() async {
     // action back to page make code
-    final selectedPageModel = Provider.of<SelectedPageModel>(context, listen: false);
-    selectedPageModel.changePage(TournamentsPage(searchQuery: mockGame['name']), 1);
+    final selectedPageModel =
+        Provider.of<SelectedPageModel>(context, listen: false);
+    selectedPageModel.changePage(
+        TournamentsPage(searchQuery: mockGame['name']), 1);
   }
 
   @override
   Widget build(BuildContext context) {
+    var t = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Détails du jeu'),
-        centerTitle: true,
+        title: TopAppBar(
+          title: t.gameDetailsTitle,
+          isAvatar: false,
+        ),
+        automaticallyImplyLeading: false,
         bottom: TabBar(
           controller: _tabController,
-          tabs: const [
-            Tab(text: 'Détails'),
-            Tab(text: 'Classement'),
+          tabs: [
+            Tab(text: t.gameDetailsTab),
+            Tab(text: t.gameScoreboardTab),
           ],
         ),
       ),
@@ -82,6 +94,7 @@ class _GameDetailPageState extends State<GameDetailPage> with SingleTickerProvid
   }
 
   Widget _buildGameDetails() {
+    var t = AppLocalizations.of(context)!;
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16.0),
       child: Column(
@@ -97,7 +110,8 @@ class _GameDetailPageState extends State<GameDetailPage> with SingleTickerProvid
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(12),
               image: DecorationImage(
-                image: NetworkImage('http://10.0.2.2:8080/api/v1/images/yugiho.webp'),
+                image: NetworkImage(
+                    'http://10.0.2.2:8080/api/v1/images/yugiho.webp'),
                 fit: BoxFit.cover,
               ),
             ),
@@ -111,7 +125,7 @@ class _GameDetailPageState extends State<GameDetailPage> with SingleTickerProvid
           Center(
             child: ElevatedButton(
               onPressed: _onTournamentPageTapped,
-              child: const Text('Voir les tournois'),
+              child: Text(t.gameShowTournaments),
             ),
           ),
         ],

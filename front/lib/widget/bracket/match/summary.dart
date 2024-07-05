@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:front/extension/theme_extension.dart';
 import 'package:front/generated/match.pb.dart' as tournament;
+import 'package:front/service/match_service.dart';
+import 'package:front/utils/custom_future_builder.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
-
-import '../../../service/match_service.dart';
-import '../../../utils/custom_future_builder.dart';
 
 class Summary extends StatefulWidget {
   const Summary({super.key, required this.match});
@@ -27,16 +27,18 @@ class _SummaryState extends State<Summary> {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
+
     return CustomFutureBuilder(
         future: matchService.fetchMatch(widget.match.matchId),
         onLoaded: (match) {
           return ListView(
             children: [
               const SizedBox(height: 2),
-              const Padding(
-                padding: EdgeInsets.only(left: 10),
+              Padding(
+                padding: const EdgeInsets.only(left: 10),
                 child: Text(
-                  'Informations de match',
+                  t.summaryInfo,
                 ),
               ),
               Container(
@@ -48,14 +50,14 @@ class _SummaryState extends State<Summary> {
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
                         Icon(MdiIcons.mapMarker, color: Colors.white),
-                        const Expanded(
-                            child: Text('Lieu :',
-                                style: TextStyle(color: Colors.white))),
+                        Expanded(
+                            child: Text('${t.summaryLocation} :',
+                                style: const TextStyle(color: Colors.white))),
                         match.location != ''
                             ? Text(match.location,
                                 style: const TextStyle(color: Colors.white))
-                            : const Text('Non défini',
-                                style: TextStyle(color: Colors.white)),
+                            : Text(t.summaryNoLocation,
+                                style: const TextStyle(color: Colors.white)),
                       ],
                     ),
                   ),
