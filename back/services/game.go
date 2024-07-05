@@ -3,8 +3,8 @@ package services
 import (
 	"authentication-api/errors"
 	"authentication-api/models"
+
 	"gorm.io/gorm"
-	"sort"
 )
 
 type GameParams struct {
@@ -22,84 +22,108 @@ func NewGameService(db *gorm.DB) *GameService {
 	}
 }
 
-func (s *GameService) GetAll(filterParams FilterParams, gameParams GameParams, preloads ...string) (trendyGames []models.Game, allGames []models.Game, err errors.IError) {
-	query := s.db
+func (s *GameService) GetAll(filterParams FilterParams, gameParams GameParams, preloads ...string) (allGames []models.Game, trendyGames []models.Game, err errors.IError) {
+	query := s.Db
+	queryTrendy := s.Db
 
 	for _, preload := range preloads {
 		query = query.Preload(preload)
+		queryTrendy = queryTrendy.Preload(preload)
 	}
 	// search if in query string there is a parameter with_trendy
 	// games who the tounraments are the most recent
 	if gameParams.WithTrendy {
 
-		err := query.Joins("JOIN tournaments ON tournaments.game_id = games.id").Group("games.id, tournaments.start_date").Order("tournaments.start_date DESC").Limit(8).Find(&trendyGames).Error
+		err := queryTrendy.Joins("JOIN tournaments ON tournaments.game_id = games.id").Group("games.id, tournaments.start_date").Order("tournaments.start_date DESC").Limit(8).Find(&trendyGames).Error
 		if err != nil {
 			return nil, nil, errors.NewErrorResponse(500, err.Error())
 		}
 
-		// search in db all games
-		err = query.Find(&allGames).Error
+		err = queryTrendy.Find(&trendyGames).Error
 
 		if err != nil {
 			return nil, nil, errors.NewErrorResponse(500, err.Error())
-		}
-	} else {
-		// search in db all games
-		err := query.Find(&allGames).Error
 
-		if err != nil {
-			return nil, nil, errors.NewErrorResponse(500, err.Error())
 		}
+
 	}
 
-	return trendyGames, allGames, nil
+	// search in db all games
+	errorAllGames := query.Find(&allGames).Error
+
+	if errorAllGames != nil {
+		return nil, nil, errors.NewErrorResponse(500, err.Error())
+	}
+	return allGames, trendyGames, nil
 }
 
-func (s *GameService) CalculateUserRankings(userID string) ([]models.UserGameRanking, errors.IError) {
-	// get all the games
-	var games []models.Game
+func (s *GameService) CalculateUserRankingsForGames(userID string) ([]models.UserGameRanking, errors.IError) {
+	var userGamesScores []models.GameScore
+	var userRankings []models.UserGameRanking
 
-	err := s.db.Preload("Tournaments.Steps.Matches").Find(&games).Error
-	if err != nil {
-		return nil, errors.NewErrorResponse(500, err.Error())
+	if err := s.Db.Preload("Game").Preload("User").Find(&userGamesScores, "user_id = ?", userID).Error; err != nil {
+		return nil, errors.NewInternalServerError("Failed to get game scores", err)
 	}
 
-	userScores := make(map[uint]int)
+	for _, gameScore := range userGamesScores {
+		var rank int64
 
-	// map and get calculate the points of all users
-	for _, game := range games {
-		for _, tournament := range game.Tournaments {
-			for _, step := range tournament.Steps {
-				for _, match := range step.Matches {
-					if match.WinnerID != nil && *match.WinnerID != 0 {
-						userScores[*match.WinnerID] += 3
-					} else {
-						userScores[match.PlayerOneID] += 1
-						if *match.PlayerTwoID != 0 {
-							userScores[*match.PlayerTwoID] += 1
-						}
-					}
-				}
-			}
+		if err := s.Db.Table("game_scores").
+			Where("game_id = ?", gameScore.GameID).
+			Where("total_score > ?", gameScore.TotalScore).
+			Count(&rank).Error; err != nil {
+			return nil, errors.NewInternalServerError("Failed to calculate rank", err)
 		}
+
+		rank = rank + 1
+
+		userRankings = append(userRankings, models.UserGameRanking{
+			User:     gameScore.User.ToRead(),
+			GameID:   gameScore.GameID,
+			GameName: gameScore.Game.Name,
+			Score:    gameScore.TotalScore,
+			Rank:     int(rank),
+		})
 	}
 
-	// for each score, give 3 to the winner and 1 to the others
-	var rankings []models.UserGameRanking
-	for userID, score := range userScores {
-		user := models.User{}
-		err := s.db.First(&user, userID).Error
-		if err != nil {
-			return nil, errors.NewErrorResponse(500, err.Error())
-		}
-		rankings = append(rankings, models.UserGameRanking{User: user.ToRead(), Score: score})
+	if len(userRankings) == 0 {
+		return nil, errors.NewNotFoundError("No game scores found for user", nil)
 	}
 
-	// get the userID index
-	sort.Slice(rankings, func(i, j int) bool {
-		return rankings[i].Score > rankings[j].Score
-	})
+	return userRankings, nil
+}
 
-	// return the ranking
-	return rankings, nil
+func (s *GameService) CreateGame(game *models.Game) errors.IError {
+	if err := s.Db.Create(game).Error; err != nil {
+		return errors.NewInternalServerError("Failed to create game", err)
+	}
+	return nil
+}
+
+func (s *GameService) UpdateGame(id uint, game *models.Game) errors.IError {
+	existingGame := models.Game{}
+	if err := s.Db.First(&existingGame, id).Error; err != nil {
+		return errors.NewNotFoundError("Game not found", err)
+	}
+
+	if err := s.Db.Model(&existingGame).Updates(game).Error; err != nil {
+		return errors.NewInternalServerError("Failed to update game", err)
+	}
+
+	return nil
+}
+
+func (s *GameService) DeleteGame(id uint) errors.IError {
+	if err := s.Db.Delete(&models.Game{}, id).Error; err != nil {
+		return errors.NewInternalServerError("Failed to delete game", err)
+	}
+	return nil
+}
+
+func (s *GameService) GetGameByID(id uint) (*models.Game, errors.IError) {
+	var game models.Game
+	if err := s.Db.First(&game, id).Error; err != nil {
+		return nil, errors.NewNotFoundError("Game not found", err)
+	}
+	return &game, nil
 }

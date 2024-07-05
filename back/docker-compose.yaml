@@ -13,5 +13,42 @@ services:
     ports:
       - "5432:5432"
 
+  loki:
+    image: grafana/loki:latest
+    ports:
+      - "3100:3100"
+    networks:
+      - loki-net
+    volumes:
+      - loki-storage:/loki
+
+  promtail:
+    image: grafana/promtail:latest
+    volumes:
+      - ./promtail-config.yaml:/etc/promtail/promtail-config.yaml
+      - /var/log:/var/log
+    networks:
+      - loki-net
+    depends_on:
+      - loki
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    networks:
+      - loki-net
+    depends_on:
+      - loki
+
+networks:
+  loki-net:
+    driver: bridge
+
 volumes:
   postgres_data:
+  grafana-storage:
+  prometheus-storage:
+  loki-storage:

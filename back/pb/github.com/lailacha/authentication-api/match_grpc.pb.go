@@ -26,7 +26,6 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type MatchServiceClient interface {
-	// RPC pour s'abonner aux mises à jour de match
 	SubscribeMatchUpdates(ctx context.Context, in *MatchRequest, opts ...grpc.CallOption) (MatchService_SubscribeMatchUpdatesClient, error)
 }
 
@@ -74,7 +73,6 @@ func (x *matchServiceSubscribeMatchUpdatesClient) Recv() (*MatchResponse, error)
 // All implementations must embed UnimplementedMatchServiceServer
 // for forward compatibility
 type MatchServiceServer interface {
-	// RPC pour s'abonner aux mises à jour de match
 	SubscribeMatchUpdates(*MatchRequest, MatchService_SubscribeMatchUpdatesServer) error
 	mustEmbedUnimplementedMatchServiceServer()
 }

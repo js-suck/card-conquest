@@ -2,37 +2,34 @@ package grpc
 
 import (
 	"authentication-api/db"
+	"github.com/google/uuid"
 	"log"
 	"strconv"
 	"sync"
 
 	authentication_api "authentication-api/pb/github.com/lailacha/authentication-api"
 	"authentication-api/services"
-	"github.com/google/uuid"
 )
 
-type server struct {
-	authentication_api.UnimplementedMatchServiceServer
+type tournamentServer struct {
 	authentication_api.UnimplementedTournamentServiceServer
-	streams map[string]map[string]chan *authentication_api.TournamentResponse
-	mu      sync.RWMutex // Use RWMutex for more granular locking
+	tournamentStreams map[string]map[string]chan *authentication_api.TournamentResponse
+	mu                sync.RWMutex
 }
 
-func NewServer() *server {
-	s := &server{
-		streams: make(map[string]map[string]chan *authentication_api.TournamentResponse),
+func NewTournamentServer() *tournamentServer {
+	s := &tournamentServer{
+		tournamentStreams: make(map[string]map[string]chan *authentication_api.TournamentResponse),
 	}
-
-	// Start the goroutine to broadcast updates for all tournaments
-	go s.broadcastUpdates()
+	go s.broadcastTournamentUpdates()
 	return s
 }
 
-func (s *server) broadcastUpdates() {
+func (s *tournamentServer) broadcastTournamentUpdates() {
 	for update := range services.TournamentUpdates {
 		tournamentID := strconv.Itoa(int(update.TournamentId))
 		s.mu.RLock()
-		streams, exists := s.streams[tournamentID]
+		streams, exists := s.tournamentStreams[tournamentID]
 		s.mu.RUnlock()
 		if exists {
 			for clientID, clientChan := range streams {
@@ -43,37 +40,42 @@ func (s *server) broadcastUpdates() {
 					log.Printf("Client %s update channel full, skipping update for tournament %s", clientID, tournamentID)
 				}
 			}
+		} else {
+			log.Printf("No clients subscribed to tournament %s", tournamentID)
 		}
 	}
 }
 
-func (s *server) SuscribeTournamentUpdate(req *authentication_api.TournamentRequest, stream authentication_api.TournamentService_SuscribeTournamentUpdateServer) error {
-	subscribedTournamentID := strconv.Itoa(int(req.TournamentId))
+func (s *tournamentServer) SuscribeTournamentUpdate(req *authentication_api.TournamentRequest, stream authentication_api.TournamentService_SuscribeTournamentUpdateServer) error {
 	clientID := uuid.New().String()
-	db := db.DB
-	tournamentService := services.NewTournamentService(db)
+
+	tournamentID := strconv.Itoa(int(req.TournamentId))
 
 	s.mu.Lock()
-	if _, ok := s.streams[subscribedTournamentID]; !ok {
-		s.streams[subscribedTournamentID] = make(map[string]chan *authentication_api.TournamentResponse)
+	if _, ok := s.tournamentStreams[tournamentID]; !ok {
+		s.tournamentStreams[tournamentID] = make(map[string]chan *authentication_api.TournamentResponse)
 	}
 	updateChan := make(chan *authentication_api.TournamentResponse, 200)
-	s.streams[subscribedTournamentID][clientID] = updateChan
+	s.tournamentStreams[tournamentID][clientID] = updateChan
 	s.mu.Unlock()
 
-	tournamentService.SendTournamentUpdatesForGRPC(uint(req.TournamentId))
+	tournamentService := services.NewTournamentService(db.DB)
+	go func() {
+		log.Printf("Sending initial tournament update for tournament %s", tournamentID)
+		tournamentService.SendTournamentUpdatesForGRPC(uint(req.TournamentId))
+	}()
 
-	log.Printf("Client %s subscribed to tournament %s", clientID, subscribedTournamentID)
+	log.Printf("Client %s subscribed to tournament %s", clientID, tournamentID)
 
 	defer func() {
 		s.mu.Lock()
-		close(s.streams[subscribedTournamentID][clientID])
-		delete(s.streams[subscribedTournamentID], clientID)
-		if len(s.streams[subscribedTournamentID]) == 0 {
-			delete(s.streams, subscribedTournamentID)
+		close(s.tournamentStreams[tournamentID][clientID])
+		delete(s.tournamentStreams[tournamentID], clientID)
+		if len(s.tournamentStreams[tournamentID]) == 0 {
+			delete(s.tournamentStreams, tournamentID)
 		}
 		s.mu.Unlock()
-		log.Printf("Client %s unsubscribed from tournament %s", clientID, subscribedTournamentID)
+		log.Printf("Client %s unsubscribed from tournament %s", clientID, tournamentID)
 	}()
 
 	go func() {
@@ -82,7 +84,7 @@ func (s *server) SuscribeTournamentUpdate(req *authentication_api.TournamentRequ
 				log.Printf("Error sending update to client %s: %v", clientID, err)
 				return
 			}
-			log.Printf("Update sent to client %s for tournament %s", clientID, subscribedTournamentID)
+			log.Printf("Update sent to client %s for tournament %s", clientID, tournamentID)
 		}
 	}()
 

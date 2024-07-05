@@ -21,6 +21,12 @@ func NewAuthHandler(authService *services.AuthService, userService *services.Use
 	}
 }
 
+type RequestBody struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+	FcmToken string `json:"fcm_token"`
+}
+
 // Login godoc
 // @Summary Login
 // @Description Login
@@ -34,21 +40,43 @@ func NewAuthHandler(authService *services.AuthService, userService *services.Use
 // @Router /login [post]
 func (h *AuthHandler) Login(c *gin.Context) {
 	var user models.User
+	var body RequestBody
 
-	if err := c.ShouldBindJSON(&user); err != nil {
+	if err := c.ShouldBindJSON(&body); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid data"})
 		return
 	}
 
-	err := h.AuthService.Login(&user)
+	user.Username = body.Username
+	user.Password = body.Password
+
+	userData, err := h.AuthService.Login(&user)
 
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
 		return
 	}
 
-	token, err := utils.GenerateToken(user)
+	if !services.CheckPasswordHash(body.Password, userData.Password) {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
+		return
+	}
+
 	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
+		return
+	}
+
+	if body.FcmToken != "" {
+		err := h.UserService.AddFCMToken(userData.ID, body.FcmToken)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error adding FCM token"})
+			return
+		}
+	}
+
+	token, errToken := utils.GenerateToken(user)
+	if errToken != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error generating token"})
 		return
 	}
@@ -77,22 +105,29 @@ func (h *AuthHandler) Register(c *gin.Context) {
 		return
 	}
 
-	err := h.UserService.Create(&user)
+	hashedPassword, err := services.HashPassword(user.Password)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error hashing password"})
+		return
+	}
+	user.Password = hashedPassword
+
+	errCreation := h.UserService.Create(&user)
 
 	if err != nil {
-		c.JSON(err.Code(), err)
+		c.JSON(errCreation.Code(), err)
 		return
 
 	}
 
-	err = h.AuthService.SendConfirmationEmail(user.Email, user.Username, user.VerificationToken)
-	if err != nil {
+	errConfirm := h.AuthService.SendConfirmationEmail(user.Email, user.Username, user.VerificationToken)
+	if errConfirm != nil {
 		if validationErr, ok := err.(*errors.ValidationError); ok {
 			c.JSON(http.StatusUnprocessableEntity, validationErr.ToGinH())
 			return
 		}
 
-		c.JSON(err.Code(), err)
+		c.JSON(errConfirm.Code(), err)
 		return
 	}
 

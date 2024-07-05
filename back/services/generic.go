@@ -24,12 +24,12 @@ type Service interface {
 }
 
 type GenericService struct {
-	db    *gorm.DB
+	Db    *gorm.DB
 	model models.IModel
 }
 
 func NewGenericService(db *gorm.DB, model models.IModel) *GenericService {
-	return &GenericService{db: db, model: model}
+	return &GenericService{Db: db, model: model}
 }
 
 type FilterParams struct {
@@ -51,7 +51,7 @@ func (s *GenericService) Create(m models.IModel) errors.IError {
 
 	}
 
-	result := s.db.Create(m)
+	result := s.Db.Create(m)
 	if result.Error != nil {
 		return errors.NewErrorResponse(500, result.Error.Error())
 	}
@@ -59,15 +59,15 @@ func (s *GenericService) Create(m models.IModel) errors.IError {
 }
 
 func (s *GenericService) Update(m models.IModel) errors.IError {
-	result := s.db.Model(m).Updates(m)
+	result := s.Db.Model(m).Updates(m)
 	if result.Error != nil {
 		return errors.NewErrorResponse(500, result.Error.Error())
 	}
 	return nil
 }
 
-func (s *GenericService) Delete(id uint) error {
-	result := s.db.Delete(s.model, id)
+func (s *GenericService) Delete(id uint) errors.IError {
+	result := s.Db.Delete(s.model, id)
 
 	if result.RowsAffected == 0 {
 		return errors.NewNotFoundError("Record not found", nil)
@@ -75,13 +75,13 @@ func (s *GenericService) Delete(id uint) error {
 	}
 
 	if result.Error != nil {
-		return result.Error
+		return errors.NewErrorResponse(500, result.Error.Error())
 	}
 	return nil
 }
 
 func (s *GenericService) Get(model models.IModel, id uint, preloads ...string) errors.IError {
-	db := s.db
+	db := s.Db
 	for _, preload := range preloads {
 		db = db.Preload(preload)
 	}
@@ -94,7 +94,7 @@ func (s *GenericService) Get(model models.IModel, id uint, preloads ...string) e
 }
 
 func (s *GenericService) GetAll(models interface{}, filterParams FilterParams, preloads ...string) errors.IError {
-	query := s.db
+	query := s.Db
 
 	for field, value := range filterParams.Fields {
 		query = query.Where(field+" = ?", value)

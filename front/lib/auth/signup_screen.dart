@@ -1,11 +1,17 @@
-import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'dart:convert';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:http/http.dart' as http;
+
+import '../home_screen.dart';
 
 Future<void> signUp(BuildContext context, String username, String email,
     String password) async {
+  final t = AppLocalizations.of(context)!;
   final response = await http.post(
-    Uri.parse('http://10.0.2.2:8080/api/v1/register'),
+    Uri.parse('${dotenv.env['API_URL']}register'),
     headers: <String, String>{
       'Content-Type': 'application/json; charset=UTF-8',
     },
@@ -18,10 +24,14 @@ Future<void> signUp(BuildContext context, String username, String email,
 
   if (response.statusCode == 201) {
     // Handle successful registration
-    Navigator.of(context).pushReplacementNamed('/');
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+          builder: (context) => HomePage(showVerificationDialog: true)),
+    );
   } else {
     // Handle error in registration
-    throw Exception('Failed to register');
+    throw Exception(t.signupError);
   }
 }
 
@@ -46,6 +56,7 @@ class _SignUpPageState extends State<SignUpPage> {
   }
 
   void _signUp() {
+    final t = AppLocalizations.of(context)!;
     if (_formKey.currentState?.validate() == true &&
         _acceptTermsAndConditions == true) {
       signUp(context, _usernameController.text, _emailController.text,
@@ -58,11 +69,11 @@ class _SignUpPageState extends State<SignUpPage> {
           context: context,
           builder: (BuildContext context) {
             return AlertDialog(
-              title: Text("Error"),
-              content: Text('Failed to register. Please try again.'),
+              title: Text(t.error),
+              content: Text(t.signupError),
               actions: [
                 TextButton(
-                  child: Text("Close"),
+                  child: Text(t.modalClose),
                   onPressed: () {
                     Navigator.of(context).pop();
                   },
@@ -78,11 +89,11 @@ class _SignUpPageState extends State<SignUpPage> {
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            title: Text("Terms Required"),
-            content: Text('You must accept terms and conditions to continue.'),
+            title: Text(t.signupTermsTitle),
+            content: Text(t.signupTermsMessage),
             actions: [
               TextButton(
-                child: Text("Close"),
+                child: Text(t.modalClose),
                 onPressed: () {
                   Navigator.of(context).pop();
                 },
@@ -96,6 +107,7 @@ class _SignUpPageState extends State<SignUpPage> {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
         title: Row(
@@ -123,20 +135,20 @@ class _SignUpPageState extends State<SignUpPage> {
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Créez votre compte',
-                        style: TextStyle(
+                      Text(
+                        t.signupTitle,
+                        style: const TextStyle(
                             fontSize: 24, fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 20),
-                      const Text('Nom d\'utilisateur',
-                          style: TextStyle(
+                      Text(t.username,
+                          style: const TextStyle(
                               fontSize: 14, fontWeight: FontWeight.bold)),
                       const SizedBox(height: 10),
                       TextFormField(
                         controller: _usernameController,
                         decoration: InputDecoration(
-                          hintText: 'Votre nom d\'utilisateur',
+                          hintText: t.username.toLowerCase(),
                           hintStyle: TextStyle(
                               color: const Color(0xFF888888).withOpacity(0.5)),
                           fillColor: Colors.grey[100],
@@ -150,20 +162,20 @@ class _SignUpPageState extends State<SignUpPage> {
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
-                            return 'Veuillez entrer un nom d\'utilisateur';
+                            return t.noUsername;
                           }
                           return null;
                         },
                       ),
                       const SizedBox(height: 20),
-                      const Text('Email',
-                          style: TextStyle(
+                      Text(t.email,
+                          style: const TextStyle(
                               fontSize: 14, fontWeight: FontWeight.bold)),
                       const SizedBox(height: 10),
                       TextFormField(
                         controller: _emailController,
                         decoration: InputDecoration(
-                          hintText: 'tcg@gmail.com',
+                          hintText: t.emailHint,
                           hintStyle: TextStyle(
                               color: const Color(0xFF888888).withOpacity(0.5)),
                           fillColor: Colors.grey[100],
@@ -179,14 +191,14 @@ class _SignUpPageState extends State<SignUpPage> {
                           if (value == null ||
                               value.isEmpty ||
                               !value.contains('@')) {
-                            return 'Veuillez entrer un email valide';
+                            return t.invalidEmail;
                           }
                           return null;
                         },
                       ),
                       const SizedBox(height: 20),
-                      const Text('Mot de passe',
-                          style: TextStyle(
+                      Text(t.password,
+                          style: const TextStyle(
                               fontSize: 14, fontWeight: FontWeight.bold)),
                       const SizedBox(height: 10),
                       TextFormField(
@@ -209,14 +221,14 @@ class _SignUpPageState extends State<SignUpPage> {
                           if (value == null ||
                               value.isEmpty ||
                               value.length < 6) {
-                            return 'Le mot de passe doit contenir au moins 6 caractères';
+                            return t.invalidPassword;
                           }
                           return null;
                         },
                       ),
                       const SizedBox(height: 20),
-                      const Text('Confirmer le mot de passe',
-                          style: TextStyle(
+                      Text(t.passwordConfirmation,
+                          style: const TextStyle(
                               fontSize: 14, fontWeight: FontWeight.bold)),
                       const SizedBox(height: 10),
                       TextFormField(
@@ -237,7 +249,7 @@ class _SignUpPageState extends State<SignUpPage> {
                         obscureText: true,
                         validator: (value) {
                           if (value != _passwordController.text) {
-                            return 'Les mots de passe ne correspondent pas';
+                            return t.passwordMismatch;
                           }
                           return null;
                         },
@@ -260,9 +272,9 @@ class _SignUpPageState extends State<SignUpPage> {
                                 // Ouvrir la page des terms & policy
                                 Navigator.pushNamed(context, '/terms');
                               },
-                              child: const Text(
-                                'J\'ai lu et j\'accepte les termes et conditions',
-                                style: TextStyle(
+                              child: Text(
+                                t.signupTermsAccept,
+                                style: const TextStyle(
                                     fontSize: 14,
                                     decoration: TextDecoration.underline),
                               ),
@@ -278,23 +290,23 @@ class _SignUpPageState extends State<SignUpPage> {
                             borderRadius: BorderRadius.circular(10),
                           ),
                         ),
-                        child: const Text(
-                          'S\'inscrire',
-                          style: TextStyle(
+                        child: Text(
+                          t.signupSignup,
+                          style: const TextStyle(
                               color: Colors.white,
                               fontSize: 16,
                               fontWeight: FontWeight.bold),
                         ),
                       ),
                       const SizedBox(height: 10),
-                      const Row(
+                      Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: <Widget>[
                           Flexible(
                             // Rend le texte flexible pour éviter le débordement
                             child: Text(
-                              'ou connectez-vous avec',
-                              style: TextStyle(fontSize: 14),
+                              t.signupAlternative,
+                              style: const TextStyle(fontSize: 14),
                             ),
                           ),
                         ],
@@ -323,11 +335,11 @@ class _SignUpPageState extends State<SignUpPage> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: <Widget>[
-                          const Flexible(
+                          Flexible(
                             // Rend le texte flexible pour éviter le débordement
                             child: Text(
-                              'Vous avez déjà un compte ?',
-                              style: TextStyle(fontSize: 14),
+                              t.signupHaveAccount,
+                              style: const TextStyle(fontSize: 14),
                               overflow: TextOverflow
                                   .ellipsis, // Ajoute des points de suspension si le texte est trop long
                             ),
@@ -336,9 +348,9 @@ class _SignUpPageState extends State<SignUpPage> {
                             onPressed: () {
                               Navigator.pushNamed(context, '/login');
                             },
-                            child: const Text(
-                              'Connectez-vous',
-                              style: TextStyle(
+                            child: Text(
+                              t.signupLogin,
+                              style: const TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.bold,
                                 color: Color(0xFFFF933D),

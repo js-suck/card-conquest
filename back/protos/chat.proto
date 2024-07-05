@@ -1,0 +1,48 @@
+syntax = "proto3";
+
+package protos;
+option go_package = "github.com/lailacha/authentication-api";
+
+
+service ChatService {
+  rpc SendMessage (ChatMessage) returns (Empty) {}
+  rpc Join (JoinRequest) returns (stream ChatHistoryMessage) {}
+  rpc GetChatHistory (HistoryRequest) returns (HistoryResponse) {}
+}
+
+message User {
+  int32 id = 1;
+  string username = 2;
+  string mediaUrl = 3;
+}
+
+
+message ChatMessage {
+  int32 guildId = 1;
+  int32 userId = 2;
+  string username = 3;
+  string content = 4;
+  int64 timestamp = 5;
+}
+
+
+message ChatHistoryMessage {
+  User user = 1;
+  string content = 2;
+  int64 timestamp = 3;
+}
+
+message JoinRequest {
+  int32 guildId = 1;
+  int32 userId = 2;
+}
+
+message HistoryRequest {
+  int32 guildId = 1;
+}
+
+message HistoryResponse {
+  repeated ChatHistoryMessage messages = 1;
+}
+
+message Empty {}

@@ -1,203 +1,57 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
-import 'package:front/main.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:front/extension/theme_extension.dart';
+import 'package:front/generated/tournament.pb.dart' as tournament_grpc;
+import 'package:front/generated/tournament.pb.dart';
+import 'package:front/pages/bracket_screen.dart';
 import 'package:front/widget/bracket/bracket_match.dart';
 import 'package:provider/provider.dart';
 
-class Bracket extends StatelessWidget {
-  Bracket({super.key});
+class Bracket extends StatefulWidget {
+  final tournament_grpc.TournamentResponse tournamentStream;
 
-  final List<List<Match>> tournament = [
-    [
-      Match(
-        player1: 'Alcaraz C. (1)',
-        player2: 'Medvedev D. (5)',
-        playerOneId: 1,
-        playerTwoId: 5,
-        status: 'finished',
-        score1: '2',
-        score2: '0',
-        winnerId: 1,
-        time: '',
-        tournament: 'US Open',
-      ),
-      Match(
-        player1: 'Federer R. (3)',
-        player2: 'Nadal R. (7)',
-        playerOneId: 3,
-        playerTwoId: 7,
-        status: 'finished',
-        score1: '2',
-        score2: '1',
-        winnerId: 3,
-        time: '',
-        tournament: 'US Open',
-      ),
-      Match(
-        player1: 'Djokovic N. (9)',
-        player2: 'Shapovalov D. (12)',
-        playerOneId: 9,
-        playerTwoId: 12,
-        status: 'finished',
-        score1: '2',
-        score2: '0',
-        winnerId: 9,
-        time: '',
-        tournament: 'US Open',
-      ),
-      Match(
-        player1: 'Auger-Aliassime F. (14)',
-        player2: 'Monfils G. (16)',
-        playerOneId: 14,
-        playerTwoId: 15,
-        status: 'finished',
-        score1: '1',
-        score2: '2',
-        winnerId: 15,
-        time: '',
-        tournament: 'US Open',
-      ),
-      Match(
-        player1: 'Rublev A. (6)',
-        player2: 'Sinner J. (2)',
-        playerOneId: 13,
-        playerTwoId: 21,
-        status: 'finished',
-        score1: '0',
-        score2: '2',
-        winnerId: 21,
-        time: '',
-        tournament: 'US Open',
-      ),
-      Match(
-        player1: 'Ruud C. (4)',
-        player2: '',
-        playerOneId: 4,
-        playerTwoId: null,
-        status: 'not started',
-        time: '',
-        tournament: 'US Open',
-      ),
-      Match(
-        player1: '',
-        player2: '',
-        playerOneId: null,
-        playerTwoId: null,
-        status: 'not started',
-        time: '',
-        tournament: 'US Open',
-      ),
-      Match(
-        player1: '',
-        player2: '',
-        playerOneId: null,
-        playerTwoId: null,
-        status: 'not started',
-        time: '',
-        tournament: 'US Open',
-      ),
-    ],
-    [
-      Match(
-        player1: 'Alcaraz C. (1)',
-        player2: 'Federer R. (3)',
-        playerOneId: 1,
-        playerTwoId: 5,
-        status: 'finished',
-        score1: '1',
-        score2: '2',
-        winnerId: 5,
-        time: '',
-        tournament: 'US Open',
-      ),
-      Match(
-        player1: 'Monfils G. (16)',
-        player2: 'Djokovic N. (9)',
-        playerOneId: 16,
-        playerTwoId: 9,
-        status: 'in progress',
-        score1: '0',
-        score2: '1',
-        time: '',
-        tournament: 'US Open',
-      ),
-      Match(
-        player1: '',
-        player2: 'Sinner J. (2)',
-        playerOneId: null,
-        playerTwoId: 21,
-        status: 'not started',
-        time: '',
-        tournament: 'US Open',
-      ),
-      Match(
-        player1: '',
-        player2: '',
-        playerOneId: null,
-        playerTwoId: null,
-        status: 'not started',
-        score1: '',
-        score2: '',
-        time: '',
-        tournament: 'US Open',
-      ),
-    ],
-    [
-      Match(
-        player1: 'Djokovic N. (9)',
-        player2: 'Federer R. (3)',
-        playerOneId: 9,
-        playerTwoId: 3,
-        status: 'not started',
-        score1: '',
-        score2: '',
-        winnerId: null,
-        time: '18:00',
-        tournament: 'US Open',
-      ),
-      Match(
-        player1: '',
-        player2: '',
-        playerOneId: null,
-        playerTwoId: null,
-        status: 'not started',
-        time: '',
-        tournament: 'US Open',
-      ),
-    ],
-    [
-      Match(
-        player1: '',
-        player2: '',
-        playerOneId: null,
-        playerTwoId: null,
-        status: 'not started',
-        score1: '',
-        score2: '',
-        winnerId: null,
-        time: '',
-        tournament: 'US Open',
-      ),
-    ],
-  ];
+  const Bracket(this.tournamentStream, {super.key});
 
-  final tabs = [
-    const Tab(text: '1/64 DE FINALE'),
-    const Tab(text: '1/32 DE FINALE'),
-    const Tab(text: '1/16 DE FINALE'),
-    const Tab(text: '1/8 DE FINALE'),
-    const Tab(text: 'QUARTS DE FINALE'),
-    const Tab(text: 'DEMI-FINALES'),
-    const Tab(text: 'FINALE'),
-  ];
+  @override
+  State<Bracket> createState() => _BracketState();
+}
 
-  List<Widget> generateStep(List<Match> matches) {
+class _BracketState extends State<Bracket> {
+  List<Widget> generateStep(TournamentStep step, tournamentSize) {
     List<Widget> listViewBuilders = [];
+    final tournamentData = widget.tournamentStream;
+    int matchesInThisRound = (1 << (tournamentSize - 1));
 
+    final tournamentSteps = tournamentData.tournamentSteps.length;
+    while (tournamentData.tournamentSteps.length < tournamentSize) {
+      tournamentData.tournamentSteps.add(TournamentStep());
+    }
+
+    for (var step in tournamentData.tournamentSteps) {
+      step.matches.sort((a, b) => a.position.compareTo(b.position));
+    }
+
+    for (var step in tournamentData.tournamentSteps) {
+      while (step.matches.length < matchesInThisRound) {
+        step.matches.add(Match(position: 999));
+      }
+      matchesInThisRound = (matchesInThisRound / 2).ceil();
+    }
+
+    // retrieve all matches from all steps
+    /*
+    final List<tournament_grpc.Match> matchesStream = [];
+    for (var tournamentStep in tournamentData.tournamentSteps) {
+      matchesStream.add(tournamentStep.matches as tournament_grpc.Match);
+    }
+     */
     listViewBuilders.add(
       ListView.builder(
-        itemCount: matches.length,
+        itemCount: step.matches.length,
         itemBuilder: (context, index) {
-          var match = matches[index];
+          var match = step.matches[index];
           return Column(
             children: [
               SizedBox(height: index == 0 ? 16 : 0),
@@ -214,57 +68,46 @@ class Bracket extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDarkMode = Provider.of<ThemeNotifier>(context).isDarkMode;
-
+    final t = AppLocalizations.of(context)!;
+    final tabs = [
+      Tab(text: t.bracketRoundOf64),
+      Tab(text: t.bracketRoundOf32),
+      Tab(text: t.bracketRoundOf16),
+      Tab(text: t.bracketRoundOf8),
+      Tab(text: t.bracketRoundOf4),
+      Tab(text: t.bracketRoundOf2),
+      Tab(text: t.bracketRoundOf1),
+    ];
+    final tournamentData = widget.tournamentStream;
+    final tournamentSteps = tournamentData.tournamentSteps;
+    final tournament = context.watch<TournamentNotifier>().tournament;
+    var players = tournament?.playersRegistered;
+    var tournamentSize = (log(players as int) / log(2)).ceil();
+    // generate empty matches
+    for (int i = 0; i < tournamentSize; i++) {
+      tournament_grpc.Player player = tournament_grpc.Player();
+    }
     return DefaultTabController(
       initialIndex: 0,
-      length: tournament.length,
+      length: tournamentSize,
       child: Scaffold(
         appBar: PreferredSize(
           preferredSize: const Size.fromHeight(kToolbarHeight),
           child: TabBar(
             isScrollable: true,
-            unselectedLabelColor: isDarkMode ? Colors.white : Colors.black,
+            unselectedLabelColor: context.themeColors.fontColor,
+            indicatorColor: context.themeColors.accentColor,
             // Retrieve the last n tabs
-            tabs: tabs.sublist(tabs.length - tournament.length, tabs.length),
+            tabs: tabs.sublist(tabs.length - tournamentSize, tabs.length),
           ),
         ),
         body: TabBarView(
           children: [
-            for (var step in tournament) ...generateStep(step),
+            for (int step = 0; step < tournamentSize; step++)
+              ...generateStep(tournamentSteps[step], tournamentSize),
           ],
         ),
       ),
     );
   }
-}
-
-class Match {
-  String? player1 = '';
-  String? player2 = '';
-  int? playerOneId;
-  int? playerTwoId;
-  final String status;
-  String? score1 = '';
-  String? score2 = '';
-  int? winnerId;
-  String? time = '';
-  String? date = '';
-  String? location = '';
-  String? tournament = '';
-
-  Match({
-    this.player1,
-    this.player2,
-    this.playerOneId,
-    this.playerTwoId,
-    required this.status,
-    this.score1,
-    this.score2,
-    this.winnerId,
-    this.time,
-    this.date,
-    this.location,
-    this.tournament,
-  });
 }

@@ -49,6 +49,61 @@ definitions:
       name:
         type: string
     type: object
+  models.GameScore:
+    properties:
+      created_at:
+        type: string
+      game_id:
+        type: integer
+      id:
+        type: integer
+      score:
+        type: integer
+      updated_at:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  models.Guild:
+    properties:
+      admins:
+        items:
+          $ref: '#/definitions/models.User'
+        type: array
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: integer
+      media:
+        $ref: '#/definitions/models.Media'
+      media_id:
+        type: integer
+      name:
+        type: string
+      players:
+        items:
+          $ref: '#/definitions/models.User'
+        type: array
+      updated_at:
+        type: string
+    type: object
+  models.GuildRead:
+    properties:
+      description:
+        type: string
+      id:
+        type: integer
+      media:
+        $ref: '#/definitions/models.MediaModel'
+      name:
+        type: string
+      players:
+        items:
+          $ref: '#/definitions/models.UserReadWithImage'
+        type: array
+    type: object
   models.LoginPayload:
     properties:
       password:
@@ -64,6 +119,8 @@ definitions:
         type: string
       id:
         type: integer
+      location:
+        type: string
       matchPosition:
         type: integer
       playerOne:
@@ -112,6 +169,13 @@ definitions:
       updated_at:
         type: string
     type: object
+  models.MediaModel:
+    properties:
+      media:
+        $ref: '#/definitions/models.Media'
+      media_id:
+        type: integer
+    type: object
   models.NewUserPayload:
     properties:
       address:
@@ -158,7 +222,7 @@ definitions:
         type: array
       id:
         type: integer
-      name:
+      label:
         type: string
       tournaments:
         items:
@@ -167,7 +231,7 @@ definitions:
       updated_at:
         type: string
     required:
-    - name
+    - label
     type: object
   models.Tournament:
     properties:
@@ -183,8 +247,12 @@ definitions:
         type: integer
       id:
         type: integer
+      latitude:
+        type: number
       location:
         type: string
+      longitude:
+        type: number
       maxPlayers:
         example: 32
         type: integer
@@ -256,6 +324,18 @@ definitions:
         type: string
       email:
         type: string
+      fcm_token:
+        type: string
+      gamesScores:
+        items:
+          $ref: '#/definitions/models.GameScore'
+        type: array
+      global_score:
+        type: integer
+      guilds:
+        items:
+          $ref: '#/definitions/models.Guild'
+        type: array
       id:
         type: integer
       is_verified:
@@ -285,6 +365,77 @@ definitions:
         type: string
     required:
     - password
+    type: object
+  models.UserGameRanking:
+    properties:
+      gameID:
+        type: integer
+      gameName:
+        type: string
+      rank:
+        type: integer
+      score:
+        type: integer
+      user:
+        $ref: '#/definitions/models.UserReadTournament'
+    type: object
+  models.UserRanking:
+    properties:
+      rank:
+        type: integer
+      score:
+        type: integer
+      user:
+        $ref: '#/definitions/models.UserReadTournament'
+    type: object
+  models.UserReadTournament:
+    properties:
+      email:
+        type: string
+      id:
+        type: integer
+      media:
+        $ref: '#/definitions/models.Media'
+      username:
+        type: string
+    type: object
+  models.UserReadWithImage:
+    properties:
+      email:
+        type: string
+      id:
+        type: integer
+      media:
+        $ref: '#/definitions/models.Media'
+      score:
+        type: integer
+      username:
+        type: string
+    type: object
+  models.UserStats:
+    properties:
+      email:
+        type: string
+      gamesRanking:
+        items:
+          $ref: '#/definitions/models.UserGameRanking'
+        type: array
+      id:
+        type: integer
+      media:
+        $ref: '#/definitions/models.Media'
+      rank:
+        type: integer
+      totalLosses:
+        type: integer
+      totalMatches:
+        type: integer
+      totalScore:
+        type: integer
+      totalWins:
+        type: integer
+      username:
+        type: string
     type: object
 host: localhost:8080
 info:
@@ -363,7 +514,151 @@ paths:
       summary: Get all games
       tags:
       - Game
-  /games/{userID}/rankings:
+    post:
+      consumes:
+      - application/json
+      description: Create a new game
+      parameters:
+      - description: Game object
+        in: body
+        name: game
+        required: true
+        schema:
+          $ref: '#/definitions/models.Game'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Game'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create a new game
+      tags:
+      - Game
+  /games/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a game
+      parameters:
+      - description: Game ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete a game
+      tags:
+      - Game
+    get:
+      consumes:
+      - application/json
+      description: Get a game by ID
+      parameters:
+      - description: Game ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - default: Bearer <Add access token here>
+        description: Insert your access token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Game'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get a game by ID
+      tags:
+      - Game
+    put:
+      consumes:
+      - application/json
+      description: Update an existing game
+      parameters:
+      - description: Game ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Game object
+        in: body
+        name: game
+        required: true
+        schema:
+          $ref: '#/definitions/models.Game'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Game'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update an existing game
+      tags:
+      - Game
+  /games/user/{UserID}/rankings:
     get:
       consumes:
       - application/json
@@ -399,6 +694,318 @@ paths:
       summary: Get the ranking of a user for all games
       tags:
       - Game
+  /guilds:
+    get:
+      consumes:
+      - application/json
+      description: Get all guilds.
+      parameters:
+      - default: Bearer <Add access token here>
+        description: Insert your access token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.GuildRead'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get all guilds
+      tags:
+      - Guild
+    post:
+      consumes:
+      - application/json
+      description: Create a guild
+      parameters:
+      - description: Guild Payload
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/models.Guild'
+      - default: Bearer <Add access token here>
+        description: Insert your access token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Guild'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create a guild
+      tags:
+      - Guild
+  /guilds/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a guild
+      parameters:
+      - description: Guild ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - default: Bearer <Add access token here>
+        description: Insert your access token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete a guild
+      tags:
+      - Guild
+    get:
+      consumes:
+      - application/json
+      description: Get a guild by ID
+      parameters:
+      - description: Guild ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - default: Bearer <Add access token here>
+        description: Insert your access token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.GuildRead'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get a guild by ID
+      tags:
+      - Guild
+    put:
+      consumes:
+      - application/json
+      description: Update a guild
+      parameters:
+      - description: Guild ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Guild Payload
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/models.Guild'
+      - default: Bearer <Add access token here>
+        description: Insert your access token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Guild'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update a guild
+      tags:
+      - Guild
+  /guilds/{id}/users/{userID}:
+    delete:
+      consumes:
+      - application/json
+      description: Remove a user from a guild
+      parameters:
+      - description: Guild ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: User ID
+        in: path
+        name: userID
+        required: true
+        type: integer
+      - default: Bearer <Add access token here>
+        description: Insert your access token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Remove a user from a guild
+      tags:
+      - Guild
+    post:
+      consumes:
+      - application/json
+      description: Add a user to a guild
+      parameters:
+      - description: Guild ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: User ID
+        in: path
+        name: userID
+        required: true
+        type: integer
+      - default: Bearer <Add access token here>
+        description: Insert your access token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Guild'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Add a user to a guild
+      tags:
+      - Guild
+  /guilds/user/{userId}:
+    get:
+      consumes:
+      - application/json
+      description: Get guilds by user ID
+      parameters:
+      - description: User ID
+        in: path
+        name: userId
+        required: true
+        type: integer
+      - default: Bearer <Add access token here>
+        description: Insert your access token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.GuildRead'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get guilds by user ID
+      tags:
+      - Guild
   /images:
     post:
       consumes:
@@ -464,6 +1071,14 @@ paths:
         in: query
         name: UserID
         type: integer
+      - description: Search by Status
+        in: query
+        name: Status
+        type: string
+      - description: Search by Unfinished
+        in: query
+        name: Unfinished
+        type: boolean
       - description: Search by TournamentID
         in: query
         name: TournamentID
@@ -556,6 +1171,46 @@ paths:
       security:
       - BearerAuth®: []
       summary: Get a match
+      tags:
+      - Match
+  /matchs/between-users:
+    get:
+      consumes:
+      - application/json
+      description: Get matches between users.
+      parameters:
+      - default: Bearer <Add access token here>
+        description: Insert your access token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Player1 ID
+        in: query
+        name: Player1ID
+        required: true
+        type: integer
+      - description: Player2 ID
+        in: query
+        name: PlayerID2
+        required: true
+        type: integer
+      - description: Search by Status
+        in: query
+        name: Status
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get matches between users
       tags:
       - Match
   /matchs/update/score:
@@ -692,16 +1347,53 @@ paths:
       summary: Create a tag
       tags:
       - Tag
-  /tournaments:
-    get:
+  /tags/{id}:
+    delete:
       consumes:
       - application/json
-      description: Get all tournaments
+      description: Delete a tag
       parameters:
-      - description: Add recent tournaments to the response
-        in: query
-        name: WithRecents
-        type: boolean
+      - description: Tag ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - default: Bearer <Add access token here>
+        description: Insert your access token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete a tag
+      tags:
+      - Tag
+    put:
+      consumes:
+      - application/json
+      description: Update a tag
+      parameters:
+      - description: Tag ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Tag object that needs to be updated
+        in: body
+        name: tag
+        required: true
+        schema:
+          $ref: '#/definitions/models.Tag'
       - default: Bearer <Add access token here>
         description: Insert your access token
         in: header
@@ -714,7 +1406,52 @@ paths:
         "200":
           description: OK
           schema:
-            type: string
+            $ref: '#/definitions/models.Tag'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update a tag
+      tags:
+      - Tag
+  /tournaments:
+    get:
+      consumes:
+      - application/json
+      description: Get all tournaments
+      parameters:
+      - description: Add recent tournaments to the response
+        in: query
+        name: WithRecents
+        type: boolean
+      - description: Search by userID
+        in: query
+        name: UserID
+        type: integer
+      - description: Search by gameID
+        in: query
+        name: GameID
+        type: integer
+      - description: Search by name
+        in: query
+        name: Name
+        type: string
+      - description: Sort order (use 'start_date' for ascending order, '-start_date'
+          for descending order)
+        in: query
+        name: Sort
+        type: string
+      - default: Bearer <Add access token here>
+        description: Insert your access token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
         "500":
           description: Internal Server Error
           schema:
@@ -730,45 +1467,48 @@ paths:
       description: Create a new tournament
       parameters:
       - description: Tournament name
-        example: s
+        example: '"My Tournament"'
         in: formData
         name: name
         required: true
         type: string
       - description: Tournament description
-        example: s
+        example: '"Description of my tournament"'
         in: formData
         name: description
         required: true
         type: string
       - description: Tournament start date
-        example: s
+        example: '"2024-04-12T00:00:00Z"'
         in: formData
         name: start_date
         required: true
         type: string
       - description: Tournament end date
-        example: s
+        example: '"2024-04-15T00:00:00Z"'
         in: formData
         name: end_date
         required: true
         type: string
       - description: Organizer ID
+        example: 1
         in: formData
         name: organizer_id
         required: true
         type: integer
       - description: Game ID
+        example: 1
         in: formData
         name: game_id
         required: true
         type: integer
       - description: Number of rounds
+        example: 3
         in: formData
         name: rounds
         required: true
         type: integer
-      - collectionFormat: csv
+      - collectionFormat: multi
         description: Array of tag IDs
         in: formData
         items:
@@ -782,16 +1522,29 @@ paths:
         required: true
         type: file
       - description: Location
-        example: s
+        example: '"New York"'
         in: formData
         name: location
         required: true
         type: string
       - description: Maximum number of players
+        example: 32
         in: formData
         name: max_players
         required: true
         type: integer
+      - description: Longitude
+        example: 40.7128
+        in: formData
+        name: longitude
+        required: true
+        type: number
+      - description: Latitude
+        example: 74.006
+        in: formData
+        name: latitude
+        required: true
+        type: number
       - default: Bearer <Add access token here>
         description: Insert your access token
         in: header
@@ -807,14 +1560,52 @@ paths:
             $ref: '#/definitions/models.Tournament'
         "400":
           description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
         "500":
           description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Create a new tournament
       tags:
       - tournament
   /tournaments/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a tournament
+      parameters:
+      - description: Tournament ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - default: Bearer <Add access token here>
+        description: Insert your access token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete a tournament
+      tags:
+      - tournament
     get:
       consumes:
       - application/json
@@ -849,6 +1640,108 @@ paths:
       security:
       - BearerAuth: []
       summary: Get a tournament
+      tags:
+      - tournament
+    put:
+      consumes:
+      - application/json
+      description: Update a tournament
+      parameters:
+      - description: Tournament ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Tournament name
+        example: '"My Tournament"'
+        in: formData
+        name: name
+        type: string
+      - description: Tournament description
+        example: '"Description of my tournament"'
+        in: formData
+        name: description
+        type: string
+      - description: Tournament start date
+        example: '"2024-04-12T00:00:00Z"'
+        in: formData
+        name: start_date
+        type: string
+      - description: Tournament end date
+        example: '"2024-04-15T00:00:00Z"'
+        in: formData
+        name: end_date
+        type: string
+      - description: Organizer ID
+        example: 1
+        in: formData
+        name: organizer_id
+        type: integer
+      - description: Game ID
+        example: 1
+        in: formData
+        name: game_id
+        type: integer
+      - description: Number of rounds
+        example: 3
+        in: formData
+        name: rounds
+        type: integer
+      - collectionFormat: multi
+        description: Array of tag IDs
+        in: formData
+        items:
+          type: integer
+        name: tagsIDs[]
+        type: array
+      - description: Image file
+        in: formData
+        name: image
+        type: file
+      - description: Location
+        example: '"New York"'
+        in: formData
+        name: location
+        type: string
+      - description: Maximum number of players
+        example: 32
+        in: formData
+        name: max_players
+        type: integer
+      - description: Longitude
+        example: 40.7128
+        in: formData
+        name: longitude
+        type: number
+      - description: Latitude
+        example: 74.006
+        in: formData
+        name: latitude
+        type: number
+      - default: Bearer <Add access token here>
+        description: Insert your access token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update a tournament
       tags:
       - tournament
   /tournaments/{id}/generate-matches:
@@ -941,6 +1834,11 @@ paths:
         name: userID
         required: true
         type: integer
+      - description: Status
+        example: s
+        in: query
+        name: Status
+        type: string
       - default: Bearer <Add access token here>
         description: Insert your access token
         in: header
@@ -1013,10 +1911,6 @@ paths:
       - description: Tournament ID
         in: query
         name: TournamentID
-        type: integer
-      - description: Game ID
-        in: query
-        name: GameID
         type: integer
       - description: User ID
         in: query
@@ -1127,6 +2021,39 @@ paths:
       security:
       - BearerAuth: []
       summary: Create a user
+      tags:
+      - User
+  /users/{UserID}/stats:
+    get:
+      consumes:
+      - application/json
+      description: Get user stats
+      parameters:
+      - description: User ID
+        in: path
+        name: UserID
+        required: true
+        type: integer
+      - default: Bearer <Add access token here>
+        description: Insert your access token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.UserStats'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get user stats
       tags:
       - User
   /users/{id}:
@@ -1285,6 +2212,36 @@ paths:
       security:
       - BearerAuth: []
       summary: Upload a picture
+      tags:
+      - User
+  /users/ranks:
+    get:
+      consumes:
+      - application/json
+      description: Get users ranks
+      parameters:
+      - default: Bearer <Add access token here>
+        description: Insert your access token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.UserRanking'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get users ranks
       tags:
       - User
 securityDefinitions:

@@ -1,6 +1,7 @@
 package errors
 
 import (
+	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
@@ -17,8 +18,7 @@ type IError interface {
 }
 
 func (e *ErrorResponse) Error() string {
-	//TODO implement me
-	panic("implement me")
+	return e.ErrorMessage
 }
 
 type ValidationError struct {
@@ -73,9 +73,20 @@ func NewNotFoundError(message string, err error) *ErrorResponse {
 }
 
 func NewInternalServerError(message string, err error) *ErrorResponse {
+
+	if customError, ok := err.(IError); ok {
+		return NewErrorResponse(customError.Code(), customError.Error())
+
+	}
+
 	return NewErrorResponse(http.StatusInternalServerError, message)
 }
 
 func NewUnauthorizedError(message string) *ErrorResponse {
 	return NewErrorResponse(http.StatusUnauthorized, message)
+}
+
+func IsFileNotFound(err error) bool {
+
+	return errors.Is(err, http.ErrMissingFile)
 }

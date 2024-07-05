@@ -13,3 +13,7 @@ func (m Media) GetID() uint {
 func (m Media) GetTableName() string {
 	return "medias"
 }
+
+func (m Media) IsOwner(userID uint) bool {
+	return true
+}

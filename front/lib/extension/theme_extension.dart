@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:front/main.dart';
+import 'package:front/notifier/theme_notifier.dart';
+import 'package:front/theme/theme_colors.dart';
 import 'package:provider/provider.dart';
 
 extension ThemeExtension on BuildContext {
@@ -13,6 +14,8 @@ extension ThemeExtension on BuildContext {
             themeNotifier.themeColors.invertedBackgroundColor,
         secondaryBackgroundAccentColor:
             themeNotifier.themeColors.secondaryBackgroundAccentColor,
+        secondaryBackgroundAccentActiveColor:
+            themeNotifier.themeColors.secondaryBackgroundAccentActiveColor,
         accentColor: themeNotifier.themeColors.accentColor,
         fontColor: themeNotifier.themeColors.fontColor);
   }

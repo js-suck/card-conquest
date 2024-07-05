@@ -1,12 +1,14 @@
 package models
 
 import (
+	"gorm.io/gorm"
 	"time"
 )
 
 type IModel interface {
 	GetID() uint
 	GetTableName() string
+	IsOwner(userID uint) bool
 }
 
 type ForeignKeyChecker interface {
@@ -35,10 +37,19 @@ type User struct {
 	Email             string        `gorm:"unique;not null;type:varchar(255);default:null" json:"email"`
 	Role              string        `gorm:"type:varchar(100);default:user" json:"role"`
 	Country           string        `gorm:"type:varchar(255);default:null" json:"country"`
+	GlobalScore       int           `gorm:"default:0" json:"global_score"`
 	VerificationToken string        `gorm:"type:varchar(255);default:null" json:"-"`
 	IsVerified        bool          `gorm:"default:false" json:"is_verified"`
-	Tournaments       []*Tournament `gorm:"many2many:user_tournaments;"`
-	Matches           []Match       `gorm:"foreignKey:PlayerOneID;references:ID"`
+	Tournaments       []*Tournament `gorm:"many2many:user_tournaments;constraint:OnDelete:CASCADE;"`
+	Matches           []Match       `gorm:"foreignKey:PlayerOneID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+	GamesScores       []GameScore   `gorm:"foreignKey:UserID;references:ID"`
+	Guilds            []Guild       `gorm:"many2many:guild_players;"`
+	FCMToken          string        `gorm:"type:varchar(255);default:null" json:"fcm_token"; default:null`
+}
+
+func (u *User) AfterFind(tx *gorm.DB) (err error) {
+	tx.Model(u).Association("Media").Find(&u.Media)
+	return
 }
 
 type LoginPayload struct {
@@ -59,9 +70,31 @@ type UserRead struct {
 	Username string `json:"name"`
 	Email    string `json:"email, -"`
 }
+
+type UserReadWithImage struct {
+	ID       uint
+	Username string `json:"username"`
+	Email    string `json:"email"`
+	Media    *Media `json:"media"`
+	Score    int    `json:"score"`
+}
+
+type UserReadFull struct {
+	ID         uint        `json:"id"`
+	Username   string      `json:"username"`
+	Email      string      `json:"email"`
+	Address    string      `json:"address"`
+	Phone      string      `json:"phone"`
+	Role       string      `json:"role"`
+	Country    string      `json:"country"`
+	MediaModel *Media      `json:"media"`
+	Guilds     []GuildRead `json:"guilds"`
+}
+
 type UserRanking struct {
 	User  UserReadTournament
 	Score int
+	Rank  int
 }
 
 type UserStats struct {
@@ -70,6 +103,7 @@ type UserStats struct {
 	TotalWins    int
 	TotalLosses  int
 	TotalScore   int
+	Rank         int
 	GamesRanking []UserGameRanking
 }
 
@@ -78,6 +112,7 @@ type UserGameRanking struct {
 	GameID   uint
 	GameName string
 	Score    int
+	Rank     int
 }
 
 func (u User) GetTableName() string {
@@ -94,9 +129,61 @@ func (u User) GetID() uint {
 }
 
 func (u User) ToRead() UserReadTournament {
-	return UserReadTournament{
+	user := UserReadTournament{
 		ID:    u.ID,
 		Name:  u.Username,
 		Email: u.Email,
 	}
+
+	if u.MediaModel.Media != nil && u.MediaModel.Media.FileName != "" {
+		user.Media = u.MediaModel.Media
+	}
+
+	return user
+}
+
+func (u User) ToReadFull() UserReadFull {
+	userRead := UserReadFull{
+		ID:       u.ID,
+		Username: u.Username,
+		Email:    u.Email,
+		Address:  u.Address,
+		Phone:    u.Phone,
+		Role:     u.Role,
+		Country:  u.Country,
+	}
+
+	if u.MediaModel.Media != nil && u.MediaModel.Media.FileName != "" {
+		userRead.MediaModel = &Media{FileName: u.MediaModel.Media.FileName, FileExtension: u.MediaModel.Media.FileExtension, BaseModel: BaseModel{
+			ID: u.MediaModel.Media.GetID(),
+		}}
+	}
+
+	if len(u.Guilds) > 0 {
+		userRead.Guilds = make([]GuildRead, len(u.Guilds))
+		for i, guild := range u.Guilds {
+			userRead.Guilds[i] = guild.ToRead()
+		}
+
+	}
+
+	return userRead
+}
+
+func (u User) IsOwner(userID uint) bool {
+	return u.ID == userID
+}
+
+func (u User) ToReadWithImage() UserReadWithImage {
+	return UserReadWithImage{
+		ID:       u.ID,
+		Username: u.Username,
+		Email:    u.Email,
+		Media:    u.MediaModel.Media,
+		Score:    u.GlobalScore,
+	}
+}
+
+func (u User) IsAdmin() bool {
+	return u.Role == "admin"
 }
