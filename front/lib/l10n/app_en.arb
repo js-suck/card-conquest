@@ -122,5 +122,9 @@
   "tournamentRegistrationStatus": "Status",
   "tournamentStatusOpened": "Opened",
   "tournamentStatusFinished": "Finished",
-  "tournamentStatusStarted": "In Progress"
+  "tournamentStatusStarted": "In Progress",
+  "gameScoreTab": "Score",
+  "noUserScoreFound": "No score found",
+  "score": "Score",
+  "rank": "Rank"
 }

@@ -93,4 +93,22 @@ class UserService {
       return user;
     }
   }
+
+  Future<Map<String, dynamic>> fetchUserScoreForGame(int gameId) async {
+    String? token = await storage.read(key: 'jwt_token');
+
+    final response = await http.get(
+      Uri.parse('${dotenv.env['API_URL']}games/user/$gameId/rankings'),
+      headers: {
+        HttpHeaders.authorizationHeader: '$token',
+      },
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to load user score');
+    }
+
+    final List<dynamic> responseJson = jsonDecode(response.body);
+    return responseJson.isNotEmpty ? responseJson[0] : {};
+  }
 }
