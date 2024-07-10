@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
@@ -191,32 +192,66 @@ class _ProfilePageState extends State<ProfilePage> {
                       ),
                     ),
                     onSaved: (value) => userData['email'] = value!,
+                        ),
+                        const SizedBox(height: 20),
+                        ElevatedButton(
+                          onPressed: _updateUserData,
+                          style: ElevatedButton.styleFrom(
+                            foregroundColor: Colors.white,
+                            backgroundColor: const Color(0xFFFF933D),
+                            minimumSize: const Size(double.infinity, 45),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          child: Text(
+                            t.profileUpdateProfile,
+                            style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                  const SizedBox(height: 20),
-                  ElevatedButton(
-                    onPressed: _updateUserData,
-                    style: ElevatedButton.styleFrom(
-                      foregroundColor: Colors.white,
-                      backgroundColor: const Color(0xFFFF933D),
-                      minimumSize: const Size(double.infinity, 45),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
+                    const SizedBox(height: 20),
+                    if (user.guilds != null && user.guilds!.isNotEmpty)
+                Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Your Guilds',
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 10),
+                  ...user.guilds!.map((guild) {
+                    return GestureDetector(
+                      onTap: () {
+                        Navigator.pushNamed(context, '/guild/${guild.id}');
+                      },
+                      child: Center(
+                        child: Column(
+                          children: [
+                            CircleAvatar(
+                              backgroundImage: CachedNetworkImageProvider(
+                                '${dotenv.env['MEDIA_URL']}${guild.media?.fileName}',
+                              ),
+                              radius: 50,
+                            ),
+                            const SizedBox(height: 10),
+                            Text('Guild: ${guild.name}'),
+                            const SizedBox(height: 20),
+                          ],
+                        ),
                       ),
-                    ),
-                    child: Text(
-                      t.profileUpdateProfile,
-                      style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold),
-                    ),
-                  ),
+                    );
+                  }).toList(),
                 ],
               ),
+                ),
+              ),
             ),
-          ),
-        ),
-      ),
     );
   }
 }

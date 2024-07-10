@@ -1,16 +1,21 @@
-import 'dart:convert';
-
-import 'package:flutter/foundation.dart';
+import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:front/extension/theme_extension.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:flutter/foundation.dart';
+
 
 Future<void> login(
     BuildContext context, String username, String password) async {
-  const storage = FlutterSecureStorage(); // Create instance of secure storage
+  const storage =
+      FlutterSecureStorage();
+  String? fcmToken = await storage.read(key: 'fcm_token');
   final response = await http.post(
     Uri.parse('${dotenv.env['API_URL']}login'),
     headers: <String, String>{
@@ -19,6 +24,7 @@ Future<void> login(
     body: jsonEncode(<String, String>{
       'username': username,
       'password': password,
+      'fcm_token': fcmToken ?? 'test',
     }),
   );
 
@@ -31,7 +37,16 @@ Future<void> login(
 
     // Store the token in secure storage
     await storage.write(key: 'jwt_token', value: token);
-    Navigator.pushReplacementNamed(context, '/main');
+
+    // decode the token to get the user information
+    var tokenData = jsonDecode(
+        ascii.decode(base64.decode(base64.normalize(token.split(".")[1]))));
+    int userId = tokenData['user_id'];
+
+    await storage.write(key: 'user_id', value: userId.toString());
+
+
+    Navigator.of(context).pushReplacementNamed('/main');
   } else {
     // Handle error in login
     ScaffoldMessenger.of(context).showSnackBar(
@@ -68,10 +83,79 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-  void _googleSignIn() {
-    // Intégrer la logique de connexion avec Google ici
-    // Après la connexion, naviguez vers HomePage
-    Navigator.of(context).pushReplacementNamed('/');
+
+  Future<void> sendUserDataToServer(auth.User user) async {
+    print('Sending user data to server...');
+    const storage = FlutterSecureStorage();
+    final response = await http.post(
+      Uri.parse('${dotenv.env['API_URL']}/auth/google'),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode(<String, String>{
+        'uid': user.uid,
+        'email': user.email!,
+        'displayName': user.displayName ?? '',
+        'photoURL': user.photoURL ?? '',
+      }),
+    );
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      print('User added/updated successfully');
+      print('Response: ${response.body}');
+
+      var responseData = jsonDecode(response.body);
+
+      String token = responseData['token'];
+
+      // Store the token in secure storage
+      await storage.write(key: 'jwt_token', value: token);
+
+      try {
+        // Normalize Base64 URL encoding
+        String normalizedToken = base64.normalize(token.split(".")[1]);
+        var tokenData = jsonDecode(
+            utf8.decode(base64Url.decode(normalizedToken)));
+        print('Token data: $tokenData');
+
+        int userId = tokenData['user_id'];
+        print('User ID: $userId');
+
+        await storage.write(key: 'user_id', value: userId.toString());
+      } catch (e) {
+        print('Error during token decoding: $e');
+      }
+    } else {
+      print('Failed to add/update user: ${response.reasonPhrase}');
+    }
+  }
+
+
+  Future<void> _googleSignIn() async {
+    try {
+      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+      final GoogleSignInAuthentication? googleAuth = await googleUser?.authentication;
+
+      final auth.AuthCredential credential = auth.GoogleAuthProvider.credential(
+        accessToken: googleAuth?.accessToken,
+        idToken: googleAuth?.idToken,
+      );
+
+      auth.User? user = (await auth.FirebaseAuth.instance.signInWithCredential(credential)).user;
+
+    if (user != null) {
+    await sendUserDataToServer(user);
+    Navigator.of(context).pushReplacementNamed('/main');
+    ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(content: Text('Welcome, ${user.displayName}')),
+    );
+    }
+    } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(content: Text('Error during Google sign in: $e')),
+    );
+    }
+    Navigator.of(context).pushReplacementNamed('/main');
   }
 
   @override
