@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:front/pages/bracket_screen.dart';
 import 'package:front/pages/games_screen.dart';
@@ -8,12 +9,11 @@ import 'package:front/service/game_service.dart';
 import 'package:front/service/tournament_service.dart';
 import 'package:front/utils/custom_future_builder.dart';
 import 'package:front/widget/app_bar.dart';
+import 'package:front/widget/bottom_bar.dart';
 import 'package:front/widget/games/games_list.dart';
 import 'package:front/widget/tournaments/all_tournaments_list.dart';
+import 'package:front/widget/tournaments/recent_tournaments_list.dart';
 import 'package:provider/provider.dart';
-
-import '../widget/bottom_bar.dart';
-import '../widget/tournaments/recent_tournaments_list.dart';
 
 class HomeUserPage extends StatefulWidget {
   const HomeUserPage({Key? key}) : super(key: key);
@@ -80,12 +80,13 @@ class _HomePageState extends State<HomeUserPage> {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     return Scaffold(
-      appBar: const TopAppBar(title: 'Accueil', isAvatar: true, isPage: false),
+      appBar: TopAppBar(title: t.homeTitle, isAvatar: true, isPage: false),
       body: SingleChildScrollView(
         child: Column(
           children: [
-            _buildSectionTitle('Tournois récents'),
+            _buildSectionTitle(t.recentTournaments),
             CustomFutureBuilder(
                 future: tournamentService.fetchRecentTournaments(),
                 onLoaded: (tournaments) {
@@ -95,8 +96,8 @@ class _HomePageState extends State<HomeUserPage> {
                         _onTournamentTapped(id, status),
                   );
                 }),
-            _buildSectionTitleWithButton('Les tournois', 'Voir les tournois',
-                _onTournamentPageTapped as VoidCallback),
+            _buildSectionTitleWithButton(t.homeTournaments,
+                t.homeShowTournaments, _onTournamentPageTapped as VoidCallback),
             CustomFutureBuilder(
                 future: tournamentService.fetchTournaments(),
                 onLoaded: (tournaments) {
@@ -104,11 +105,11 @@ class _HomePageState extends State<HomeUserPage> {
                     allTournaments: tournaments.take(4).toList(),
                     onTournamentTapped: (id, status) =>
                         _onTournamentTapped(id, status),
-                    emptyMessage: 'Pas de tournois à venir',
+                    emptyMessage: t.noUpcomingTournaments,
                   );
                 }),
-            _buildSectionTitleWithButton(
-                'Les jeux', 'Tous les jeux', _onGamePageTapped as VoidCallback),
+            _buildSectionTitleWithButton(t.homeGames, t.homeShowGames,
+                _onGamePageTapped as VoidCallback),
             CustomFutureBuilder(
                 future: gameService.fetchGames(),
                 onLoaded: (games) {
