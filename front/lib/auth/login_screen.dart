@@ -26,6 +26,9 @@ Future<void> login(
     var responseData = jsonDecode(response.body);
     String token = responseData['token'];
 
+    //Destroy previous token
+    await storage.delete(key: 'jwt_token');
+
     // Store the token in secure storage
     await storage.write(key: 'jwt_token', value: token);
     Navigator.pushReplacementNamed(context, '/main');
