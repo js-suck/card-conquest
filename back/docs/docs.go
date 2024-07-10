@@ -398,6 +398,63 @@ const docTemplate = `{
                 }
             }
         },
+        "/games/{id}/ranks": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get the ranking of users for a game",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Game"
+                ],
+                "summary": "Get the ranking of users for a game",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Game ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "default": "Bearer \u003cAdd access token here\u003e",
+                        "description": "Insert your access token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/errors.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/errors.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/guilds": {
             "get": {
                 "security": [
@@ -2296,7 +2353,6 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Get all users",
                 "consumes": [
                     "application/json"
                 ],
@@ -2306,26 +2362,7 @@ const docTemplate = `{
                 "tags": [
                     "User"
                 ],
-                "summary": "Get all users",
                 "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Filter by isVerified",
-                        "name": "isVerified",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Sort by",
-                        "name": "sort",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by role",
-                        "name": "role",
-                        "in": "query"
-                    },
                     {
                         "type": "string",
                         "description": "Filter by country",
@@ -3209,12 +3246,6 @@ const docTemplate = `{
                 },
                 "id": {
                     "type": "integer"
-                },
-                "matches": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.Match"
-                    }
                 },
                 "name": {
                     "type": "string"
