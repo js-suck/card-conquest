@@ -49,11 +49,6 @@ class _TopAppBarState extends State<TopAppBar> {
       userId = decodedToken['user_id'];
     });
 
-    try {
-      final user = await userService.fetchUser(userId);
-    } catch (e) {
-      return;
-    }
   }
 
   @override
