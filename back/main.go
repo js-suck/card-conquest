@@ -142,6 +142,7 @@ func main() {
 	}()
 
 	r := routers.SetupRouter(DB)
+	// !!!! http://localhost:8080/swagger/index.html to see it !!!!
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	if err := r.Run(":8080"); err != nil {
 		logrus.Fatalf("Failed to run server: %v", err)

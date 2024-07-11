@@ -3,7 +3,6 @@ package handlers
 import (
 	"authentication-api/errors"
 	"authentication-api/models"
-	"authentication-api/permissions"
 	"authentication-api/services"
 	"net/http"
 	"strconv"
@@ -175,15 +174,6 @@ func (h *UserHandler) PostUser(c *gin.Context) {
 // @Router /users/{id} [delete]
 func (h *UserHandler) DeleteUser(c *gin.Context) {
 
-	permissionsConfigs := c.MustGet("permissions").([]permissions.Permission)
-
-	canAccess := permissions.CanAccess(permissionsConfigs, permissions.PermissionDeleteUser)
-
-	if !canAccess {
-		c.JSON(http.StatusForbidden, errors.NewUnauthorizedError("You do not have permission to access this resource").ToGinH())
-		return
-	}
-
 	idStr := c.Param("id")
 	idInt, err := strconv.Atoi(idStr)
 	if err != nil {
@@ -242,7 +232,6 @@ func (h *UserHandler) UpdateUser(c *gin.Context) {
 
 	c.JSON(http.StatusOK, "User updated successfully")
 }
-
 
 // UploadPicture godoc
 // @basePath: /api/v1
