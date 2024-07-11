@@ -29,10 +29,10 @@ class _GameDetailPageState extends State<GameDetailPage> with SingleTickerProvid
   late TournamentService tournamentService;
   late UserService userService;
   Game? game;
-  Map<String, dynamic>? userScore;
+  List<Map<String, dynamic>> userRankings = [];
   List<Tournament> gameTournaments = [];
   bool isLoadingGame = true;
-  bool isLoadingUserScore = true;
+  bool isLoadingUserRankings = true;
   bool isLoadingTournaments = true;
 
   @override
@@ -43,7 +43,7 @@ class _GameDetailPageState extends State<GameDetailPage> with SingleTickerProvid
     tournamentService = TournamentService();
     userService = UserService();
     _fetchGameDetails();
-    _fetchUserScore();
+    _fetchUserRankings();
     _fetchGameTournaments();
   }
 
@@ -59,12 +59,12 @@ class _GameDetailPageState extends State<GameDetailPage> with SingleTickerProvid
     }
   }
 
-  Future<void> _fetchUserScore() async {
+  Future<void> _fetchUserRankings() async {
     try {
-      final score = await userService.fetchUserScoreForGame(widget.gameId);
+      final rankings = await gameService.fetchUserRankingsForGame(widget.gameId);
       setState(() {
-        userScore = score;
-        isLoadingUserScore = false;
+        userRankings = rankings;
+        isLoadingUserRankings = false;
       });
     } catch (e) {
       print(e);
@@ -90,11 +90,7 @@ class _GameDetailPageState extends State<GameDetailPage> with SingleTickerProvid
         page = RegistrationPage(tournamentId: tournamentId);
         break;
       case 'started':
-        page = BracketPage(tournamentID: tournamentId);
-        break;
       case 'finished':
-        page = BracketPage(tournamentID: tournamentId);
-        break;
       case 'canceled':
         page = BracketPage(tournamentID: tournamentId);
         break;
@@ -121,7 +117,7 @@ class _GameDetailPageState extends State<GameDetailPage> with SingleTickerProvid
           controller: _tabController,
           tabs: [
             Tab(text: t.gameDetailsTab),
-            Tab(text: t.gameScoreTab),
+            Tab(text: t.gameScoreboardTab),
           ],
         ),
       ),
@@ -129,7 +125,7 @@ class _GameDetailPageState extends State<GameDetailPage> with SingleTickerProvid
         controller: _tabController,
         children: [
           isLoadingGame ? Center(child: CircularProgressIndicator()) : _buildGameDetails(),
-          isLoadingUserScore ? Center(child: CircularProgressIndicator()) : _buildUserScore(),
+          isLoadingUserRankings ? Center(child: CircularProgressIndicator()) : _buildUserRankings(),
         ],
       ),
     );
@@ -141,7 +137,7 @@ class _GameDetailPageState extends State<GameDetailPage> with SingleTickerProvid
       return Center(child: Text(t.noGamesFound));
     }
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.all(8.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -174,81 +170,46 @@ class _GameDetailPageState extends State<GameDetailPage> with SingleTickerProvid
       ),
     );
   }
-  Widget _buildUserScore() {
-    var t = AppLocalizations.of(context)!;
-    if (userScore == null) {
-      return Center(child: Text(t.noUserScoreFound));
-    }
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Card(
-        elevation: 4,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  CircleAvatar(
-                    backgroundImage: NetworkImage(
-                        userScore!['User']['media'] != null
-                            ? userScore!['User']['media']['fileName']
-                            : 'https://example.com/default_avatar.png'
-                    ),
-                    radius: 30,
-                  ),
-                  const SizedBox(width: 16),
-                  Text(
-                    userScore!['User']['username'],
-                    style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  _buildScoreCard(
-                    icon: Icons.score,
-                    label: t.score,
-                    value: userScore!['Score'].toString(),
-                  ),
-                  _buildScoreCard(
-                    icon: Icons.emoji_events,
-                    label: t.rank,
-                    value: userScore!['Rank'].toString(),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 
-  Widget _buildScoreCard({required IconData icon, required String label, required String value}) {
-    return Column(
-      children: [
-        Icon(icon, size: 40, color: Theme.of(context).primaryColor),
-        const SizedBox(height: 8),
-        Text(
-          label,
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          value,
-          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-        ),
-      ],
+  Widget _buildUserRankings() {
+    var t = AppLocalizations.of(context)!;
+    if (userRankings.isEmpty) {
+      return Center(child: Text(t.noUserRankingsFound));
+    }
+    return ListView.builder(
+      padding: const EdgeInsets.all(4.0),
+      itemCount: userRankings.length,
+      itemBuilder: (context, index) {
+        final user = userRankings[index];
+        return ListTile(
+          leading: CircleAvatar(
+            backgroundImage: NetworkImage(user['User']['media'] == null
+                ? '${dotenv.env['MEDIA_URL']}test.jpg'
+                : '${dotenv.env['MEDIA_URL']}${user['User']['media']['fileName']}'),
+          ),
+          title: Text(user['User']['username']),
+          subtitle: Text('Score: ${user['Score']}'),
+          trailing: Text('#${user['Rank']}'),
+        );
+      },
     );
   }
 }
 
+class TournamentsPage extends StatelessWidget {
+  final String? searchQuery;
 
+  const TournamentsPage({Key? key, this.searchQuery}) : super(key: key);
 
-
-
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Tournois - ${searchQuery ?? ''}'),
+      ),
+      body: Center(
+        child: Text('Liste des tournois pour le jeu: ${searchQuery ?? ''}'),
+      ),
+    );
+  }
+}

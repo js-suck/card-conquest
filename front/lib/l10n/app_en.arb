@@ -126,5 +126,6 @@
   "gameScoreTab": "Score",
   "noUserScoreFound": "No score found",
   "score": "Score",
-  "rank": "Rank"
+  "rank": "Rank",
+  "noUserRankingsFound": "No rankings found"
 }
