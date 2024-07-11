@@ -240,7 +240,7 @@ func (h *GuildHandler) AddUserToGuild(c *gin.Context) {
 	body := "A new player has joined your guild"
 	response, err := firebaseClient.SendNotification(token, title, body)
 	if err != nil {
-		log.Fatalf("Failed to send notification: %v", err)
+		log.Printf("Failed to send notification: %v", err)
 	}
 	fmt.Printf("Successfully sent notification: %s\n", response)
 

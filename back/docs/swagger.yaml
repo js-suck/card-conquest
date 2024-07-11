@@ -301,10 +301,6 @@ definitions:
         type: string
       id:
         type: integer
-      matches:
-        items:
-          $ref: '#/definitions/models.Match'
-        type: array
       name:
         type: string
       sequence:
@@ -656,6 +652,43 @@ paths:
       security:
       - BearerAuth: []
       summary: Update an existing game
+      tags:
+      - Game
+  /games/{id}/ranks:
+    get:
+      consumes:
+      - application/json
+      description: Get the ranking of users for a game
+      parameters:
+      - description: Game ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - default: Bearer <Add access token here>
+        description: Insert your access token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get the ranking of users for a game
       tags:
       - Game
   /games/user/{UserID}/rankings:
@@ -1946,20 +1979,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: Get all users
       parameters:
-      - description: Filter by isVerified
-        in: query
-        name: isVerified
-        type: string
-      - description: Sort by
-        in: query
-        name: sort
-        type: string
-      - description: Filter by role
-        in: query
-        name: role
-        type: string
       - description: Filter by country
         in: query
         name: country
@@ -1983,7 +2003,6 @@ paths:
             $ref: '#/definitions/errors.ErrorResponse'
       security:
       - BearerAuth: []
-      summary: Get all users
       tags:
       - User
     post:
