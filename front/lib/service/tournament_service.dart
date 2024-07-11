@@ -69,7 +69,7 @@ class TournamentService {
     String? token = await storage.read(key: 'jwt_token');
     List<Tournament> upcomingTournaments = [];
     final response = await http.get(
-      Uri.parse('${dotenv.env['API_URL']}tournaments/?UserId=$userId'),
+      Uri.parse('${dotenv.env['API_URL']}tournaments/?UserID=$userId'),
       headers: {
         'Authorization': '$token',
       },
@@ -92,7 +92,7 @@ class TournamentService {
     String? token = await storage.read(key: 'jwt_token');
     List<Tournament> pastTournaments = [];
     final response = await http.get(
-      Uri.parse('${dotenv.env['API_URL']}tournaments/?UserId=$userId'),
+      Uri.parse('${dotenv.env['API_URL']}tournaments/?UserID=$userId'),
       headers: {
         'Authorization': '$token',
       },

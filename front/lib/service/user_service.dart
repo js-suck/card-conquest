@@ -33,7 +33,10 @@ class UserService {
         },
       );
       if (response.statusCode != 200) {
-        throw Exception('Failed to load data');
+        return User.fromJson({
+          "username": "Invité",
+          "role": "invite",
+        });
       } else {
         final isSaved = await mySharedPreferences.saveDataWithExpiration(
             response.body, const Duration(days: 10));

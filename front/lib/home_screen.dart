@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:front/extension/theme_extension.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'auth/login_screen.dart';
 import 'auth/signup_screen.dart';
 
@@ -22,7 +23,7 @@ class HomePage extends StatelessWidget {
       foregroundColor: context.themeColors.secondaryBackgroundAccentColor,
       backgroundColor: context.themeColors.accentColor,
       minimumSize: const Size(230, 50),
-      textStyle: const TextStyle(color: Colors.white),
+      textStyle: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(10),
       ),
@@ -78,6 +79,11 @@ class HomePage extends StatelessWidget {
               ElevatedButton(
                 style: buttonStyle,
                 onPressed: () {
+                  //add jwt token
+                  const storage = FlutterSecureStorage();
+                  const token = "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiaW52aXRlIiwibmFtZSI6Ikludml0w6kifQ.1TMIPCEDolEVv1TMX77Y7-RA6AW4zCG2JrcjFT4hM90";
+                  storage.write(key: 'jwt_token', value: token);
+
                   // Navigate to the main page
                   Navigator.pushNamed(context, '/main');
                 },

@@ -2,18 +2,15 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:front/extension/theme_extension.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
-
-import '../theme/theme.dart';
 
 Future<void> login(
     BuildContext context, String username, String password) async {
-  final storage =
-      new FlutterSecureStorage(); // Create instance of secure storage
+  const storage = FlutterSecureStorage(); // Create instance of secure storage
   final response = await http.post(
     Uri.parse('${dotenv.env['API_URL']}login'),
     headers: <String, String>{

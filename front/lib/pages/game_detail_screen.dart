@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:front/extension/theme_extension.dart';
 import 'package:front/models/game.dart';
 import 'package:front/models/match/tournament.dart';
 import 'package:front/pages/tournaments_registration_screen.dart';
@@ -10,7 +11,6 @@ import 'package:front/service/tournament_service.dart';
 import 'package:front/service/user_service.dart';
 import 'package:front/widget/app_bar.dart';
 
-import '../widget/bottom_bar.dart';
 import '../widget/tournaments/all_tournaments_list.dart';
 import 'bracket_screen.dart';
 
@@ -115,6 +115,9 @@ class _GameDetailPageState extends State<GameDetailPage> with SingleTickerProvid
         automaticallyImplyLeading: false,
         bottom: TabBar(
           controller: _tabController,
+          labelColor: context.themeColors.accentColor,
+          indicatorColor: context.themeColors.accentColor,
+          unselectedLabelColor: Colors.white,
           tabs: [
             Tab(text: t.gameDetailsTab),
             Tab(text: t.gameScoreboardTab),
