@@ -47,6 +47,11 @@ type User struct {
 	FCMToken          string        `gorm:"type:varchar(255);default:null" json:"fcm_token"; default:null`
 }
 
+type NewUserGoogle struct {
+	Username string `json:"username"`
+	Email    string `json:"email"`
+}
+
 func (u *User) AfterFind(tx *gorm.DB) (err error) {
 	tx.Model(u).Association("Media").Find(&u.Media)
 	return

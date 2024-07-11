@@ -3,6 +3,7 @@ package services
 import (
 	"authentication-api/errors"
 	"authentication-api/models"
+	"sort"
 
 	"gorm.io/gorm"
 )
@@ -91,6 +92,47 @@ func (s *GameService) CalculateUserRankingsForGames(userID string) ([]models.Use
 	}
 
 	return userRankings, nil
+}
+
+func (s *GameService) CalculateRankingsForGame(gameID uint) ([]models.UserGameRanking, errors.IError) {
+	var gameScores []models.GameScore
+	var rankings []models.UserGameRanking
+
+	if err := s.Db.Preload("Game").Preload("User").Find(&gameScores, "game_id = ?", gameID).Error; err != nil {
+		return nil, errors.NewInternalServerError("Failed to get game scores", err)
+	}
+
+	for _, gameScore := range gameScores {
+		var rank int64
+
+		if err := s.Db.Table("game_scores").
+			Where("game_id = ?", gameScore.GameID).
+			Where("total_score > ?", gameScore.TotalScore).
+			Count(&rank).Error; err != nil {
+			return nil, errors.NewInternalServerError("Failed to calculate rank", err)
+		}
+
+		rank = rank + 1
+
+		rankings = append(rankings, models.UserGameRanking{
+			User:     gameScore.User.ToRead(),
+			GameID:   gameScore.GameID,
+			GameName: gameScore.Game.Name,
+			Score:    gameScore.TotalScore,
+			Rank:     int(rank),
+		})
+	}
+
+	if len(rankings) == 0 {
+		return nil, errors.NewNotFoundError("No game scores found", nil)
+	}
+
+	// Sort the rankings slice by rank in ascending order
+	sort.Slice(rankings, func(i, j int) bool {
+		return rankings[i].Rank < rankings[j].Rank
+	})
+
+	return rankings, nil
 }
 
 func (s *GameService) CreateGame(game *models.Game) errors.IError {
