@@ -3,9 +3,11 @@ import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:front/pages/tournaments_registration_screen.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../models/match/tournament.dart';
 import '../service/tournament_service.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class TournamentMap extends StatefulWidget {
   @override
@@ -60,7 +62,7 @@ class _TournamentMapState extends State<TournamentMap> {
     mapController?.animateCamera(
       CameraUpdate.newCameraPosition(
         CameraPosition(
-          target: LatLng(tournament.latitude ?? 0.0, tournament.longitude ?? 0.0),
+          target: LatLng(tournament.latitude ?? 48.8566, tournament.longitude ?? 2.3522),
           zoom: 10.0,
         ),
       ),
@@ -77,10 +79,13 @@ class _TournamentMapState extends State<TournamentMap> {
       setState(() {
         _markers.clear();
         for (var tournament in tournaments) {
+          print(tournament.longitude);
+          print(tournament.name);
+          print(tournament.latitude);
           _markers.add(
             Marker(
               markerId: MarkerId(tournament.id.toString()),
-              position: LatLng(tournament.latitude ?? 0.0, tournament.longitude ?? 0.0),
+              position: LatLng(tournament.latitude ?? 48.8566, tournament.longitude ?? 2.3522),
               icon: markerIcon,
               infoWindow: InfoWindow(
                 title: tournament.name,
@@ -103,6 +108,7 @@ class _TournamentMapState extends State<TournamentMap> {
     showModalBottomSheet(
       context: context,
       builder: (BuildContext context) {
+        final t = AppLocalizations.of(context)!;
         return SingleChildScrollView(
           child: Container(
             padding: EdgeInsets.all(16.0),
@@ -128,9 +134,12 @@ class _TournamentMapState extends State<TournamentMap> {
                 ),
                 ElevatedButton(
                   onPressed: () {
-                    Navigator.of(context).pushNamed('/tournaments');
+                  Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) =>  RegistrationPage(tournamentId: tournament.id)),
+                  );
                   },
-                  child: Text("M'inscrire"),
+                  child: Text(t.tournamentRegistrationRegister),
                 ),
               ],
             ),
@@ -152,7 +161,7 @@ class _TournamentMapState extends State<TournamentMap> {
           Marker(
             icon: markerIcon,
             markerId: MarkerId(tournament.id.toString()),
-            position: LatLng(tournament.latitude ?? 0.0, tournament.longitude ?? 0.0),
+            position: LatLng(tournament.latitude ?? 48.8566, tournament.longitude ?? 2.3522),
             infoWindow: InfoWindow(
               title: tournament.name,
               snippet: 'Click here for more info',
@@ -191,8 +200,8 @@ class _TournamentMapState extends State<TournamentMap> {
       body: GoogleMap(
         onMapCreated: _onMapCreated,
         initialCameraPosition: CameraPosition(
-          target: LatLng(0.0, 0.0),
-          zoom: 2.0,
+          target: LatLng(48.8566, 2.3522), // Initial position set to Paris
+          zoom: 10.0,
         ),
         markers: _markers,
         myLocationEnabled: false,

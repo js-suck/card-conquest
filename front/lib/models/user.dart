@@ -2,7 +2,7 @@ import 'guild.dart';
 import 'media.dart';
 
 class User {
-  final int? id;
+  final int id;
   late final String username;
   late final String? email;
   final String? address;

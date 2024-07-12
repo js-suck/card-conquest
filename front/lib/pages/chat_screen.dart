@@ -78,10 +78,10 @@ class _ChatClientScreenState extends State<ChatClientScreen> {
 
   void _initializeChat() async {
     final history = await chatClient.getChatHistory(widget.guildId);
-    final guildData = await fetchGuildData(widget.guildId.toString()); // Fetch guild data
+    final guildData = await fetchGuildData(widget.guildId.toString());
     setState(() {
       chatMessages = history.messages;
-      guildName = guildData['name']; // Set guild name
+      guildName = guildData['name'];
     });
     _listenForUpdates();
   }
@@ -137,6 +137,7 @@ class _ChatClientScreenState extends State<ChatClientScreen> {
   }
 
   Widget buildMessage(chat_grpc.ChatHistoryMessage message, bool isCurrentUser) {
+    print("message user mediaUrl: ${message.user}");
     return Align(
       alignment: isCurrentUser ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
@@ -144,7 +145,7 @@ class _ChatClientScreenState extends State<ChatClientScreen> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (!isCurrentUser) buildAvatar("http://localhost:8080/api/v1/images/"+message.user.mediaUrl),
+            if (!isCurrentUser) buildAvatar("${dotenv.env['API_URL']}images/"+message.user.mediaUrl),
             Container(
               padding: const EdgeInsets.all(10.0),
               width: MediaQuery.of(context).size.width * 0.5,
@@ -174,7 +175,7 @@ class _ChatClientScreenState extends State<ChatClientScreen> {
                 ],
               ),
             ),
-            if (isCurrentUser) buildAvatar("http://localhost:8080/api/v1/images/"+message.user.mediaUrl),
+            if (isCurrentUser) buildAvatar("${dotenv.env['API_URL']}images/"+message.user.mediaUrl),
           ],
         ),
       ),
@@ -192,7 +193,7 @@ class _ChatClientScreenState extends State<ChatClientScreen> {
           children: [
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.all(8.0), // Adjust the value as needed
+                padding: const EdgeInsets.all(8.0),
                 child: ListView.builder(
                   itemCount: chatMessages.length,
                   itemBuilder: (context, index) {

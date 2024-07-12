@@ -54,6 +54,7 @@ class Tournament {
       status: json['status'] ?? 'unknown',
       tags: json['tags'] != null ? List<String>.from(json['tags']) : [],
       latitude: json['latitude'] != null ? double.parse(json['latitude'].toString()) : null,
+      longitude: json['longitude'] != null ? double.parse(json['longitude'].toString()) : null,
     );
   }
 }

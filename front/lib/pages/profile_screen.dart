@@ -12,6 +12,8 @@ import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 
+import '../models/guild.dart';
+
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
 
@@ -53,15 +55,17 @@ class _ProfilePageState extends State<ProfilePage> {
     await getUserId();
     final user = await userService.fetchUser(userId, forceRefresh: true);
     setState(() {
+      print("User data fetched and initialized." + user.toString());
+      print(user.guilds?[0].name);
       userData = {
         'username': user.username,
         'email': user.email,
+"guilds" : user.guilds
       };
       _isLoading = false;
     });
     print('User data fetched and initialized.');
   }
-
 
   Future<void> _pickImage() async {
     final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
@@ -192,66 +196,69 @@ class _ProfilePageState extends State<ProfilePage> {
                       ),
                     ),
                     onSaved: (value) => userData['email'] = value!,
-                        ),
-                        const SizedBox(height: 20),
-                        ElevatedButton(
-                          onPressed: _updateUserData,
-                          style: ElevatedButton.styleFrom(
-                            foregroundColor: Colors.white,
-                            backgroundColor: const Color(0xFFFF933D),
-                            minimumSize: const Size(double.infinity, 45),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          ),
-                          child: Text(
-                            t.profileUpdateProfile,
-                            style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                      ],
+                  ),
+                  const SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: _updateUserData,
+                    style: ElevatedButton.styleFrom(
+                      foregroundColor: Colors.white,
+                      backgroundColor: const Color(0xFFFF933D),
+                      minimumSize: const Size(double.infinity, 45),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    child: Text(
+                      t.profileUpdateProfile,
+                      style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold),
                     ),
                   ),
-                    const SizedBox(height: 20),
-                    if (user.guilds != null && user.guilds!.isNotEmpty)
-                Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Your Guilds',
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  const SizedBox(height: 20),
+                if (userData['guilds'] != null && (userData['guilds'] as List).isNotEmpty)
+  Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      const Text(
+        'Your Guilds',
+        style: TextStyle(
+            fontSize: 24, fontWeight: FontWeight.bold),
+      ),
+      const SizedBox(height: 10),
+      ...(userData['guilds'] as List<Guild>).map((guild) {
+        return GestureDetector(
+          onTap: () {
+            Navigator.pushNamed(
+                context, '/guild/${guild.id}');
+          },
+          child: Center(
+            child: Column(
+              children: [
+                if (guild.media != null)
+                  CircleAvatar(
+                    backgroundImage: CachedNetworkImageProvider(
+                      '${dotenv.env['MEDIA_URL']}${guild.media!.fileName}',
+                    ),
+                    radius: 50,
                   ),
-                  const SizedBox(height: 10),
-                  ...user.guilds!.map((guild) {
-                    return GestureDetector(
-                      onTap: () {
-                        Navigator.pushNamed(context, '/guild/${guild.id}');
-                      },
-                      child: Center(
-                        child: Column(
-                          children: [
-                            CircleAvatar(
-                              backgroundImage: CachedNetworkImageProvider(
-                                '${dotenv.env['MEDIA_URL']}${guild.media?.fileName}',
-                              ),
-                              radius: 50,
-                            ),
-                            const SizedBox(height: 10),
-                            Text('Guild: ${guild.name}'),
-                            const SizedBox(height: 20),
-                          ],
-                        ),
-                      ),
-                    );
-                  }).toList(),
+                const SizedBox(height: 10),
+                Text('Guild: ${guild.name}'),
+                const SizedBox(height: 20),
+              ],
+            ),
+          ),
+        );
+      }).toList(),
+    ],
+  ),
                 ],
               ),
-                ),
-              ),
             ),
+          ),
+        ),
+      ),
     );
   }
 }

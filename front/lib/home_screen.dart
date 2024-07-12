@@ -106,7 +106,7 @@ class HomePage extends StatelessWidget {
           content: Text(t.verifyEmailMessage),
           actions: <Widget>[
             TextButton(
-              child: const Text('OK'),
+              child:  Text(t.ok),
               onPressed: () {
                 Navigator.of(context).pop(); // Close the dialog
               },

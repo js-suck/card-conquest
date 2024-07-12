@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import '../models/guild.dart' as guild;
 import '../service/guild_service.dart';
@@ -47,23 +48,23 @@ class _GuildListScreenState extends State<GuildListScreen> {
     const storage = FlutterSecureStorage();
     String? token = await storage.read(key: 'jwt_token');
     String? userID = await storage.read(key: 'user_id');
+    final t = AppLocalizations.of(context)!;
 
     if (token != null && userID != null) {
       bool success = await guildService.joinGuild(guildId, userID, token);
       if (success) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Joined guild successfully')),
+          SnackBar(content: Text(t.guildJoinedSuccess)),
         );
 
         Navigator.pushNamed(context, '/guild');
 
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to join guild')),
+          SnackBar(content: Text(t.guildJoinFailed)),
         );
       }
     } else {
-      // Handle the case where token or userID is null
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to retrieve token or user ID')),
       );
@@ -72,9 +73,10 @@ class _GuildListScreenState extends State<GuildListScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
-        title: Text('Liste des guildes'),
+        title: Text(t.guildList),
         actions: [
           IconButton(
             icon: Icon(Icons.add),
@@ -84,7 +86,7 @@ class _GuildListScreenState extends State<GuildListScreen> {
           ),
         ],
         bottom: PreferredSize(
-          preferredSize: Size.fromHeight(60.0), // Adjust the height to add space
+          preferredSize: Size.fromHeight(60.0),
           child: Column(
             children: [
               Padding(
@@ -92,7 +94,7 @@ class _GuildListScreenState extends State<GuildListScreen> {
                 child: TextField(
                   controller: _searchController,
                   decoration: InputDecoration(
-                    hintText: 'Rechercher une guilde...',
+                    hintText: t.guildSearch,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12.0),
                       borderSide: BorderSide.none,
@@ -103,7 +105,7 @@ class _GuildListScreenState extends State<GuildListScreen> {
                   ),
                 ),
               ),
-              SizedBox(height: 10), // Add space below the search bar
+              SizedBox(height: 10),
             ],
           ),
         ),
@@ -127,7 +129,7 @@ class _GuildListScreenState extends State<GuildListScreen> {
                         backgroundImage: CachedNetworkImageProvider(
                           '${dotenv.env['MEDIA_URL']}${guild.media?.fileName}',
                         ),
-                        radius: 25, // Adjust the size of the avatar
+                        radius: 25,
                       ),
                       title: Text(guild.name ?? ''),
                       subtitle: Text(guild.description ?? ''),
@@ -135,14 +137,14 @@ class _GuildListScreenState extends State<GuildListScreen> {
                         onPressed: () {
                           join(context, guild.id.toString());
                         },
-                        child: const Text('Rejoindre'),
+                        child:  Text(t.guildJoin),
                       ),
                     ),
                   );
                 },
               );
             } else {
-              return Center(child: Text('No guilds available'));
+              return Center(child: Text(t.guildNoGuilds));
             }
           },
         ),
@@ -152,7 +154,7 @@ class _GuildListScreenState extends State<GuildListScreen> {
           Navigator.pushNamed(context, '/guild/create');
         },
         child: Icon(Icons.add),
-        tooltip: 'Créer ma guilde',
+        tooltip: t.guildCreateMine,
       ),
     );
   }

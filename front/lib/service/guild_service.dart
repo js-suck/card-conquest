@@ -26,7 +26,7 @@ class GuildService {
     return guild.Guild.fromJson(responseJson);
   }
 
-  fetchUserGuild(String userID) async {
+  fetchUserGuild(int userID) async {
     String? token = await storage.read(key: 'jwt_token');
 
     final response = await http.get(
@@ -93,6 +93,22 @@ class GuildService {
     );
 
     if (response.statusCode == 201) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  Future<bool> leaveGuild(String guildId, String userId) async {
+    String? token = await storage.read(key: 'jwt_token');
+    final response = await http.delete(
+      Uri.parse('${dotenv.env['API_URL']}guilds/$guildId/users/$userId'),
+      headers: {
+        HttpHeaders.authorizationHeader: '$token',
+      },
+    );
+
+    if (response.statusCode == 204) {
       return true;
     } else {
       return false;

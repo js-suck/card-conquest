@@ -32,13 +32,10 @@ Future<void> login(
     var responseData = jsonDecode(response.body);
     String token = responseData['token'];
 
-    //Destroy previous token
     await storage.delete(key: 'jwt_token');
 
-    // Store the token in secure storage
     await storage.write(key: 'jwt_token', value: token);
 
-    // decode the token to get the user information
     var tokenData = jsonDecode(
         ascii.decode(base64.decode(base64.normalize(token.split(".")[1]))));
     int userId = tokenData['user_id'];
@@ -48,10 +45,11 @@ Future<void> login(
 
     Navigator.of(context).pushReplacementNamed('/main');
   } else {
-    // Handle error in login
+    final t = AppLocalizations.of(context)!;
+
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Erreur de connexion'),
+      SnackBar(
+        content: Text(t.loginError),
         duration: Duration(seconds: 1),
       ),
     );
@@ -86,9 +84,11 @@ class _LoginPageState extends State<LoginPage> {
 
   Future<void> sendUserDataToServer(auth.User user) async {
     print('Sending user data to server...');
-    const storage = FlutterSecureStorage();
+    const storage =
+    FlutterSecureStorage();
+    String? fcmToken = await storage.read(key: 'fcm_token');
     final response = await http.post(
-      Uri.parse('${dotenv.env['API_URL']}/auth/google'),
+      Uri.parse('${dotenv.env['API_URL']}auth/google'),
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
       },
@@ -97,36 +97,31 @@ class _LoginPageState extends State<LoginPage> {
         'email': user.email!,
         'displayName': user.displayName ?? '',
         'photoURL': user.photoURL ?? '',
+        'fcm_token': fcmToken ?? 'test',
       }),
     );
 
     if (response.statusCode == 200 || response.statusCode == 201) {
-      print('User added/updated successfully');
-      print('Response: ${response.body}');
 
       var responseData = jsonDecode(response.body);
 
       String token = responseData['token'];
-
-      // Store the token in secure storage
       await storage.write(key: 'jwt_token', value: token);
 
       try {
-        // Normalize Base64 URL encoding
         String normalizedToken = base64.normalize(token.split(".")[1]);
         var tokenData = jsonDecode(
             utf8.decode(base64Url.decode(normalizedToken)));
         print('Token data: $tokenData');
 
         int userId = tokenData['user_id'];
-        print('User ID: $userId');
 
         await storage.write(key: 'user_id', value: userId.toString());
       } catch (e) {
         print('Error during token decoding: $e');
       }
     } else {
-      print('Failed to add/update user: ${response.reasonPhrase}');
+      throw Exception('Failed to add/update user ${response.reasonPhrase}');
     }
   }
 
@@ -151,9 +146,12 @@ class _LoginPageState extends State<LoginPage> {
     );
     }
     } catch (e) {
+      final t = AppLocalizations.of(context)!;
+      print('Error during Google sign in: $e');
     ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(content: Text('Error during Google sign in: $e')),
+    SnackBar(content: Text(t.loginErrorGoogle)),
     );
+    return ;
     }
     Navigator.of(context).pushReplacementNamed('/main');
   }
