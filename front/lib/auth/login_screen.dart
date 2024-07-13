@@ -2,15 +2,15 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:front/extension/theme_extension.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 
 Future<void> login(
     BuildContext context, String username, String password) async {
-  final storage =
-      new FlutterSecureStorage(); // Create instance of secure storage
+  const storage = FlutterSecureStorage(); // Create instance of secure storage
   final response = await http.post(
     Uri.parse('${dotenv.env['API_URL']}login'),
     headers: <String, String>{
@@ -25,6 +25,9 @@ Future<void> login(
   if (response.statusCode == 200) {
     var responseData = jsonDecode(response.body);
     String token = responseData['token'];
+
+    //Destroy previous token
+    await storage.delete(key: 'jwt_token');
 
     // Store the token in secure storage
     await storage.write(key: 'jwt_token', value: token);
@@ -75,7 +78,7 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context)!;
     return Scaffold(
-      appBar: AppBar(),
+      appBar: AppBar( backgroundColor: context.themeColors.backgroundColor),
       body: SingleChildScrollView(
         child: Center(
           child: Column(

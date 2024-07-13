@@ -49,11 +49,6 @@ class _TopAppBarState extends State<TopAppBar> {
       userId = decodedToken['user_id'];
     });
 
-    try {
-      final user = await userService.fetchUser(userId);
-    } catch (e) {
-      return;
-    }
   }
 
   @override
@@ -121,7 +116,7 @@ class _TopAppBarState extends State<TopAppBar> {
         leading: Builder(builder: (context) {
           if (widget.isAvatar) {
             return CustomFutureBuilder(
-                future: userService.fetchUser(userId),
+                future: userService.fetchUser(userId, forceRefresh: true),
                 onLoaded: (user) {
                   return Row(
                     children: [
