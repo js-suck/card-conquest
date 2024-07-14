@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -54,7 +55,6 @@ class _CrudTournamentScreenState extends State<CrudTournamentScreen> {
             data.map<Tournament>((json) => Tournament.fromJson(json)).toList();
         _isLoading = false;
       });
-      print('Tournaments fetched: ${tournaments.length}'); // Debugging
     } catch (e) {
       setState(() {
         _isLoading = false;
@@ -76,6 +76,8 @@ class _CrudTournamentScreenState extends State<CrudTournamentScreen> {
         ..fields['end_date'] = tournament.endDate.toIso8601String()
         ..fields['organizer_id'] = tournament.organizer.id.toString()
         ..fields['game_id'] = tournament.game.id.toString()
+        ..fields['rounds'] =
+            (log(tournament.maxPlayers) / log(2)).ceil().toString()
         ..fields['tagsIDs[]'] = tournament.tags.join(',')
         ..fields['location'] = tournament.location!
         ..fields['max_players'] = tournament.maxPlayers.toString();
@@ -90,6 +92,7 @@ class _CrudTournamentScreenState extends State<CrudTournamentScreen> {
       }
 
       final response = await request.send();
+
       if (response.statusCode == 200) {
         await _fetchTournaments();
       } else {
@@ -112,6 +115,7 @@ class _CrudTournamentScreenState extends State<CrudTournamentScreen> {
         'end_date': tournament.endDate.toIso8601String(),
         'media': tournament.media?.toJson(),
         'max_players': tournament.maxPlayers,
+        'rounds': (log(tournament.maxPlayers) / log(2)).ceil(),
         'organizer_id': tournament.organizer.id,
         'game_id': tournament.game,
         'tags': tournament.tags,
@@ -193,11 +197,13 @@ class _CrudTournamentScreenState extends State<CrudTournamentScreen> {
                 ),
                 TextField(
                   controller: _startDateController,
-                  decoration: const InputDecoration(labelText: 'Start Date'),
+                  decoration: const InputDecoration(
+                      labelText: 'Start Date', hintText: 'YYYY-MM-DD'),
                 ),
                 TextField(
                   controller: _endDateController,
-                  decoration: const InputDecoration(labelText: 'End Date'),
+                  decoration: const InputDecoration(
+                      labelText: 'End Date', hintText: 'YYYY-MM-DD'),
                 ),
                 TextField(
                   controller: _maxPlayersController,
