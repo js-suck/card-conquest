@@ -2,6 +2,7 @@ package services
 
 import (
 	"authentication-api/errors"
+	"authentication-api/firebase"
 	"authentication-api/models"
 	authentication_api "authentication-api/pb/github.com/lailacha/authentication-api"
 	"fmt"
@@ -203,26 +204,30 @@ func (s *TournamentService) SendTournamentUpdatesForGRPC(tournamentId uint) erro
 		}
 
 		for _, match := range matches {
-
 			var playerOneScore, playerTwoScore int
 			for _, score := range match.Scores {
 				if score.PlayerID == match.PlayerOneID {
 					playerOneScore = score.Score
-				} else if score.PlayerID == *match.PlayerTwoID {
+				} else if match.PlayerTwoID != nil && score.PlayerID == *match.PlayerTwoID {
 					playerTwoScore = score.Score
 				}
 			}
 			playerOne := &authentication_api.Player{
-				Username: match.PlayerOne.Username,
-				UserId:   strconv.Itoa(int(match.PlayerOne.ID)),
-				Score:    int32(playerOneScore),
+				UserId: strconv.Itoa(int(match.PlayerOneID)),
+				Score:  int32(playerOneScore),
+			}
+			if match.PlayerOne.Username != "" {
+				playerOne.Username = match.PlayerOne.Username
 			}
 
 			playerTwo := &authentication_api.Player{
-				Username: match.PlayerTwo.Username,
-				UserId:   strconv.Itoa(int(match.PlayerTwo.ID)),
-				Score:    int32(playerTwoScore),
+				Score: int32(playerTwoScore),
 			}
+			if match.PlayerTwo.Username != "" {
+				playerTwo.Username = match.PlayerTwo.Username
+				playerTwo.UserId = strconv.Itoa(int(*match.PlayerTwoID))
+			}
+
 			var winnerId int32
 			if match.WinnerID != nil {
 				winnerId = int32(*match.WinnerID)
@@ -238,7 +243,6 @@ func (s *TournamentService) SendTournamentUpdatesForGRPC(tournamentId uint) erro
 
 			tournamentStep.Matches = append(tournamentStep.Matches, tournamentMatch)
 		}
-
 		tournamentResponse.TournamentSteps = append(tournamentResponse.TournamentSteps, tournamentStep)
 	}
 
@@ -476,6 +480,94 @@ func (s *TournamentService) GetAll(models interface{}, filterParams FilterParams
 	if result.Error != nil {
 		return errors.NewErrorResponse(500, result.Error.Error())
 	}
+
+	return nil
+}
+
+func (s *TournamentService) SendTournamentIsSoon() (string, errors.IError) {
+	firebaseClient, errF := firebase.NewFirebaseClient("./firebase/privateKey.json")
+
+	if errF != nil {
+		return "", errors.NewInternalServerError("Failed to initialize Firebase", errF)
+	}
+
+	tomorow := time.Now().AddDate(0, 0, 1)
+
+	tournaments := []models.Tournament{}
+
+	err := s.Db.Preload("Users").Find(&tournaments, "start_date = ?", tomorow).Error
+
+	if err != nil {
+		return "", errors.NewInternalServerError("Failed to get tournaments", err)
+	}
+
+	for _, tournament := range tournaments {
+		for _, user := range tournament.Users {
+			token := user.FCMToken
+			title := "Tournament is soon"
+			body := "The tournament " + tournament.Name + " is tomorrow"
+			_, err := firebaseClient.SendNotification(token, title, body)
+			if err != nil {
+				return "", errors.NewInternalServerError("Failed to send notification", err)
+			}
+		}
+	}
+
+	return "Successfully sent notification", nil
+}
+
+func (s *TournamentService) UserSubscribeToTournaments(userID uint, tournamentID uint) errors.IError {
+	user := models.User{}
+	tournament := models.Tournament{}
+
+	err := s.Db.First(&user, userID).Error
+	if err != nil {
+		return errors.NewNotFoundError("User not found", err)
+	}
+
+	err = s.Db.First(&tournament, tournamentID).Error
+	if err != nil {
+		return errors.NewNotFoundError("Tournament not found", err)
+	}
+
+	err = s.Db.Model(&user).Association("SuscribedTournaments").Append(&tournament)
+	if err != nil {
+		return errors.NewInternalServerError("Failed to subscribe to tournament", err)
+	}
+
+	return nil
+}
+
+func (s *TournamentService) UserUnsubscribeToTournaments(userID uint, tournamentID uint) errors.IError {
+	user := models.User{}
+	tournament := models.Tournament{}
+
+	err := s.Db.First(&user, userID).Error
+	if err != nil {
+		return errors.NewNotFoundError("User not found", err)
+	}
+
+	err = s.Db.First(&tournament, tournamentID).Error
+	if err != nil {
+		return errors.NewNotFoundError("Tournament not found", err)
+	}
+
+	err = s.Db.Model(&user).Association("SuscribedTournaments").Delete(&tournament)
+	if err != nil {
+		return errors.NewInternalServerError("Failed to unsubscribe to tournament", err)
+	}
+
+	return nil
+}
+
+func (s *TournamentService) GetSubscribedTournaments(userID uint, tournaments *[]models.Tournament) errors.IError {
+	user := models.User{}
+	err := s.Db.Preload("SuscribedTournaments").First(&user, userID).Error
+	if err != nil {
+		return errors.NewNotFoundError("User not found", err)
+	}
+
+	*tournaments = user.SuscribedTournaments
 
 	return nil
 }

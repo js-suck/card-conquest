@@ -4,14 +4,13 @@ import (
 	"authentication-api/db"
 	"authentication-api/models"
 	"errors"
-	"fmt"
 	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
 
-func getCurrentUserFromContext(c *gin.Context) (*models.User, error) {
+func GetCurrentUserFromContext(c *gin.Context) (*models.User, error) {
 	userID, exists := c.Get("user_id")
 	if !exists {
 		return nil, errors.New("user not found in context")
@@ -27,8 +26,7 @@ func getCurrentUserFromContext(c *gin.Context) (*models.User, error) {
 
 func OwnerMiddleware(resource string, model models.IModel) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		user, err := getCurrentUserFromContext(c)
-		fmt.Println(user)
+		user, err := GetCurrentUserFromContext(c)
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "forbidden"})
 			return

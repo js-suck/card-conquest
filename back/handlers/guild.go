@@ -3,6 +3,7 @@ package handlers
 import (
 	"authentication-api/errors"
 	"authentication-api/firebase"
+	"authentication-api/middlewares"
 	"authentication-api/models"
 	"authentication-api/services"
 	"fmt"
@@ -268,12 +269,27 @@ func (h *GuildHandler) RemoveUserFromGuild(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, errors.NewBadRequestError("Invalid Guild ID", err).ToGinH())
 		return
 	}
-
 	userIDStr := c.Param("userID")
+	user, errUserCtx := middlewares.GetCurrentUserFromContext(c)
+
+	if errUserCtx != nil {
+		c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "forbidden"})
+		return
+	}
+
 	userID, err := strconv.Atoi(userIDStr)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, errors.NewBadRequestError("Invalid User ID", err).ToGinH())
 		return
+	}
+
+	if !user.IsAdmin() {
+		errRemove := h.GuildService.CanDeleteUserFromGuild(uint(guildID), user.ID, uint(userID))
+
+		if errRemove != nil {
+			c.JSON(errRemove.Code(), errRemove)
+			return
+		}
 	}
 
 	errSupp := h.GuildService.RemoveUser(uint(guildID), uint(userID))

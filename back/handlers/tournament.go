@@ -581,3 +581,83 @@ func (h *TournamentHandler) DeleteTournament(c *gin.Context) {
 
 	c.Status(http.StatusNoContent)
 }
+
+// SubscribeToTournament godoc
+// @Summary Subscribe a user to a tournament
+// @Description Subscribe a user to a tournament
+// @Tags tournament
+// @Accept json
+// @Produce json
+// @Param userID path int true "User ID"
+// @Param tournamentID path int true "Tournament ID"
+// @Success 200 {object} string
+// @Failure 400 {object} errors.ErrorResponse
+// @Failure 500 {object} errors.ErrorResponse
+// @Security BearerAuth
+// @Param Authorization header string true "Insert your access token" default(Bearer <Add access token here>)
+// @Router /users/subscriptions/{userID}/tournaments/{tournamentID}/subscribe [post]
+func (h *TournamentHandler) SubscribeToTournament(c *gin.Context) {
+	userID, _ := strconv.Atoi(c.Param("userID"))
+	tournamentID, _ := strconv.Atoi(c.Param("tournamentID"))
+
+	err := h.TounamentService.UserSubscribeToTournaments(uint(userID), uint(tournamentID))
+	if err != nil {
+		c.JSON(err.Code(), err)
+		return
+	}
+
+	c.JSON(http.StatusOK, "User subscribed successfully")
+}
+
+// UnsubscribeFromTournament godoc
+// @Summary Unsubscribe a user from a tournament
+// @Description Unsubscribe a user from a tournament
+// @Tags tournament
+// @Accept json
+// @Produce json
+// @Param userID path int true "User ID"
+// @Param tournamentID path int true "Tournament ID"
+// @Success 200 {object} string
+// @Failure 400 {object} errors.ErrorResponse
+// @Failure 500 {object} errors.ErrorResponse
+// @Security BearerAuth
+// @Param Authorization header string true "Insert your access token" default(Bearer <Add access token here>)
+// @Router /users/subscriptions/{userID}/tournaments/{tournamentID}/unsubscribe [post]
+func (h *TournamentHandler) UnsubscribeFromTournament(c *gin.Context) {
+	userID, _ := strconv.Atoi(c.Param("userID"))
+	tournamentID, _ := strconv.Atoi(c.Param("tournamentID"))
+
+	err := h.TounamentService.UserUnsubscribeToTournaments(uint(userID), uint(tournamentID))
+	if err != nil {
+		c.JSON(err.Code(), err)
+		return
+	}
+
+	c.JSON(http.StatusOK, "User unsubscribed successfully")
+}
+
+// GetSubscribedTournaments godoc
+// @Summary Get all tournaments a user is subscribed to
+// @Description Get all tournaments a user is subscribed to
+// @Tags tournament
+// @Accept json
+// @Produce json
+// @Param userID path int true "User ID"
+// @Success 200 {array} models.Tournament
+// @Failure 400 {object} errors.ErrorResponse
+// @Failure 500 {object} errors.ErrorResponse
+// @Security BearerAuth
+// @Param Authorization header string true "Insert your access token" default(Bearer <Add access token here>)
+// @Router /users/subscriptions/{userID}/tournaments [get]
+func (h *TournamentHandler) GetSubscribedTournaments(c *gin.Context) {
+	userID, _ := strconv.Atoi(c.Param("userID"))
+	var tournaments []models.Tournament
+
+	err := h.TounamentService.GetSubscribedTournaments(uint(userID), &tournaments)
+	if err != nil {
+		c.JSON(err.Code(), err)
+		return
+	}
+
+	c.JSON(http.StatusOK, tournaments)
+}
