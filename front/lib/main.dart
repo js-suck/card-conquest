@@ -1,115 +1,83 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:front/pages/bracket_screen.dart';
 import 'package:front/routes/routes.dart';
 import 'package:front/service/user_service.dart';
-import 'package:front/theme/dark_theme.dart' as dark_theme;
-import 'package:front/theme/theme.dart' as theme;
+import 'package:front/widget/bottom_bar.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import 'notifier/locale_notifier.dart';
+import 'notifier/theme_notifier.dart';
 
 Future main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: "lib/.env");
+
+  final prefs = await SharedPreferences.getInstance();
+  final localeCode = prefs.getString('locale') ?? 'en';
+  final isDarkMode = prefs.getBool('isDarkMode') ?? false;
+
   runApp(
     MultiProvider(
       providers: [
         Provider(create: (_) => UserService()),
         ChangeNotifierProvider(create: (_) => TournamentNotifier()),
+        ChangeNotifierProvider(
+          create: (context) => SelectedPageModel(),
+        ),
+        ChangeNotifierProvider(create: (_) => ThemeNotifier(isDarkMode)),
+        ChangeNotifierProvider(
+            create: (_) => LocaleNotifier(Locale(localeCode))),
       ],
       child: const MyApp(),
     ),
   );
 }
 
-class ThemeColors {
-  final Color backgroundColor;
-  final Color backgroundAccentColor;
-  final Color invertedBackgroundColor;
-  final Color secondaryBackgroundAccentColor;
-  final Color secondaryBackgroundAccentActiveColor;
-  final Color accentColor;
-  final Color fontColor;
-
-  ThemeColors({
-    required this.backgroundColor,
-    required this.backgroundAccentColor,
-    required this.invertedBackgroundColor,
-    required this.secondaryBackgroundAccentColor,
-    required this.secondaryBackgroundAccentActiveColor,
-    required this.accentColor,
-    required this.fontColor,
-  });
-}
-
-class ThemeNotifier with ChangeNotifier {
-  ThemeData _lightTheme = theme.theme;
-  ThemeData _darkTheme = dark_theme.darkTheme;
-  bool _isDarkMode;
-
-  ThemeNotifier(this._isDarkMode) {
-    _lightTheme = theme.theme;
-    _darkTheme = dark_theme.darkTheme;
-    _loadTheme();
-  }
-
-  Future<void> _loadTheme() async {
-    final prefs = await SharedPreferences.getInstance();
-    _isDarkMode = prefs.getBool('isDarkMode') ?? false;
-    notifyListeners();
-  }
-
-  ThemeData getTheme() => _isDarkMode ? _darkTheme : _lightTheme;
-
-  ThemeColors get themeColors {
-    return ThemeColors(
-        backgroundColor:
-            _isDarkMode ? dark_theme.backgroundColor : theme.backgroundColor,
-        backgroundAccentColor: _isDarkMode
-            ? dark_theme.accentBackgroundColor
-            : theme.accentBackgroundColor,
-        invertedBackgroundColor: _isDarkMode
-            ? dark_theme.invertedBackgroundColor
-            : theme.invertedBackgroundColor,
-        secondaryBackgroundAccentColor: _isDarkMode
-            ? dark_theme.secondaryAccentBackgroundColor
-            : theme.secondaryAccentBackgroundColor,
-        secondaryBackgroundAccentActiveColor: _isDarkMode
-            ? dark_theme.secondaryBackgroundAccentActiveColor
-            : theme.secondaryBackgroundAccentActiveColor,
-        accentColor: _isDarkMode ? dark_theme.accentColor : theme.accentColor,
-        fontColor: _isDarkMode ? dark_theme.fontColor : theme.fontColor);
-  }
-
-  bool get isDarkMode => _isDarkMode;
-
-  void toggleTheme() async {
-    _isDarkMode = !_isDarkMode;
-    notifyListeners();
-    await _saveTheme(_isDarkMode);
-  }
-
-  Future<void> _saveTheme(bool isDarkMode) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('isDarkMode', isDarkMode);
-  }
-}
-
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
   @override
+  State<MyApp> createState() => _MyAppState();
+
+  static void setLocale(BuildContext context, Locale newLocale) {
+    _MyAppState? state = context.findAncestorStateOfType<_MyAppState>();
+    state?.setLocale(newLocale);
+  }
+}
+
+class _MyAppState extends State<MyApp> {
+  Locale? _locale;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final localeNotifier = Provider.of<LocaleNotifier>(context, listen: false);
+    _locale = localeNotifier.locale;
+  }
+
+  setLocale(Locale locale) {
+    setState(() {
+      _locale = locale;
+    });
+    final localeNotifier = Provider.of<LocaleNotifier>(context, listen: false);
+    localeNotifier.updateLocale(locale);
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-        create: (_) =>
-            ThemeNotifier(false), // Définit le thème initial sur clair
-        child: Consumer(builder: (context, ThemeNotifier notifier, child) {
-          return MaterialApp(
-            debugShowCheckedModeBanner: false,
-            initialRoute: '/',
-            routes: routes,
-            theme: notifier.getTheme(),
-          );
-        }));
+    return Consumer(builder: (context, ThemeNotifier notifier, child) {
+      return MaterialApp(
+        debugShowCheckedModeBanner: false,
+        locale: _locale,
+        initialRoute: '/',
+        routes: routes,
+        theme: notifier.getTheme(),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+      );
+    });
   }
 }

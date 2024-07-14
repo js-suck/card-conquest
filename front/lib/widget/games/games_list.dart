@@ -29,8 +29,11 @@ class GamesList extends StatelessWidget {
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(12),
                       image: DecorationImage(
-                        image: CachedNetworkImageProvider(
-                            '${dotenv.env['MEDIA_URL']}${item.media?.fileName}'),
+                        image: CachedNetworkImageProvider(item
+                            .media?.fileName !=
+                            null
+                            ? '${dotenv.env['MEDIA_URL']}${item.media?.fileName}'
+                            : '${dotenv.env['MEDIA_URL']}yugiho.webp'),
                         fit: BoxFit.cover,
                       ),
                     ),

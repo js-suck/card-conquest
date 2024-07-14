@@ -1,12 +1,12 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:front/extension/theme_extension.dart';
 import 'package:front/models/match/match.dart';
+import 'package:front/pages/bracket_screen.dart';
 import 'package:front/widget/bracket/match/match_tile.dart';
 import 'package:provider/provider.dart';
-
-import '../../../pages/bracket_screen.dart';
 
 class MatchTiles extends StatefulWidget {
   const MatchTiles(
@@ -41,16 +41,6 @@ class MatchTiles extends StatefulWidget {
 class _MatchTilesState extends State<MatchTiles> {
   bool showMoreMatches = false;
 
-  final tabs = [
-    const Tab(text: '1/64 DE FINALE'),
-    const Tab(text: '1/32 DE FINALE'),
-    const Tab(text: '1/16 DE FINALE'),
-    const Tab(text: '1/8 DE FINALE'),
-    const Tab(text: 'QUARTS DE FINALE'),
-    const Tab(text: 'DEMI-FINALES'),
-    const Tab(text: 'FINALE'),
-  ];
-
   List<Match> get displayMatches => !showMoreMatches &&
           (widget.isLastMatches || widget.isH2H || widget.isScoreboard)
       ? widget.sortedMatches.take(5).toList()
@@ -58,9 +48,19 @@ class _MatchTilesState extends State<MatchTiles> {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
+    final tabs = [
+      Tab(text: t.bracketRoundOf64),
+      Tab(text: t.bracketRoundOf32),
+      Tab(text: t.bracketRoundOf16),
+      Tab(text: t.bracketRoundOf8),
+      Tab(text: t.bracketRoundOf4),
+      Tab(text: t.bracketRoundOf2),
+      Tab(text: t.bracketRoundOf1),
+    ];
     final tournament = context.watch<TournamentNotifier>().tournament;
     final players = tournament?.playersRegistered;
-    final tournamentSize = (log(players as int) / log(2)).ceil();
+    final tournamentSize = players != null ? (log(players) / log(2)).ceil() : 0;
     final newTabs = tabs.sublist(tabs.length - tournamentSize);
 
     return Column(
@@ -78,9 +78,9 @@ class _MatchTilesState extends State<MatchTiles> {
                   padding: const EdgeInsets.all(8),
                   color: context.themeColors.backgroundColor,
                   width: double.infinity,
-                  child: const Text(
-                    'Confrontations',
-                    style: TextStyle(
+                  child: Text(
+                    t.matchConfrontation,
+                    style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                     ),
@@ -97,7 +97,7 @@ class _MatchTilesState extends State<MatchTiles> {
                     color: context.themeColors.backgroundColor,
                     width: double.infinity,
                     child: Text(
-                      'Tournoi: ${displayMatches[index].tournament.name}',
+                      '${t.matchTournament}: ${displayMatches[index].tournament.name}',
                       style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -111,7 +111,7 @@ class _MatchTilesState extends State<MatchTiles> {
                   color: context.themeColors.backgroundColor,
                   width: double.infinity,
                   child: Text(
-                    'Etape: ${newTabs[displayMatches[index].tournamentStep.sequence - 1].text}',
+                    '${t.matchTournamentStep}: ${newTabs[displayMatches[index].tournamentStep.sequence - 1].text}',
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -124,7 +124,7 @@ class _MatchTilesState extends State<MatchTiles> {
                   color: context.themeColors.backgroundColor,
                   width: double.infinity,
                   child: Text(
-                    'Derniers matchs: ${widget.player.username}',
+                    '${t.matchLastMatches}: ${widget.player.username}',
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -160,7 +160,7 @@ class _MatchTilesState extends State<MatchTiles> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(showMoreMatches ? 'Afficher moins' : 'Afficher plus'),
+                    Text(showMoreMatches ? t.matchShowLess : t.matchShowMore),
                     Icon(showMoreMatches
                         ? Icons.keyboard_arrow_up_sharp
                         : Icons.keyboard_arrow_down_sharp)

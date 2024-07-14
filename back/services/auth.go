@@ -19,7 +19,7 @@ func NewAuthService(db *gorm.DB) *AuthService {
 }
 
 func (a AuthService) Login(user *models.User) (*models.User, errors.IError) {
-	a.db.Where("username = ? AND password = ?", user.Username, user.Password).First(&user)
+	a.db.Where("username = ?", user.Username).First(&user)
 	if user.ID == 0 {
 		return nil, errors.NewBadRequestError("invalid credentials", nil)
 	}

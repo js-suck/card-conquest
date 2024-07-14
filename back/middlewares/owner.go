@@ -54,8 +54,8 @@ func OwnerMiddleware(resource string, model models.IModel) gin.HandlerFunc {
 		}
 
 		switch m := model.(type) {
-		case *models.User:
-			if err := db.DB.First(m, id).Error; err != nil {
+		case models.User:
+			if err := db.DB.First(&m, id).Error; err != nil {
 				c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "resource not found"})
 				return
 			}

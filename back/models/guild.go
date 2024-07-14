@@ -1,5 +1,7 @@
 package models
 
+import "gorm.io/gorm"
+
 type Guild struct {
 	MediaModel
 	BaseModel
@@ -8,6 +10,11 @@ type Guild struct {
 	Description string  `json:"description"`
 	Admins      *[]User `json:"admins" gorm:"many2many:user_admin_guilds;"`
 	Players     *[]User `json:"players" gorm:"many2many:guild_players;"`
+}
+
+func (g *Guild) AfterFind(tx *gorm.DB) (err error) {
+	tx.Model(g).Association("Media").Find(&g.Media)
+	return
 }
 
 func (g Guild) IsOwner(userID uint) bool {

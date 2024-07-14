@@ -25,6 +25,7 @@ func (h *TournamentHandler) parseFilterParams(c *gin.Context) services.FilterPar
 	UserID := c.Query("UserID")
 	GameID := c.Query("GameID")
 	Sort := c.Query("Sort")
+	Name := c.Query("Name")
 
 	filterParams := services.FilterParams{
 		Fields: map[string]interface{}{},
@@ -45,6 +46,10 @@ func (h *TournamentHandler) parseFilterParams(c *gin.Context) services.FilterPar
 		filterParams.Fields["GameID"] = GameID
 	}
 
+	if Name != "" {
+		filterParams.Fields["Name"] = Name
+	}
+
 	if Sort != "" {
 		filterParams.Sort = strings.Split(Sort, ",")
 	}
@@ -58,20 +63,22 @@ func (h *TournamentHandler) parseFilterParams(c *gin.Context) services.FilterPar
 // @Tags tournament
 // @Accept mpfd
 // @Produce json
-// @Param name formData string true "Tournament name" Example(s) : "My Tournament"
-// @Param description formData string true "Tournament description" Example(s) : "Description of my tournament"
-// @Param start_date formData string true "Tournament start date" Example(s) : "2024-04-12T00:00:00Z"
-// @Param end_date formData string true "Tournament end date" Example(s) : "2024-04-15T00:00:00Z"
-// @Param organizer_id formData int true "Organizer ID" Example(s) : 1
-// @Param game_id formData int true "Game ID" Example(s) : 1
-// @Param rounds formData int true "Number of rounds" Example(s) : 3
-// @Param tagsIDs[] formData []int true "Array of tag IDs" Example(s) : 1, 2, 3
-// @Param image formData file true "Image file" Example(s) : <path_to_image_file>
-// @Param location formData string true "Location" Example(s) : "New York"
-// @Param max_players formData int true "Maximum number of players" Example(s) : 32
+// @Param name formData string true "Tournament name" Example("My Tournament")
+// @Param description formData string true "Tournament description" Example("Description of my tournament")
+// @Param start_date formData string true "Tournament start date" Example("2024-04-12T00:00:00Z")
+// @Param end_date formData string true "Tournament end date" Example("2024-04-15T00:00:00Z")
+// @Param organizer_id formData int true "Organizer ID" Example(1)
+// @Param game_id formData int true "Game ID" Example(1)
+// @Param rounds formData int true "Number of rounds" Example(3)
+// @Param tagsIDs[] formData []int true "Array of tag IDs" CollectionFormat(multi) Example([1, 2, 3])
+// @Param image formData file true "Image file" Example(<path_to_image_file>)
+// @Param location formData string true "Location" Example("New York")
+// @Param max_players formData int true "Maximum number of players" Example(32)
+// @Param longitude formData float64 true "Longitude" Example(40.7128)
+// @Param latitude formData float64 true "Latitude" Example(74.0060)
 // @Success 200 {object} models.Tournament
-// @Failure 400
-// @Failure 500
+// @Failure 400 {object} errors.ErrorResponse
+// @Failure 500 {object} errors.ErrorResponse
 // @Security BearerAuth
 // @Param Authorization header string true "Insert your access token" default(Bearer <Add access token here>)
 // @Router /tournaments [post]
@@ -85,7 +92,7 @@ func (h *TournamentHandler) CreateTournament(c *gin.Context) {
 			return
 		}
 	}
-	tagsIDsStr := c.PostFormArray("tagsIDs")
+	tagsIDsStr := c.PostFormArray("tagsIDs[]")
 	var tagsIDs []uint
 
 	for _, idStr := range tagsIDsStr {
@@ -98,12 +105,12 @@ func (h *TournamentHandler) CreateTournament(c *gin.Context) {
 	}
 
 	var payload models.CreateTournamentPayload
+
 	if err := c.ShouldBind(&payload); err != nil {
 		c.JSON(http.StatusBadRequest, errors.NewBadRequestError("Invalid request", err).ToGinH())
 		return
 	}
 
-	// Ajouter l'image au modèle de tournoi
 	tournament := models.Tournament{
 		Name:        payload.Name,
 		Description: payload.Description,
@@ -113,6 +120,8 @@ func (h *TournamentHandler) CreateTournament(c *gin.Context) {
 		UserID:      payload.UserID,
 		GameID:      payload.GameID,
 		Rounds:      payload.Rounds,
+		Longitude:   payload.Longitude,
+		Latitude:    payload.Latitude,
 		MaxPlayers:  payload.MaxPlayers,
 	}
 
@@ -189,6 +198,7 @@ type TournamentsParams struct {
 // @Produce json
 // @Param WithRecents query bool false "Add recent tournaments to the response"
 // @Param UserID query int 0 "Search by userID"
+// @Param GameID query int 0 "Search by gameID"
 // @Param Name query string false "Search by name"
 // @Param Sort query string false "Sort order (use 'start_date' for ascending order, '-start_date' for descending order)"// @Success 200 {object} string
 // @Failure 500 {object} errors.ErrorResponse
@@ -438,4 +448,136 @@ func (h *TournamentHandler) GetTournamentRankings(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, ranking)
+}
+
+// ... other code ...
+
+// UpdateTournament godoc
+// @Summary Update a tournament
+// @Description Update a tournament
+// @Tags tournament
+// @Accept json
+// @Produce json
+// @Param id path int true "Tournament ID"
+// @Param name formData string false "Tournament name" Example("My Tournament")
+// @Param description formData string false "Tournament description" Example("Description of my tournament")
+// @Param start_date formData string false "Tournament start date" Example("2024-04-12T00:00:00Z")
+// @Param end_date formData string false "Tournament end date" Example("2024-04-15T00:00:00Z")
+// @Param organizer_id formData int false "Organizer ID" Example(1)
+// @Param game_id formData int false "Game ID" Example(1)
+// @Param rounds formData int false "Number of rounds" Example(3)
+// @Param tagsIDs[] formData []int false "Array of tag IDs" CollectionFormat(multi) Example([1, 2, 3])
+// @Param image formData file false "Image file" Example(<path_to_image_file>)
+// @Param location formData string false "Location" Example("New York")
+// @Param max_players formData int false "Maximum number of players" Example(32)
+// @Param longitude formData float64 false "Longitude" Example(40.7128)
+// @Param latitude formData float64 false "Latitude" Example(74.0060)
+// @Success 200 {object} string
+// @Failure 400 {object} errors.ErrorResponse
+// @Failure 500 {object} errors.ErrorResponse
+// @Security BearerAuth
+// @Param Authorization header string true "Insert your access token" default(Bearer <Add access token here>)
+// @Router /tournaments/{id} [put]
+func (h *TournamentHandler) UpdateTournament(c *gin.Context) {
+	tournamentID, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, errors.NewBadRequestError("Invalid ID", err).ToGinH())
+		return
+	}
+
+	file, err := c.FormFile("image")
+	if err != nil {
+		if errors.IsFileNotFound(err) {
+			file = nil
+		} else {
+			c.JSON(http.StatusBadRequest, errors.NewBadRequestError("Something went wrong with the file", err).ToGinH())
+			return
+		}
+	}
+
+	tagsIDsStr := c.PostFormArray("tagsIDs[]")
+	var tagsIDs []uint
+
+	for _, idStr := range tagsIDsStr {
+		id, err := strconv.ParseUint(idStr, 10, 32)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, errors.NewBadRequestError("Invalid tag ID", err).ToGinH())
+			return
+		}
+		tagsIDs = append(tagsIDs, uint(id))
+	}
+
+	var payload models.UpdateTournamentPayload
+
+	if err := c.ShouldBind(&payload); err != nil {
+		c.JSON(http.StatusBadRequest, errors.NewBadRequestError("Invalid request", err).ToGinH())
+		return
+	}
+
+	tournament := models.Tournament{
+		ID:          uint(tournamentID),
+		Name:        payload.Name,
+		Description: payload.Description,
+		StartDate:   payload.StartDate,
+		EndDate:     payload.EndDate,
+		Location:    payload.Location,
+		UserID:      payload.UserID,
+		GameID:      payload.GameID,
+		Rounds:      payload.Rounds,
+		Longitude:   payload.Longitude,
+		Latitude:    payload.Latitude,
+		MaxPlayers:  payload.MaxPlayers,
+	}
+
+	tags, err := h.TounamentService.GetTagsByIDs(tagsIDs)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, errors.NewErrorResponse(500, err.Error()).ToGinH())
+		return
+	}
+	tournament.Tags = tags
+
+	if file != nil {
+		mediaModel, _, errUpload := h.FileService.UploadMedia(file)
+		if errUpload != nil {
+			c.JSON(http.StatusBadRequest, errors.NewBadRequestError("Invalid request", errUpload).ToGinH())
+			return
+		}
+		tournament.MediaModel.Media = mediaModel
+	}
+
+	errorUpdated := h.TounamentService.Update(&tournament)
+	if errorUpdated != nil {
+		c.JSON(errorUpdated.Code(), errorUpdated.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, "Tournament updated successfully")
+}
+
+// DeleteTournament godoc
+// @Summary Delete a tournament
+// @Description Delete a tournament
+// @Tags tournament
+// @Accept json
+// @Produce json
+// @Param id path int true "Tournament ID"
+// @Success 204
+// @Failure 400 {object} errors.ErrorResponse
+// @Failure 500 {object} errors.ErrorResponse
+// @Security BearerAuth
+// @Param Authorization header string true "Insert your access token" default(Bearer <Add access token here>)
+// @Router /tournaments/{id} [delete]
+func (h *TournamentHandler) DeleteTournament(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, errors.NewBadRequestError("Invalid tournament ID", err).ToGinH())
+		return
+	}
+
+	if err := h.TounamentService.Delete(uint(id)); err != nil {
+		c.JSON(err.Code(), err)
+		return
+	}
+
+	c.Status(http.StatusNoContent)
 }

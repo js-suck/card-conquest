@@ -39,4 +39,41 @@ class GameService {
     final List<dynamic> trendyGamesJson = responseJson['trendyGames'];
     return trendyGamesJson.map((json) => Game.fromJson(json)).toList();
   }
+
+  Future<Game> fetchGameById(int id) async {
+    String? token = await storage.read(key: 'jwt_token');
+
+    final response = await http.get(
+      Uri.parse('${dotenv.env['API_URL']}games/$id'),
+      headers: {
+        HttpHeaders.authorizationHeader: '$token',
+      },
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to load game');
+    }
+
+    final Map<String, dynamic> responseJson = jsonDecode(response.body);
+    return Game.fromJson(responseJson);
+  }
+
+  Future<List<Map<String, dynamic>>> fetchUserRankingsForGame(int gameId) async {
+    String? token = await storage.read(key: 'jwt_token');
+
+    final response = await http.get(
+      Uri.parse('${dotenv.env['API_URL']}games/$gameId/ranks'),
+      headers: {
+        HttpHeaders.authorizationHeader: '$token',
+      },
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to load user rankings');
+    }
+
+    final List<dynamic> responseJson = jsonDecode(response.body);
+    return responseJson.cast<Map<String, dynamic>>();
+  }
+
 }

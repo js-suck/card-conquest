@@ -1,13 +1,13 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:front/extension/theme_extension.dart';
 import 'package:front/generated/tournament.pb.dart' as tournament_grpc;
+import 'package:front/generated/tournament.pb.dart';
 import 'package:front/pages/bracket_screen.dart';
 import 'package:front/widget/bracket/bracket_match.dart';
 import 'package:provider/provider.dart';
-
-import '../../generated/tournament.pb.dart';
 
 class Bracket extends StatefulWidget {
   final tournament_grpc.TournamentResponse tournamentStream;
@@ -19,16 +19,6 @@ class Bracket extends StatefulWidget {
 }
 
 class _BracketState extends State<Bracket> {
-  final tabs = [
-    const Tab(text: '1/64 DE FINALE'),
-    const Tab(text: '1/32 DE FINALE'),
-    const Tab(text: '1/16 DE FINALE'),
-    const Tab(text: '1/8 DE FINALE'),
-    const Tab(text: 'QUARTS DE FINALE'),
-    const Tab(text: 'DEMI-FINALES'),
-    const Tab(text: 'FINALE'),
-  ];
-
   List<Widget> generateStep(TournamentStep step, tournamentSize) {
     List<Widget> listViewBuilders = [];
     final tournamentData = widget.tournamentStream;
@@ -78,6 +68,16 @@ class _BracketState extends State<Bracket> {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
+    final tabs = [
+      Tab(text: t.bracketRoundOf64),
+      Tab(text: t.bracketRoundOf32),
+      Tab(text: t.bracketRoundOf16),
+      Tab(text: t.bracketRoundOf8),
+      Tab(text: t.bracketRoundOf4),
+      Tab(text: t.bracketRoundOf2),
+      Tab(text: t.bracketRoundOf1),
+    ];
     final tournamentData = widget.tournamentStream;
     final tournamentSteps = tournamentData.tournamentSteps;
     final tournament = context.watch<TournamentNotifier>().tournament;
@@ -89,7 +89,7 @@ class _BracketState extends State<Bracket> {
     }
     return DefaultTabController(
       initialIndex: 0,
-      length: 4,
+      length: tournamentSize,
       child: Scaffold(
         appBar: PreferredSize(
           preferredSize: const Size.fromHeight(kToolbarHeight),

@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:front/extension/theme_extension.dart';
 import 'package:front/generated/match.pb.dart';
 import 'package:front/grpc/match_client.dart';
-import 'package:front/main.dart';
+import 'package:front/notifier/theme_notifier.dart';
+import 'package:front/service/match_service.dart';
 import 'package:front/utils/custom_future_builder.dart';
+import 'package:front/utils/custom_stream_builder.dart';
 import 'package:front/widget/app_bar.dart';
+import 'package:front/widget/bracket/match/head2head.dart';
+import 'package:front/widget/bracket/match/summary.dart';
 import 'package:provider/provider.dart';
-
-import '../service/match_service.dart';
-import '../utils/custom_stream_builder.dart';
-import '../widget/bracket/match/head2head.dart';
-import '../widget/bracket/match/summary.dart';
 
 class MatchPage extends StatefulWidget {
   const MatchPage({super.key});
@@ -41,14 +41,15 @@ class _MatchPageState extends State<MatchPage> {
     matchService.fetchMatch(matchId);
   }
 
-  final status = {
-    'created': 'Créé',
-    'started': 'En cours',
-    'finished': 'Terminé',
-  };
-
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
+    final status = {
+      'created': t.matchStatusCreated,
+      'started': t.matchStatusStarted,
+      'finished': t.matchStatusFinished,
+    };
+
     final isDarkMode = Provider.of<ThemeNotifier>(context).isDarkMode;
     Color scoreColorPlayerOne = context.themeColors.fontColor;
     Color scoreColorPlayerTwo = context.themeColors.fontColor;
@@ -72,8 +73,8 @@ class _MatchPageState extends State<MatchPage> {
               future: matchService.fetchMatch(matchId),
               onLoaded: (matchInfo) {
                 return Scaffold(
-                  appBar: const TopAppBar(
-                    title: 'Match',
+                  appBar: TopAppBar(
+                    title: t.matchTitle,
                     isPage: true,
                     isAvatar: false,
                     isSettings: false,
@@ -108,8 +109,9 @@ class _MatchPageState extends State<MatchPage> {
                                         shape: BoxShape.rectangle,
                                         borderRadius: BorderRadius.circular(10),
                                         image: DecorationImage(
-                                          image: matchInfo.playerOne.media !=
-                                                  null
+                                          image: matchInfo.playerOne.media
+                                                      ?.fileName !=
+                                                  ''
                                               ? NetworkImage(
                                                       '${dotenv.env['MEDIA_URL']}${matchInfo.playerOne.media?.fileName}')
                                                   as ImageProvider<Object>
@@ -132,7 +134,8 @@ class _MatchPageState extends State<MatchPage> {
                                                 : FontWeight.normal,
                                       ),
                                     ),
-                                    Text('Cla. ${match.playerOne.rank}.',
+                                    Text(
+                                        '${t.matchRanking} ${match.playerOne.rank}.',
                                         style: const TextStyle(
                                             color: Colors.grey)),
                                   ],
@@ -214,8 +217,9 @@ class _MatchPageState extends State<MatchPage> {
                                         shape: BoxShape.rectangle,
                                         borderRadius: BorderRadius.circular(10),
                                         image: DecorationImage(
-                                          image: matchInfo.playerTwo.media !=
-                                                  null
+                                          image: matchInfo.playerTwo.media
+                                                      ?.fileName !=
+                                                  ''
                                               ? NetworkImage(
                                                       '${dotenv.env['MEDIA_URL']}${matchInfo.playerTwo.media?.fileName}')
                                                   as ImageProvider<Object>
@@ -238,7 +242,8 @@ class _MatchPageState extends State<MatchPage> {
                                                 : FontWeight.normal,
                                       ),
                                     ),
-                                    Text('Cla. ${match.playerTwo.rank}.',
+                                    Text(
+                                        '${t.matchRanking} ${match.playerTwo.rank}.',
                                         style: const TextStyle(
                                             color: Colors.grey)),
                                   ],
@@ -262,11 +267,11 @@ class _MatchPageState extends State<MatchPage> {
                                 labelColor: context.themeColors.accentColor,
                                 unselectedLabelColor: Colors.white,
                                 // isScrollable: true,
-                                tabs: const [
-                                  Tab(text: 'Résumé'),
+                                tabs: [
+                                  Tab(text: t.matchSummary),
                                   // Tab(text: 'Stats'),
                                   // Tab(text: 'Point par point'),
-                                  Tab(text: 'TÀT'),
+                                  Tab(text: t.matchH2H),
                                 ],
                               ),
                             ),
