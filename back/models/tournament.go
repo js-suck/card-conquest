@@ -60,6 +60,7 @@ type Tournament struct {
 	Steps       []TournamentStep `json:"tournament_steps" gorm:"foreignKey:TournamentID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 	Longitude   float64          `json:"longitude"`
 	Latitude    float64          `json:"latitude"`
+	Subscribers []User           `gorm:"many2many:tournament_subscribers;"`
 }
 
 type TournamentRead struct {

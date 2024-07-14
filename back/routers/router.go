@@ -6,6 +6,7 @@ import (
 	"authentication-api/models"
 	"authentication-api/permissions"
 	"authentication-api/services"
+	"fmt"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -13,6 +14,22 @@ import (
 
 func SetupRouter(db *gorm.DB) *gin.Engine {
 	r := gin.Default()
+	r.Use(func(c *gin.Context) {
+
+		fmt.Println("Middleware")
+
+		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+		c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+		c.Writer.Header().Set("Access-Control-Expose-Headers", "Content-Length")
+
+		if c.Request.Method == "OPTIONS" {
+			c.AbortWithStatus(200)
+			return
+		}
+
+		c.Next()
+	})
 
 	r.Use(func(c *gin.Context) {
 		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
@@ -80,6 +97,9 @@ func SetupRouter(db *gorm.DB) *gin.Engine {
 		protectedRoutes.PUT("/users/:id", middlewares.OwnerMiddleware("user", models.User{}), permissions.PermissionMiddleware(permissions.PermissionUpdateUser), userHandler.UpdateUser)
 		protectedRoutes.DELETE("/users/:id", middlewares.OwnerMiddleware("user", models.User{}), permissions.PermissionMiddleware(permissions.PermissionDeleteUser), userHandler.DeleteUser)
 		protectedRoutes.POST("/users/:id/upload/picture", middlewares.OwnerMiddleware("user", models.User{}), permissions.PermissionMiddleware(permissions.PermissionUpdateUser), userHandler.UploadPicture)
+		protectedRoutes.POST("/users/subscriptions/:userID/tournaments/:tournamentID/subscribe", tournamentHandler.SubscribeToTournament)
+		protectedRoutes.POST("/users/subscriptions/:userID/tournaments/:tournamentID/unsubscribe", tournamentHandler.UnsubscribeFromTournament)
+		protectedRoutes.GET("/users/subscriptions/:userID/tournaments", tournamentHandler.GetSubscribedTournaments)
 
 		protectedRoutes.POST("/tournaments", permissions.PermissionMiddleware(permissions.PermissionCreateTournament), tournamentHandler.CreateTournament)
 		protectedRoutes.PUT("/tournaments/:id", permissions.PermissionMiddleware(permissions.PermissionUpdateTournament), tournamentHandler.UpdateTournament)
@@ -90,7 +110,7 @@ func SetupRouter(db *gorm.DB) *gin.Engine {
 		protectedRoutes.POST("/tournaments/:id/generate-matches", tournamentHandler.GenerateMatches)
 
 		//protectedRoutes.POST("/matches/:id/finish", tournamentHandler.FinishMatch)
-		protectedRoutes.POST("/matches/update/score", permissions.PermissionMiddleware(permissions.PermissionUpdateMatch), matchHandler.UpdateScore)
+		protectedRoutes.POST("/matchs/update/score", permissions.PermissionMiddleware(permissions.PermissionUpdateMatch), matchHandler.UpdateScore)
 
 		protectedRoutes.PUT("/matchs/:id", permissions.PermissionMiddleware(permissions.PermissionUpdateMatch), matchHandler.UpdateMatch)
 		protectedRoutes.GET("/matchs/between-users", matchHandler.GetMatchesBetweenUsers)
@@ -109,8 +129,8 @@ func SetupRouter(db *gorm.DB) *gin.Engine {
 		protectedRoutes.POST("/guilds", permissions.PermissionMiddleware(permissions.PermissionCreateGuild), guildHandler.CreateGuild)
 		protectedRoutes.PUT("/guilds/:id", permissions.PermissionMiddleware(permissions.PermissionUpdateGuild), guildHandler.UpdateGuild)
 		protectedRoutes.DELETE("/guilds/:id", permissions.PermissionMiddleware(permissions.PermissionDeleteGuild), guildHandler.DeleteGuild)
-		protectedRoutes.DELETE("/guilds/:id/users/:userID", permissions.PermissionMiddleware(permissions.PermissionUpdateGuild), guildHandler.RemoveUserFromGuild)
-		protectedRoutes.POST("/guilds/:id/users/:userID", permissions.PermissionMiddleware(permissions.PermissionUpdateGuild), guildHandler.AddUserToGuild)
+		protectedRoutes.DELETE("/guilds/:id/users/:userID", permissions.PermissionMiddleware(permissions.PermissionLeaveGuild), guildHandler.RemoveUserFromGuild)
+		protectedRoutes.POST("/guilds/:id/users/:userID", permissions.PermissionMiddleware(permissions.PermissionJoinGuild), guildHandler.AddUserToGuild)
 		//protectedRoutes.DELETE("/guilds/:id/users/:userID", guildHandler.RemoveUserFromGuild)
 
 	}

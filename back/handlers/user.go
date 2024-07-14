@@ -29,7 +29,7 @@ type UserHandler struct {
 // @Failure 500 {object} errors.ErrorResponse
 // @Security BearerAuth
 // @Param Authorization header string true "Insert your access token" default(Bearer <Add access token here>)
-// @Router /users/{id} [get]
+// @Router /users/{userID} [get]
 func (h *UserHandler) GetUser() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		idStr := c.Param("id")
@@ -171,7 +171,7 @@ func (h *UserHandler) PostUser(c *gin.Context) {
 // @Failure 500 {object} errors.ErrorResponse
 // @Security BearerAuth
 // @Param Authorization header string true "Insert your access token" default(Bearer <Add access token here>)
-// @Router /users/{id} [delete]
+// @Router /users/{userID} [delete]
 func (h *UserHandler) DeleteUser(c *gin.Context) {
 
 	idStr := c.Param("id")
@@ -203,9 +203,9 @@ func (h *UserHandler) DeleteUser(c *gin.Context) {
 // @Failure 500 {object} errors.ErrorResponse
 // @Security BearerAuth
 // @Param Authorization header string true "Insert your access token" default(Bearer <Add access token here>)
-// @Router /users/{id} [put]
+// @Router /users/{userID} [put]
 func (h *UserHandler) UpdateUser(c *gin.Context) {
-	userIDStr := c.Param("id")
+	userIDStr := c.Param("userID")
 	userID, err := strconv.Atoi(userIDStr)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, errors.NewBadRequestError("Invalid ID", err).ToGinH())
