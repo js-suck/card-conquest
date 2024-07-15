@@ -239,14 +239,15 @@ func (h *TournamentHandler) GetTournaments(c *gin.Context) {
 			return
 		}
 
+		formattedRecentTournaments := make([]models.TournamentRead, len(recentTournaments))
 		for i, tournament := range recentTournaments {
-			formattedTournaments = append(formattedTournaments, tournament.ToRead())
 			recentTournaments[i] = tournament
+			formattedRecentTournaments[i] = tournament.ToRead()
 		}
 
 		c.JSON(http.StatusOK, gin.H{
 			"allTournaments":    formattedTournaments,
-			"recentTournaments": recentTournaments,
+			"recentTournaments": formattedRecentTournaments,
 		})
 
 	} else {

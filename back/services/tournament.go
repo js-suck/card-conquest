@@ -122,6 +122,7 @@ func (s TournamentService) RegisterUser(tournamentId uint, userId uint) errors.I
 // GetRecentsTournaments godoc
 func (s TournamentService) GetRecentsTournaments(tournaments *[]models.Tournament) errors.IError {
 	db := s.Db.Preload("User")
+	db = db.Preload("Media")
 	err := db.Order("start_date desc").Limit(8).Find(&tournaments).Error
 	if err != nil {
 		return errors.NewErrorResponse(500, err.Error())
@@ -135,7 +136,7 @@ func (s *TournamentService) GetTagsByIDs(tagIDs []uint) ([]*models.Tag, errors.I
 		var tag models.Tag
 		result := s.Db.First(&tag, tagID)
 		if result.Error != nil {
-			return nil, errors.NewErrorResponse(500, result.Error.Error())
+			return nil, errors.NewErrorResponse(400, "Tag not found with TagID: "+strconv.Itoa(int(tagID)))
 		}
 		tags = append(tags, &tag)
 	}

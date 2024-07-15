@@ -89,6 +89,8 @@ func SetupRouter(db *gorm.DB) *gin.Engine {
 	protectedRoutes.GET(("/games"), gameHandler.GetAllGames)
 	protectedRoutes.GET(("/games/user/:userID/rankings"), gameHandler.GetUserGameRankings)
 	protectedRoutes.GET(("/games/:id/ranks"), gameHandler.GetGameRanks)
+	protectedRoutes.GET("/games/:id", gameHandler.GetGameByID)
+
 	protectedRoutes.Use(middlewares.AuthenticationMiddleware())
 	{
 		publicRoutes.POST("/images", uploadFileHandler.UploadImage)
@@ -120,7 +122,6 @@ func SetupRouter(db *gorm.DB) *gin.Engine {
 		protectedRoutes.POST("/games", gameHandler.CreateGame)
 		protectedRoutes.PUT("/games/:id", gameHandler.UpdateGame)
 		protectedRoutes.DELETE("/games/:id", gameHandler.DeleteGame)
-		protectedRoutes.GET("/games/:id", gameHandler.GetGameByID)
 
 		protectedRoutes.POST("/tags", permissions.PermissionMiddleware(permissions.PermissionCreateTag), tagHandler.CreateTag)
 		protectedRoutes.PUT("/tags/:id", permissions.PermissionMiddleware(permissions.PermissionUpdateTag), tagHandler.UpdateTag)

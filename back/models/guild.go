@@ -8,8 +8,8 @@ type Guild struct {
 	ID          uint    `json:"id" gorm:"primaryKey"`
 	Name        string  `json:"name"`
 	Description string  `json:"description"`
-	Admins      *[]User `json:"admins" gorm:"many2many:user_admin_guilds;"`
-	Players     *[]User `json:"players" gorm:"many2many:guild_players;"`
+	Admins      *[]User `json:"admins" gorm:"many2many:user_admin_guilds; constraint:OnDelete:CASCADE;"`
+	Players     *[]User `json:"players" gorm:"many2many:guild_players; constraint:OnDelete:CASCADE;"`
 }
 
 func (g *Guild) AfterFind(tx *gorm.DB) (err error) {
@@ -32,6 +32,7 @@ type GuildRead struct {
 	Description string              `json:"description"`
 	Media       MediaModel          `json:"media"`
 	Players     []UserReadWithImage `json:"players"`
+	Admins      []UserReadWithImage `json:"admins"`
 }
 
 func (g Guild) GetTableName() string {
@@ -62,6 +63,17 @@ func (g Guild) ToRead() GuildRead {
 		}
 
 		gr.Players = players
+	}
+
+	if g.Admins != nil && len(*g.Admins) > 0 {
+		admins := make([]UserReadWithImage, len(*g.Admins))
+
+		for i, admin := range *g.Admins {
+			admins[i] = admin.ToReadWithImage()
+		}
+
+		gr.Admins = admins
+
 	}
 
 	return gr
