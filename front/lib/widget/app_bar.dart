@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -101,7 +102,7 @@ Future<void> _onNotificationButtonPressed(BuildContext context) async {
         centerTitle: true,
         actions: [
           Builder(builder: (context) {
-            if (!widget.isPage) {
+            if (!widget.isPage && !kIsWeb) {
               return Container(
                   margin: const EdgeInsets.only(right: 10),
                   width: 45,

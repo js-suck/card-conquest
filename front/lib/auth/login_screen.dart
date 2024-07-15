@@ -11,10 +11,10 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 
 
-Future<void> login(
-    BuildContext context, String username, String password) async {
+Future<void> login(BuildContext context, String username,
+    String password) async {
   const storage =
-      FlutterSecureStorage();
+  FlutterSecureStorage();
   String? fcmToken = await storage.read(key: 'fcm_token');
   final response = await http.post(
     Uri.parse('${dotenv.env['API_URL']}login'),
@@ -102,7 +102,6 @@ class _LoginPageState extends State<LoginPage> {
     );
 
     if (response.statusCode == 200 || response.statusCode == 201) {
-
       var responseData = jsonDecode(response.body);
 
       String token = responseData['token'];
@@ -129,29 +128,31 @@ class _LoginPageState extends State<LoginPage> {
   Future<void> _googleSignIn() async {
     try {
       final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
-      final GoogleSignInAuthentication? googleAuth = await googleUser?.authentication;
+      final GoogleSignInAuthentication? googleAuth = await googleUser
+          ?.authentication;
 
       final auth.AuthCredential credential = auth.GoogleAuthProvider.credential(
         accessToken: googleAuth?.accessToken,
         idToken: googleAuth?.idToken,
       );
 
-      auth.User? user = (await auth.FirebaseAuth.instance.signInWithCredential(credential)).user;
+      auth.User? user = (await auth.FirebaseAuth.instance.signInWithCredential(
+          credential)).user;
 
-    if (user != null) {
-    await sendUserDataToServer(user);
-    Navigator.of(context).pushReplacementNamed('/main');
-    ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(content: Text('Welcome, ${user.displayName}')),
-    );
-    }
+      if (user != null) {
+        await sendUserDataToServer(user);
+        Navigator.of(context).pushReplacementNamed('/main');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Welcome, ${user.displayName}')),
+        );
+      }
     } catch (e) {
       final t = AppLocalizations.of(context)!;
       print('Error during Google sign in: $e');
-    ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(content: Text(t.loginErrorGoogle)),
-    );
-    return ;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(t.loginErrorGoogle)),
+      );
+      return;
     }
     Navigator.of(context).pushReplacementNamed('/main');
   }
@@ -160,7 +161,7 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context)!;
     return Scaffold(
-      appBar: AppBar( backgroundColor: context.themeColors.backgroundColor),
+      appBar: AppBar(backgroundColor: context.themeColors.backgroundColor),
       body: SingleChildScrollView(
         child: Center(
           child: Column(
@@ -270,24 +271,26 @@ class _LoginPageState extends State<LoginPage> {
                         ],
                       ),
                       const SizedBox(height: 10),
-                      ElevatedButton(
-                        onPressed: _googleSignIn,
-                        style: ElevatedButton.styleFrom(
-                          foregroundColor: Colors.white,
-                          backgroundColor: const Color(0xFFF5F4F6),
-                          minimumSize: const Size(double.infinity, 45),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
+                      if (!kIsWeb)
+                        ElevatedButton(
+                          onPressed: _googleSignIn,
+                          style: ElevatedButton.styleFrom(
+                            foregroundColor: Colors.white,
+                            backgroundColor: const Color(0xFFF5F4F6),
+                            minimumSize: const Size(double.infinity, 45),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: <Widget>[
+                              Image.asset(
+                                  'assets/images/google.png', width: 30),
+                              const SizedBox(width: 10),
+                            ],
                           ),
                         ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: <Widget>[
-                            Image.asset('assets/images/google.png', width: 30),
-                            const SizedBox(width: 10),
-                          ],
-                        ),
-                      ),
                       const SizedBox(height: 10),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,

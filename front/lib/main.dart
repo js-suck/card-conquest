@@ -1,5 +1,6 @@
 import 'dart:developer';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -21,13 +22,17 @@ import 'notifier/theme_notifier.dart';
 
 Future main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
 
-  final fcmToken = await FirebaseMessaging.instance.getToken();
-  await FirebaseMessaging.instance.setAutoInitEnabled(true);
-  log("FCMToken $fcmToken");
+  if (!kIsWeb) {
+    await Firebase.initializeApp();
 
-  await NotificationService().init();
+    final fcmToken = await FirebaseMessaging.instance.getToken();
+    await FirebaseMessaging.instance.setAutoInitEnabled(true);
+    log("FCMToken $fcmToken");
+
+    await NotificationService().init();
+  }
+
   await dotenv.load(fileName: "lib/.env");
 
   final prefs = await SharedPreferences.getInstance();
