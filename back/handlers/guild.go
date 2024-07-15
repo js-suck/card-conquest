@@ -75,7 +75,7 @@ func (h *GuildHandler) GetGuild(c *gin.Context) {
 	}
 
 	guild := models.Guild{}
-	errGet := h.GuildService.Get(&guild, uint(idInt), "Players", "Media", "Players.Media")
+	errGet := h.GuildService.Get(&guild, uint(idInt), "Players", "Media", "Players.Media", "Admins", "Admins.Media")
 	if errGet != nil {
 		c.JSON(errGet.Code(), errGet)
 		return

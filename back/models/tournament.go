@@ -70,8 +70,8 @@ type TournamentRead struct {
 	Location          string               `json:"location"`
 	Organizer         UserReadTournament   `json:",omitempty"`
 	Game              GameReadTournament   `json:"game"`
-	StartDate         time.Time            `json:"start_date"`
-	EndDate           time.Time            `json:"end_date"`
+	StartDate         string               `json:"start_date"`
+	EndDate           string               `json:"end_date"`
 	Media             *Media               `json:"media, omitempty"`
 	MaxPlayers        int                  `json:"max_players"`
 	PlayersRegistered int                  `json:"players_registered"`
@@ -128,8 +128,8 @@ func (t Tournament) ToRead() TournamentRead {
 			ID:   t.Game.ID,
 			Name: t.Game.Name,
 		},
-		StartDate: t.CreatedAt,
-		EndDate:   t.UpdatedAt,
+		StartDate: t.StartDate,
+		EndDate:   t.EndDate,
 		Organizer: UserReadTournament{
 			ID:    t.UserID,
 			Name:  t.User.Username,

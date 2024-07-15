@@ -43,7 +43,7 @@ type User struct {
 	Tournaments          []*Tournament `gorm:"many2many:user_tournaments;constraint:OnDelete:CASCADE;"`
 	Matches              []Match       `gorm:"foreignKey:PlayerOneID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 	GamesScores          []GameScore   `gorm:"foreignKey:UserID;references:ID"`
-	Guilds               []Guild       `gorm:"many2many:guild_players;"`
+	Guilds               []Guild       `gorm:"many2many:guild_players;constraint:OnDelete:CASCADE;"`
 	FCMToken             string        `gorm:"type:varchar(255);default:null" json:"fcm_token"; default:null`
 	SuscribedTournaments []Tournament  `gorm:"many2many:user_suscribed_tournaments;constraint:OnDelete:CASCADE;"`
 }

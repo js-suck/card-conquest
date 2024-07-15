@@ -250,7 +250,7 @@ func (h *UserHandler) UpdateUser(c *gin.Context) {
 // @Router /users/{id}/upload/picture [post]
 func (h *UserHandler) UploadPicture(c *gin.Context) {
 	// create media
-	file, err := c.FormFile("image")
+	file, err := c.FormFile("file")
 
 	mediaModel, filePath, errUpload := h.FileService.UploadMedia(file)
 	if err != nil {
@@ -274,8 +274,8 @@ func (h *UserHandler) UploadPicture(c *gin.Context) {
 		c.JSON(http.StatusNotFound, errors.NewNotFoundError("User not found", err).ToGinH())
 		return
 	}
-	user.MediaModel.MediaID = &mediaModel.ID
-	err = h.UserService.Update(user)
+
+	err = h.UserService.UpdateProfilePicture(&user, *mediaModel)
 	c.JSON(http.StatusOK, gin.H{"message": "Image uploaded successfully!", "path": filePath})
 
 }
