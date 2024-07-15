@@ -216,3 +216,32 @@ func (h *GameHandler) GetGameByID(c *gin.Context) {
 
 	c.JSON(http.StatusOK, game)
 }
+
+// GetGameRanks
+// @Summary Get the ranking of users for a game
+// @Description Get the ranking of users for a game
+// @Tags Game
+// @Accept json
+// @Produce json
+// @Param id path int true "Game ID"
+// @Success 200 {object} string
+// @Failure 400 {object} errors.ErrorResponse
+// @Failure 500 {object} errors.ErrorResponse
+// @Security BearerAuth
+// @Param Authorization header string true "Insert your access token" default(Bearer <Add access token here>)
+// @Router /games/{id}/ranks [get]
+func (h *GameHandler) GetGameRanks(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid game ID"})
+		return
+	}
+
+	ranks, errGetRanks := h.GameService.CalculateRankingsForGame(uint(id))
+	if err != nil {
+		c.JSON(errGetRanks.Code(), err)
+		return
+	}
+
+	c.JSON(http.StatusOK, ranks)
+}

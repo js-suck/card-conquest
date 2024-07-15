@@ -14,6 +14,20 @@ import (
 func SetupRouter(db *gorm.DB) *gin.Engine {
 	r := gin.Default()
 
+	r.Use(func(c *gin.Context) {
+		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+		c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+		c.Writer.Header().Set("Access-Control-Expose-Headers", "Content-Length")
+
+		if c.Request.Method == "OPTIONS" {
+			c.AbortWithStatus(200)
+			return
+		}
+
+		c.Next()
+	})
+
 	// handlers are like controllers
 	authHandler := handlers.NewAuthHandler(services.NewAuthService(db), services.NewUserService(db))
 	userHandler := handlers.UserHandler{UserService: services.NewUserService(db), FileService: services.NewFileService(db)}
@@ -28,6 +42,7 @@ func SetupRouter(db *gorm.DB) *gin.Engine {
 	protectedRoutes := r.Group("/api/v1")
 	{
 		publicRoutes.POST("/login", authHandler.Login)
+		publicRoutes.POST("/auth/google", authHandler.RegisterWithGoogle)
 	}
 	publicRoutes.GET("/images/:filename", func(c *gin.Context) {
 		filename := c.Param("filename")
@@ -54,7 +69,9 @@ func SetupRouter(db *gorm.DB) *gin.Engine {
 
 	protectedRoutes.GET("/tournaments/:id", tournamentHandler.GetTournament)
 	protectedRoutes.GET("/tournaments/:id/matches", tournamentHandler.GetTournamentMatches)
-
+	protectedRoutes.GET(("/games"), gameHandler.GetAllGames)
+	protectedRoutes.GET(("/games/user/:userID/rankings"), gameHandler.GetUserGameRankings)
+	protectedRoutes.GET(("/games/:id/ranks"), gameHandler.GetGameRanks)
 	protectedRoutes.Use(middlewares.AuthenticationMiddleware())
 	{
 		publicRoutes.POST("/images", uploadFileHandler.UploadImage)
@@ -80,8 +97,6 @@ func SetupRouter(db *gorm.DB) *gin.Engine {
 		protectedRoutes.GET(("/matchs"), matchHandler.GetAllMatchs)
 		protectedRoutes.GET(("/matchs/:id"), matchHandler.GetMatch)
 
-		protectedRoutes.GET(("/games"), gameHandler.GetAllGames)
-		protectedRoutes.GET(("/games/user/:userID/rankings"), gameHandler.GetUserGameRankings)
 		protectedRoutes.POST("/games", gameHandler.CreateGame)
 		protectedRoutes.PUT("/games/:id", gameHandler.UpdateGame)
 		protectedRoutes.DELETE("/games/:id", gameHandler.DeleteGame)
