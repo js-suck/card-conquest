@@ -13,7 +13,8 @@ import (
 	"time"
 )
 
-const FirstTournamentName = "Test"
+const FirstTournamentName = "Yu-Gi-Oh! Championship"
+const SecondTournamentName = "Magic: The Gathering Tournament"
 
 func gameMigration(db *gorm.DB) (*models.Game, error) {
 	err := db.AutoMigrate(&models.Game{})
@@ -75,51 +76,63 @@ func tournamentMigration(db *gorm.DB, game *models.Game) (*models.Tournament, er
 
 }
 
-func registrationsTournamentMigrations(db *gorm.DB) {
+func registrationsTournamentMigrations(db *gorm.DB, users *[]models.User) {
+	// Create media record
+	media := createMediaRecord(db, "yugiho.webp", "webp")
 
+	// Fetch the first tournament and associate it with the media
+	tournament := fetchAndAssociateTournamentWithMedia(db, FirstTournamentName, &media)
+
+	// Create the first tournament step
+	tournamentStep := createTournamentStep(db, tournament.ID, "First step", 1)
+
+	// Associate users with the tournament and set the tournament owner
+	associateUsersWithTournament(db, tournament, users)
+
+	// Generate matches with position for the tournament step
+	generateTournamentMatches(db, tournamentStep.ID, tournament.ID)
+}
+
+func createMediaRecord(db *gorm.DB, fileName, fileExtension string) models.Media {
 	media := models.Media{
-		BaseModel:     models.BaseModel{},
-		FileName:      "yugiho.webp",
-		FileExtension: "webp",
+		FileName:      fileName,
+		FileExtension: fileExtension,
 	}
-	tournament := models.Tournament{}
-
-	db.First(&tournament, "name = ?", FirstTournamentName)
-
-	tournament.MediaModel.Media = &media
-
 	db.Create(&media)
+	return media
+}
+
+func fetchAndAssociateTournamentWithMedia(db *gorm.DB, tournamentName string, media *models.Media) models.Tournament {
+	var tournament models.Tournament
+	db.First(&tournament, "name = ?", tournamentName)
+	tournament.MediaModel.Media = media
+	db.Save(&tournament)
+	return tournament
+}
+
+func createTournamentStep(db *gorm.DB, tournamentID uint, name string, sequence int) models.TournamentStep {
 	tournamentStep := models.TournamentStep{
-		TournamentID: tournament.ID,
-		Name:         "First step",
-		Sequence:     1,
+		TournamentID: tournamentID,
+		Name:         name,
+		Sequence:     sequence,
 	}
-
 	db.Create(&tournamentStep)
+	return tournamentStep
+}
 
-	users := make([]models.User, 10)
-
-	for i := 0; i < 10; i++ {
-		user := models.User{
-			Username: fmt.Sprintf("Test%d", i),
-			Password: "$2a$14$FEB9c6k0pEXUZB3txwOFCeurpu",
-			Email:    fmt.Sprintf("Test%d•gmail.com", i),
-			Role:     "user",
-		}
-
-		db.Create(&user)
-		tournament.Users = append(tournament.Users, &user)
-		tournament.UserID = user.ID
-		users[i] = user
-
-		db.Save(&tournament)
-
+func associateUsersWithTournament(db *gorm.DB, tournament models.Tournament, users *[]models.User) {
+	usersPtr := make([]*models.User, len(*users))
+	for i := range *users {
+		usersPtr[i] = &(*users)[i]
 	}
+	tournament.Users = usersPtr
+	tournament.UserID = (*users)[0].ID
+	db.Save(&tournament)
+}
 
+func generateTournamentMatches(db *gorm.DB, tournamentStepID, tournamentID uint) {
 	tournamentService := services.NewTournamentService(db)
-
-	tournamentService.GenerateMatchesWithPosition(tournamentStep.ID, tournament.ID)
-
+	tournamentService.GenerateMatchesWithPosition(tournamentStepID, tournamentID)
 }
 
 func mediaMigration(db *gorm.DB) (*models.Media, error) {
@@ -141,6 +154,24 @@ func mediaMigration(db *gorm.DB) (*models.Media, error) {
 
 	return &media, nil
 }
+func usersMigration(db *gorm.DB) (*[]models.User, error) {
+	users := make([]models.User, 10)
+
+	for i := 0; i < 10; i++ {
+		user := models.User{
+			Username: fmt.Sprintf("Test%d", i),
+			Password: "$2a$14$FEB9c6k0pEXUZB3txwOFCeurpu/j/wY5StHUykMXkZShMqdZi/Exm",
+			Email:    fmt.Sprintf("Test%d•gmail.com", i),
+			Role:     "user",
+		}
+
+		db.Create(&user)
+		users[i] = user
+	}
+
+	return &users, nil
+}
+
 func matchMigration(db *gorm.DB, tournament *models.Tournament, user *models.User) (*models.Match, error) {
 	err := db.AutoMigrate(&models.Match{})
 
@@ -174,7 +205,32 @@ func matchMigration(db *gorm.DB, tournament *models.Tournament, user *models.Use
 
 	return &match, nil
 }
+func guildMigration(db *gorm.DB, users *[]models.User) (*models.Guild, error) {
+	media := createMediaRecord(db, "gentle_mates.png", "png")
 
+	err := db.AutoMigrate(&models.Guild{})
+	if err != nil {
+		fmt.Println(err.Error())
+		return nil, err
+	}
+
+	guild := models.Guild{
+		Name:        "Gentle mates",
+		Description: "Guild created for gentlemen and squeezos.",
+		MediaModel:  models.MediaModel{Media: &media},
+	}
+
+	db.Create(&guild)
+
+	guild.Players = users
+	guildAdmins := make([]models.User, 1)
+	guildAdmins[0] = (*users)[0]
+	guild.Admins = &guildAdmins
+
+	db.Save(&guild)
+
+	return &guild, nil
+}
 func terminateConnections(defaultDB *gorm.DB, dbName string) error {
 	// Terminate other connections to the database
 	sql := fmt.Sprintf(`
@@ -252,15 +308,27 @@ func MigrateDatabase() error {
 	err = db.AutoMigrate(&models.Media{})
 	err = db.AutoMigrate(&models.Score{})
 	err = db.AutoMigrate(&models.GameScore{})
+	err = db.AutoMigrate(&models.Guild{})
 
 	var user models.User
-
-	db.First(&user, "username = ?", "user")
-	_, err = mediaMigration(db)
 
 	if user.ID == 0 {
 		user = models.User{Username: "user", Password: "$2a$14$FEB9c6k0pEXUZB3txwOFCeurpu/j/wY5StHUykMXkZShMqdZi/Exm", Email: "test@example.com", Role: "admin"}
 		db.Create(&user)
+	}
+	users, errUsers := usersMigration(db)
+
+	if errUsers != nil {
+		log.Fatalf("failed to create users: %v", errUsers)
+
+	}
+
+	db.First(&user, "username = ?", "user")
+	_, err = mediaMigration(db)
+	_, errGuild := guildMigration(db, users)
+
+	if errGuild != nil {
+		log.Fatalf("failed to create guild: %v", errGuild)
 	}
 
 	err = insertGamesFixtures(db)
@@ -270,7 +338,7 @@ func MigrateDatabase() error {
 
 	_, err = tournamentMigration(db, &GamesFixtures[1])
 
-	registrationsTournamentMigrations(db)
+	registrationsTournamentMigrations(db, users)
 
 	if err != nil {
 		fmt.Println(err.Error())
