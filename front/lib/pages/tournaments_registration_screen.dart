@@ -31,13 +31,31 @@ class _RegistrationPageState extends State<RegistrationPage> {
     tournamentService.fetchTournament(widget.tournamentId);
   }
 
+  Map<String, dynamic> _decodeToken(String token) {
+    final parts = token.split('.');
+    if (parts.length != 3) {
+      throw Exception('Invalid token');
+    }
+    final payload = base64Url.normalize(parts[1]);
+    final payloadString = utf8.decode(base64Url.decode(payload));
+    final payloadMap = json.decode(payloadString) as Map<String, dynamic>;
+    return payloadMap;
+  }
+
   Future<void> _registerForTournament() async {
     var t = AppLocalizations.of(context)!;
     String? token = await storage.read(key: 'jwt_token');
     if (token != null) {
-      String? userId = jsonDecode(ascii.decode(
-              base64.decode(base64.normalize(token.split(".")[1]))))['user_id']
-          .toString();
+      final decodedToken = _decodeToken(token);
+      final role = decodedToken['role'];
+
+      if (role == 'invite') {
+        // Rediriger vers la page de connexion si le rôle est invité
+        Navigator.pushReplacementNamed(context, '/login');
+        return;
+      }
+
+      String? userId = decodedToken['user_id'].toString();
 
       final response = await http.post(
         Uri.parse(
