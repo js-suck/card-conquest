@@ -5,6 +5,7 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:front/pages/bracket_screen.dart';
 import 'package:front/routes/routes.dart';
 import 'package:front/service/user_service.dart';
+import 'package:front/widget/bottom_bar.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -24,6 +25,9 @@ Future main() async {
       providers: [
         Provider(create: (_) => UserService()),
         ChangeNotifierProvider(create: (_) => TournamentNotifier()),
+        ChangeNotifierProvider(
+          create: (context) => SelectedPageModel(),
+        ),
         ChangeNotifierProvider(create: (_) => ThemeNotifier(isDarkMode)),
         ChangeNotifierProvider(
             create: (_) => LocaleNotifier(Locale(localeCode))),
@@ -70,8 +74,6 @@ class _MyAppState extends State<MyApp> {
         debugShowCheckedModeBanner: false,
         locale: _locale,
         initialRoute: '/',
-        //initialRoute: '/orga/home',
-        // initialRoute: '/orga/tounament',
         routes: routes,
         onGenerateRoute: (settings) {
           if (settings.name == '/orga/manage/tournament' ||

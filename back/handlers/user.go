@@ -3,7 +3,6 @@ package handlers
 import (
 	"authentication-api/errors"
 	"authentication-api/models"
-	"authentication-api/permissions"
 	"authentication-api/services"
 	"net/http"
 	"strconv"
@@ -42,7 +41,7 @@ func (h *UserHandler) GetUser() gin.HandlerFunc {
 
 		user := models.User{}
 
-		err = h.UserService.Get(&user, uint(idInt), "Media")
+		err = h.UserService.Get(&user, uint(idInt), "Media", "Guilds")
 		if err != nil {
 			c.JSON(http.StatusNotFound, errors.NewNotFoundError("User not found", err).ToGinH())
 			return
@@ -106,14 +105,20 @@ func (h *UserHandler) GetUsers(c *gin.Context) {
 
 	var users []models.User
 	filterParams := parseFilterParams(c)
-	err := h.UserService.GetAll(&users, filterParams, "Media")
+	err := h.UserService.GetAll(&users, filterParams, "Media", "Guilds")
+
+	reaableUsers := make([]models.UserReadFull, len(users))
+	// get readables for users
+	for i, user := range users {
+		reaableUsers[i] = user.ToReadFull()
+	}
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, errors.NewInternalServerError("Error getting users", err).ToGinH())
 		return
 	}
 
-	c.JSON(http.StatusOK, users)
+	c.JSON(http.StatusOK, reaableUsers)
 }
 
 // PostUser godoc
@@ -169,15 +174,6 @@ func (h *UserHandler) PostUser(c *gin.Context) {
 // @Router /users/{id} [delete]
 func (h *UserHandler) DeleteUser(c *gin.Context) {
 
-	permissionsConfigs := c.MustGet("permissions").([]permissions.Permission)
-
-	canAccess := permissions.CanAccess(permissionsConfigs, permissions.PermissionDeleteUser)
-
-	if !canAccess {
-		c.JSON(http.StatusForbidden, errors.NewUnauthorizedError("You do not have permission to access this resource").ToGinH())
-		return
-	}
-
 	idStr := c.Param("id")
 	idInt, err := strconv.Atoi(idStr)
 	if err != nil {
@@ -209,29 +205,26 @@ func (h *UserHandler) DeleteUser(c *gin.Context) {
 // @Param Authorization header string true "Insert your access token" default(Bearer <Add access token here>)
 // @Router /users/{id} [put]
 func (h *UserHandler) UpdateUser(c *gin.Context) {
-	// permissionsConfigs := c.MustGet("permissions").([]permissions.Permission)
-
-	// canAccess := permissions.CanAccess(permissionsConfigs, permissions.PermissionCreateUser)
-	canAccess := true
-
-	if !canAccess {
-		c.JSON(http.StatusForbidden, errors.NewUnauthorizedError("You do not have permission to access this resource").ToGinH())
+	userIDStr := c.Param("id")
+	userID, err := strconv.Atoi(userIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, errors.NewBadRequestError("Invalid ID", err).ToGinH())
 		return
-
 	}
 
-	var user models.User
+	user := models.User{}
+	err = h.UserService.Get(&user, uint(userID), "Media")
+	if err != nil {
+		c.JSON(http.StatusNotFound, errors.NewNotFoundError("User not found", err).ToGinH())
+		return
+	}
 
-	// if err := c.ShouldBindJSON(&user); err != nil {
-	// 	c.JSON(http.StatusBadRequest, errors.NewBadRequestError("Invalid data", err).ToGinH())
-	// 	return
-	// }
+	if err := c.ShouldBindJSON(&user); err != nil {
+		c.JSON(http.StatusBadRequest, errors.NewBadRequestError("Invalid data", err).ToGinH())
+		return
+	}
 
-	// idStr := c.Param("id")
-	h.UserService.Get(&user, 1)
-
-
-	err := h.UserService.Update(&user)
+	err = h.UserService.Update(&user)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, errors.NewInternalServerError("Error updating user", err).ToGinH())
 		return

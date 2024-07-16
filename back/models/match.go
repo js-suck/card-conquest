@@ -7,19 +7,19 @@ import (
 type Match struct {
 	BaseModel        ``
 	TournamentID     uint
-	Tournament       Tournament `gorm:"foreignKey:TournamentID"`
+	Tournament       Tournament `gorm:"foreignKey:TournamentID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 	PlayerOneID      uint       `gorm:"column:player_one_id"`
-	PlayerOne        User       `gorm:"foreignKey:PlayerOneID"`
+	PlayerOne        User       `gorm:"foreignKey:PlayerOneID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 	PlayerTwoID      *uint      `gorm:"column:player_two_id"`
-	PlayerTwo        User       `gorm:"foreignKey:PlayerTwoID"`
+	PlayerTwo        User       `gorm:"foreignKey:PlayerTwoID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 	StartTime        time.Time
 	EndTime          time.Time
 	Status           string `gorm:"default:created" validate:"required,eq=started|eq=finished|eq=created"`
 	WinnerID         *uint
-	Winner           User    `gorm:"foreignKey:WinnerID"`
-	Scores           []Score `gorm:"foreignKey:MatchID"`
+	Winner           User    `gorm:"foreignKey:WinnerID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+	Scores           []Score `gorm:"foreignKey:MatchID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 	TournamentStepID uint
-	TournamentStep   TournamentStep `gorm:"foreignKey:TournamentStepID"`
+	TournamentStep   TournamentStep `gorm:"foreignKey:TournamentStepID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 	MatchPosition    int            `gorm:"default:0"`
 	Location         string
 }

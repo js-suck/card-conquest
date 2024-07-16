@@ -2,7 +2,7 @@ package models
 
 type Tag struct {
 	BaseModel
-	Label       string        `json:"name" validate:"required"`
+	Label       string        `json:"label" validate:"required"`
 	Tournaments []*Tournament `gorm:"many2many:tag_tournaments;"`
 	Games       []*Game       `gorm:"many2many:tag_games;"`
 }

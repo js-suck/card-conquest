@@ -6,14 +6,13 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:front/service/user_service.dart';
-import 'package:front/utils/custom_future_builder.dart';
 import 'package:front/widget/app_bar.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 
 class ProfilePage extends StatefulWidget {
-  const ProfilePage({Key? key}) : super(key: key);
+  const ProfilePage({super.key});
 
   @override
   _ProfilePageState createState() => _ProfilePageState();
@@ -27,21 +26,41 @@ class _ProfilePageState extends State<ProfilePage> {
   XFile? _image;
   final ImagePicker _picker = ImagePicker();
   late UserService userService;
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
     userService = UserService();
-    userService.fetchUser(userId);
+    _initializeUserData();
   }
 
-  getUserId() async {
+  Future<void> getUserId() async {
     String? token = await storage.read(key: 'jwt_token');
     if (token != null) {
       Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
-      userId = decodedToken['user_id'];
+      setState(() {
+        userId = decodedToken['user_id'];
+      });
     }
   }
+
+  Future<void> _initializeUserData() async {
+    setState(() {
+      _isLoading = true;
+    });
+    await getUserId();
+    final user = await userService.fetchUser(userId, forceRefresh: true);
+    setState(() {
+      userData = {
+        'username': user.username,
+        'email': user.email,
+      };
+      _isLoading = false;
+    });
+    print('User data fetched and initialized.');
+  }
+
 
   Future<void> _pickImage() async {
     final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
@@ -81,11 +100,7 @@ class _ProfilePageState extends State<ProfilePage> {
           'Content-Type': 'application/json',
           'Authorization': '$token',
         },
-        body: json.encode({
-          'email': userData['email'],
-          'username': userData['username'],
-          // Add other fields as necessary
-        }),
+        body: json.encode(userData),
       );
       if (response.statusCode == 200) {
         _showSuccess('Profile updated successfully.');
@@ -122,76 +137,75 @@ class _ProfilePageState extends State<ProfilePage> {
         isPage: true,
         isAvatar: false,
       ),
-      body: CustomFutureBuilder(
-          future: userService.fetchUser(userId),
-          onLoaded: (user) {
-            return SingleChildScrollView(
-              child: Center(
-                child: Container(
-                  width: 320,
-                  padding: const EdgeInsets.all(16.0),
-                  child: Form(
-                    key: _formKey,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        if (_image != null) Image.file(File(_image!.path)),
-                        ElevatedButton(
-                          onPressed: _pickImage,
-                          child: Text(t.profileChangeProfilePicture),
-                        ),
-                        Text(
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
+        child: Center(
+          child: Container(
+            width: 320,
+            padding: const EdgeInsets.all(16.0),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (_image != null) Image.file(File(_image!.path)),
+                  ElevatedButton(
+                    onPressed: _pickImage,
+                    child: Text(t.profileChangeProfilePicture),
+                  ),
+                  Text(
                           t.profileUpdateProfileTitle,
-                          style: const TextStyle(
+                    style: const TextStyle(
                               fontSize: 24, fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 20),
                         TextFormField(
-                          initialValue: user.username,
-                          decoration: InputDecoration(
-                            labelText: t.username,
-                            fillColor: Colors.grey[100],
-                            filled: true,
-                            contentPadding: const EdgeInsets.symmetric(
-                                vertical: 10.0, horizontal: 10.0),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10.0),
-                              borderSide: BorderSide.none,
-                            ),
-                          ),
-                          onSaved: (value) => user.username = value!,
-                        ),
-                        const SizedBox(height: 20),
-                        TextFormField(
-                          initialValue: user.email,
-                          decoration: InputDecoration(
-                            labelText: t.email,
-                            fillColor: Colors.grey[100],
-                            filled: true,
-                            contentPadding: const EdgeInsets.symmetric(
-                                vertical: 10.0, horizontal: 10.0),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10.0),
-                              borderSide: BorderSide.none,
-                            ),
-                          ),
-                          onSaved: (value) => user.email = value!,
-                        ),
-                        const SizedBox(height: 20),
-                        ElevatedButton(
-                          onPressed: _updateUserData,
-                          style: ElevatedButton.styleFrom(
-                            foregroundColor: Colors.white,
-                            backgroundColor: const Color(0xFFFF933D),
-                            minimumSize: const Size(double.infinity, 45),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          ),
-                          child: Text(
+                          initialValue: userData['username'],
+                    decoration: InputDecoration(
+                      labelText: t.username,
+                      fillColor: Colors.grey[100],
+                      filled: true,
+                      contentPadding: const EdgeInsets.symmetric(
+                          vertical: 10.0, horizontal: 10.0),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10.0),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                    onSaved: (value) => userData['username'] = value!,
+                  ),
+                  const SizedBox(height: 20),
+                  TextFormField(
+                    initialValue: userData['email'],
+                    decoration: InputDecoration(
+                      labelText: t.email,
+                      fillColor: Colors.grey[100],
+                      filled: true,
+                      contentPadding: const EdgeInsets.symmetric(
+                          vertical: 10.0, horizontal: 10.0),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10.0),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                    onSaved: (value) => userData['email'] = value!,
+                  ),
+                  const SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: _updateUserData,
+                    style: ElevatedButton.styleFrom(
+                      foregroundColor: Colors.white,
+                      backgroundColor: const Color(0xFFFF933D),
+                      minimumSize: const Size(double.infinity, 45),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    child: Text(
                             t.profileUpdateProfile,
-                            style: const TextStyle(
+                      style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold),
@@ -202,8 +216,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   ),
                 ),
               ),
-            );
-          }),
+            ),
     );
   }
 }

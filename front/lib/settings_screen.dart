@@ -4,6 +4,7 @@ import 'package:front/utils/shared_pref_cached_data.dart';
 import 'package:front/widget/app_bar.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import 'main.dart';
 import 'notifier/theme_notifier.dart';
@@ -33,6 +34,8 @@ class SettingsPage extends StatelessWidget {
                 onPressed: () {
                   var mySharedPreferences = MySharedPreferences();
                   mySharedPreferences.clearData();
+                  const storage = FlutterSecureStorage();
+                  storage.deleteAll();
                   Navigator.of(context)
                       .pushNamed('/'); // Retour à la page de connexion
                 },

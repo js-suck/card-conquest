@@ -69,7 +69,7 @@ class _HomePageState extends State<HomeUserPage> {
   Future<void> _onTournamentPageTapped() async {
     final selectedPageModel =
         Provider.of<SelectedPageModel>(context, listen: false);
-    selectedPageModel.changePage(const TournamentsPage(), 1);
+    selectedPageModel.changePage(const TournamentsPage(searchQuery: null,), 1);
   }
 
   Future<void> _onGamePageTapped() async {

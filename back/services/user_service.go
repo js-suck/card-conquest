@@ -3,6 +3,7 @@ package services
 import (
 	"authentication-api/errors"
 	"authentication-api/models"
+	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 	"strconv"
 )
@@ -25,8 +26,8 @@ func NewUserService(db *gorm.DB) *UserService {
 
 func (s UserService) GetUserStats(userId uint) (models.UserStats, error) {
 	userStats := models.UserStats{}
-	matchService := NewMatchService(s.db)
-	gameService := NewGameService(s.db)
+	matchService := NewMatchService(s.Db)
+	gameService := NewGameService(s.Db)
 	totalMatches, err := matchService.GetTotalMatchByUserID(userId)
 
 	if err != nil {
@@ -62,7 +63,7 @@ func (s UserService) GetUserStats(userId uint) (models.UserStats, error) {
 	userStats.TotalScore = totalScore
 
 	user := models.User{}
-	errUser := s.db.Find(&user, userId).Error
+	errUser := s.Db.Find(&user, userId).Error
 
 	if errUser != nil {
 		return userStats, errors.NewInternalServerError("Failed to get user", err)
@@ -87,7 +88,7 @@ func (s UserService) GetUserStats(userId uint) (models.UserStats, error) {
 
 func (s UserService) GetRanks() ([]models.UserRanking, errors.IError) {
 	var users []models.User
-	err := s.db.Order("global_score desc").Find(&users).Error
+	err := s.Db.Order("global_score desc").Find(&users).Error
 	if err != nil {
 		return nil, errors.NewInternalServerError("Failed to get ranks", err)
 	}
@@ -98,14 +99,14 @@ func (s UserService) GetRanks() ([]models.UserRanking, errors.IError) {
 
 func (s UserService) GetRankByUserID(id uint) (int, errors.IError) {
 	var user models.User
-	err := s.db.Find(&models.User{}, id).Select("global_score").Scan(&user).Error
+	err := s.Db.Find(&models.User{}, id).Select("global_score").Scan(&user).Error
 
 	if err != nil {
 		return 0, errors.NewInternalServerError("Failed to get rank", err)
 	}
 
 	var count int64
-	err = s.db.Model(&models.User{}).Where("global_score > ?", user.GlobalScore).Count(&count).Error
+	err = s.Db.Model(&models.User{}).Where("global_score > ?", user.GlobalScore).Count(&count).Error
 
 	if err != nil {
 		return 0, errors.NewInternalServerError("Failed to get rank", err)
@@ -115,12 +116,23 @@ func (s UserService) GetRankByUserID(id uint) (int, errors.IError) {
 
 }
 
+func HashPassword(password string) (string, error) {
+	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
+	return string(bytes), err
+}
+
+func CheckPasswordHash(password, hash string) bool {
+	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
+	return err == nil
+}
+
 func (s UserService) mapUsersToUserRankings(users []models.User) []models.UserRanking {
 	var userRankings []models.UserRanking
 	for i, user := range users {
 		userRankings = append(userRankings, models.UserRanking{
-			Rank: i + 1,
-			User: user.ToRead(),
+			Rank:  i + 1,
+			User:  user.ToRead(),
+			Score: user.GlobalScore,
 		})
 	}
 	return userRankings
@@ -128,7 +140,7 @@ func (s UserService) mapUsersToUserRankings(users []models.User) []models.UserRa
 
 func (s UserService) GetTotalScoreByUserID(id uint) (int, errors.IError) {
 	var totalScore int
-	err := s.db.Find(&models.User{}, id).Select("global_score").Scan(&totalScore).Error
+	err := s.Db.Find(&models.User{}, id).Select("global_score").Scan(&totalScore).Error
 
 	if err != nil {
 		return 0, errors.NewInternalServerError("Failed to get total score", err)
@@ -138,7 +150,7 @@ func (s UserService) GetTotalScoreByUserID(id uint) (int, errors.IError) {
 
 func (s UserService) AddFCMToken(userId uint, token string) error {
 	user := models.User{}
-	err := s.db.Find(&user, userId).Error
+	err := s.Db.Find(&user, userId).Error
 
 	if err != nil {
 		return errors.NewInternalServerError("Failed to find user", err)
@@ -146,11 +158,22 @@ func (s UserService) AddFCMToken(userId uint, token string) error {
 
 	user.FCMToken = token
 
-	err = s.db.Save(&user).Error
+	err = s.Db.Save(&user).Error
 
 	if err != nil {
 		return errors.NewInternalServerError("Failed to save user", err)
 	}
 
 	return nil
+}
+
+func (s UserService) FindByEmail(email string) (*models.User, error) {
+	user := models.User{}
+	err := s.Db.Where("email = ?", email).First(&user).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &user, nil
 }

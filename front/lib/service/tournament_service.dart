@@ -68,7 +68,7 @@ class TournamentService {
     String? token = await storage.read(key: 'jwt_token');
     List<Tournament> upcomingTournaments = [];
     final response = await http.get(
-      Uri.parse('${dotenv.env['API_URL']}tournaments/?UserId=$userId'),
+      Uri.parse('${dotenv.env['API_URL']}tournaments/?UserID=$userId'),
       headers: {
         'Authorization': '$token',
       },
@@ -91,7 +91,7 @@ class TournamentService {
     String? token = await storage.read(key: 'jwt_token');
     List<Tournament> pastTournaments = [];
     final response = await http.get(
-      Uri.parse('${dotenv.env['API_URL']}tournaments/?UserId=$userId'),
+      Uri.parse('${dotenv.env['API_URL']}tournaments/?UserID=$userId'),
       headers: {
         'Authorization': '$token',
       },
@@ -109,4 +109,22 @@ class TournamentService {
     }
     return pastTournaments;
   }
+
+  Future<List<Tournament>> fetchTournamentsByGameId(int gameId) async {
+    String? token = await storage.read(key: 'jwt_token');
+
+    final response = await http.get(
+      Uri.parse('${dotenv.env['API_URL']}tournaments?GameID=$gameId&Sort=start_date'),
+      headers: {
+        HttpHeaders.authorizationHeader: '$token',
+      },
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to load tournaments');
+    }
+    final List<dynamic> responseJson = jsonDecode(response.body);
+    return responseJson.map((json) => Tournament.fromJson(json)).toList();
+  }
+
 }
