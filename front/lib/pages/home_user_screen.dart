@@ -15,6 +15,7 @@ import 'package:front/widget/games/games_list.dart';
 import 'package:front/widget/tournaments/all_tournaments_list.dart';
 import 'package:front/widget/tournaments/recent_tournaments_list.dart';
 import 'package:provider/provider.dart';
+import 'package:front/pages/game_detail_screen.dart';
 
 class HomeUserPage extends StatefulWidget {
   const HomeUserPage({Key? key}) : super(key: key);
@@ -79,6 +80,16 @@ class _HomePageState extends State<HomeUserPage> {
     selectedPageModel.changePage(const GamesPage(), 3);
   }
 
+  Future<void> _onGameTapped(int id) async {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => GameDetailPage(gameId: id),
+      ),
+    );
+  }
+
+
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context)!;
@@ -121,7 +132,7 @@ class _HomePageState extends State<HomeUserPage> {
             CustomFutureBuilder(
                 future: gameService.fetchGames(),
                 onLoaded: (games) {
-                  return GamesList(games: games.take(4).toList());
+                  return GamesList(games: games.take(4).toList(), onGameTapped: _onGameTapped);
                 }),
           ],
         ),
