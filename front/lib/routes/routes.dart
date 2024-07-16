@@ -19,6 +19,7 @@ import '../pages/chat_screen.dart';
 import '../pages/create_guild_screen.dart';
 import '../pages/guild_list_screen.dart';
 import '../pages/guild_screen.dart';
+import 'package:front/admin/admin_home_screen.dart';
 
 var routes = <String, WidgetBuilder>{
   '/': (context) => const HomePage(),
@@ -28,7 +29,8 @@ var routes = <String, WidgetBuilder>{
   '/profile': (context) => const ProfilePage(),
   '/settings': (context) => const SettingsPage(),
   '/games': (context) => const GamesPage(),
-  '/tournamentUpdatesDemo': (context) =>  TournamentUpdateScreen(tournamentID: 1),
+  '/tournamentUpdatesDemo': (context) =>
+      TournamentUpdateScreen(tournamentID: 1),
   '/tournaments/map': (context) => TournamentMap(),
   '/bracket': (context) => const BracketPage(tournamentID: 1),
   '/match': (context) => MatchPage(),
@@ -38,7 +40,16 @@ var routes = <String, WidgetBuilder>{
   '/guild': (context) => const GuildView(),
   '/guilds': (context) => const GuildListScreen(),
   '/guild/create': (context) => const CreateGuildPage(),
-  '/chat/:guildId': (context) => const ChatClientScreen(guildId: 1, username: 'laila', userId: 1, mediaUrl: 'https://www.placecage.com/200/300'),
+  '/chat/:guildId': (context) => const ChatClientScreen(
+      guildId: 1,
+      username: 'laila',
+      userId: 1,
+      mediaUrl: 'https://www.placecage.com/200/300'),
   '/home_user': (context) => const HomeUserPage(),
-  '/chat': (context) => const ChatClientScreen(guildId: 1, username: 'laila', userId: 1, mediaUrl: 'https://www.placecage.com/200/300'),
+  '/admin': (context) => const AdminHomeScreen(),
+  '/chat': (context) => const ChatClientScreen(
+      guildId: 1,
+      username: 'laila',
+      userId: 1,
+      mediaUrl: 'https://www.placecage.com/200/300'),
 };

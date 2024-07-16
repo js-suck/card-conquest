@@ -2,15 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:front/extension/theme_extension.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'auth/login_screen.dart';
 import 'auth/signup_screen.dart';
 
 
 class HomePage extends StatelessWidget {
   final bool showVerificationDialog;
+  final storage = const FlutterSecureStorage();
 
-  const HomePage({Key? key, this.showVerificationDialog = false})
-      : super(key: key);
+  const HomePage({Key? key, this.showVerificationDialog = false}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -91,9 +94,85 @@ class HomePage extends StatelessWidget {
               ),
             ],
           ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Image.asset('assets/images/logo.png', width: 200),
+            const SizedBox(height: 10),
+            const Text('Bienvenue sur notre application'),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => SignUpPage()),
+              ),
+              child: const Text('Inscription'),
+            ),
+            const SizedBox(height: 10),
+            ElevatedButton(
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => LoginPage()),
+              ),
+              child: const Text('Connexion'),
+            ),
+            const SizedBox(height: 10),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pushNamed(context, '/main');
+              },
+              child: const Text('Continuer en tant qu\'Invité'),
+            ),
+            const SizedBox(height: 10),
+            ElevatedButton(
+              onPressed: () {
+                _loginAsAdmin(context);
+              },
+              child: const Text('Continuer en tant qu\'Admin'),
+            ),
+          ],
         ),
       ),
     );
+  }
+
+  Future<void> _loginAsAdmin(BuildContext context) async {
+    try {
+      final response = await http.post(
+        Uri.parse('http://localhost:8080/api/v1/login'),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: jsonEncode(<String, String>{
+          'username': 'user',
+          'password': 'password',
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = jsonDecode(response.body);
+        await storage.write(key: 'jwt_token', value: data['token']);
+        Navigator.pushNamed(context, '/admin');
+      } else {
+        // Handle error
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Failed to login as admin.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e, stackTrace) {
+      print('Error: $e');
+      print('StackTrace: $stackTrace');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('An error occurred while trying to login as admin.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   void _showVerificationDialog(BuildContext context) {
@@ -102,13 +181,13 @@ class HomePage extends StatelessWidget {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text(t.verifyEmail),
-          content: Text(t.verifyEmailMessage),
+          title: const Text(t.verifyEmail),
+          content: const Text(t.verifyEmailMessage),
           actions: <Widget>[
             TextButton(
-              child:  Text(t.ok),
+              child:  const Text(t.ok),
               onPressed: () {
-                Navigator.of(context).pop(); // Close the dialog
+                Navigator.of(context).pop();
               },
             ),
           ],
