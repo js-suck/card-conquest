@@ -50,10 +50,16 @@ func OwnerMiddleware(resource string, model models.IModel) gin.HandlerFunc {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "invalid resource ID"})
 			return
 		}
+		newModel := model.New()
 
-		switch m := model.(type) {
-		case models.User:
-			if err := db.DB.First(&m, id).Error; err != nil {
+		switch m := newModel.(type) {
+		case *models.User:
+			if err := db.DB.First(m, id).Error; err != nil {
+				c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "resource not found"})
+				return
+			}
+		default:
+			if err := db.DB.First(m, id).Error; err != nil {
 				c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "resource not found"})
 				return
 			}
@@ -61,9 +67,7 @@ func OwnerMiddleware(resource string, model models.IModel) gin.HandlerFunc {
 				c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "forbidden"})
 				return
 			}
-		default:
-			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "unsupported resource type"})
-			return
+			c.Next()
 		}
 
 		c.Next()

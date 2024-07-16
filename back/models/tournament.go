@@ -63,6 +63,10 @@ type Tournament struct {
 	Subscribers []User           `gorm:"many2many:tournament_subscribers;"`
 }
 
+func (t Tournament) New() IModel {
+	return &Tournament{}
+}
+
 type TournamentRead struct {
 	ID                uint                 `json:"id"`
 	Name              string               `json:"name"`
@@ -172,6 +176,6 @@ func (t Tournament) ToRead() TournamentRead {
 
 }
 
-func (m Tournament) IsOwner(userID uint) bool {
-	return true
+func (t Tournament) IsOwner(userID uint) bool {
+	return t.UserID == userID
 }

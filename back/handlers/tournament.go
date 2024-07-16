@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"authentication-api/errors"
+	"authentication-api/middlewares"
 	"authentication-api/models"
 	"authentication-api/services"
 	"github.com/gin-gonic/gin"
@@ -83,15 +84,13 @@ func (h *TournamentHandler) parseFilterParams(c *gin.Context) services.FilterPar
 // @Param Authorization header string true "Insert your access token" default(Bearer <Add access token here>)
 // @Router /tournaments [post]
 func (h *TournamentHandler) CreateTournament(c *gin.Context) {
-	file, err := c.FormFile("image")
-	if err != nil {
-		if errors.IsFileNotFound(err) {
-			file = nil
-		} else {
-			c.JSON(http.StatusBadRequest, errors.NewBadRequestError("Something went wrong with the file", err).ToGinH())
-			return
-		}
+
+	user, errUserCtx := middlewares.GetCurrentUserFromContext(c)
+	if errUserCtx != nil {
+		c.JSON(http.StatusForbidden, errors.NewErrorResponse(403, "Forbidden").ToGinH())
+		return
 	}
+
 	tagsIDsStr := c.PostFormArray("tagsIDs[]")
 	var tagsIDs []uint
 
@@ -117,7 +116,7 @@ func (h *TournamentHandler) CreateTournament(c *gin.Context) {
 		StartDate:   payload.StartDate,
 		EndDate:     payload.EndDate,
 		Location:    payload.Location,
-		UserID:      payload.UserID,
+		UserID:      user.ID,
 		GameID:      payload.GameID,
 		Rounds:      payload.Rounds,
 		Longitude:   payload.Longitude,
@@ -125,18 +124,28 @@ func (h *TournamentHandler) CreateTournament(c *gin.Context) {
 		MaxPlayers:  payload.MaxPlayers,
 	}
 
-	if file != nil {
-		// Upload de l'image
-		mediaModel, _, errUpload := h.FileService.UploadMedia(file)
-		if errUpload != nil {
-			c.JSON(http.StatusBadRequest, errors.NewBadRequestError("Invalid request", errUpload).ToGinH())
-			return
-		}
-		tournament.MediaModel.Media = mediaModel
-
-	}
-
 	tags, err := h.TounamentService.GetTagsByIDs(tagsIDs)
+	if c.Request.MultipartForm != nil && len(c.Request.MultipartForm.File["image"]) > 0 {
+		file, err := c.FormFile("image")
+		if err != nil {
+			if errors.IsFileNotFound(err) {
+				file = nil
+			} else {
+				c.JSON(http.StatusBadRequest, errors.NewBadRequestError("Something went wrong with the file", err).ToGinH())
+				return
+			}
+		}
+		if file != nil {
+			// Upload de l'image
+			mediaModel, _, errUpload := h.FileService.UploadMedia(file)
+			if errUpload != nil {
+				c.JSON(http.StatusBadRequest, errors.NewBadRequestError("Invalid request", errUpload).ToGinH())
+				return
+			}
+			tournament.MediaModel.Media = mediaModel
+
+		}
+	}
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, errors.NewErrorResponse(500, err.Error()).ToGinH())
 		return

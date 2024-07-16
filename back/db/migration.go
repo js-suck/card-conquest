@@ -262,7 +262,6 @@ func usersMigration(db *gorm.DB) (*[]models.User, error) {
 		users[i] = user
 	}
 
-	// Create an user
 	user := models.User{
 		Username: "user",
 		Email:    faker.Email(),
@@ -272,6 +271,42 @@ func usersMigration(db *gorm.DB) (*[]models.User, error) {
 
 	if err := db.Create(&user).Error; err != nil {
 		return nil, err
+	}
+
+	user2 := models.User{
+		Username: "user2",
+		Email:    faker.Email(),
+		Password: "$2a$14$FEB9c6k0pEXUZB3txwOFCeurpu/j/wY5StHUykMXkZShMqdZi/Exm",
+		Role:     "user",
+	}
+
+	if err := db.Create(&user2).Error; err != nil {
+		return nil, err
+
+	}
+
+	organizer := models.User{
+		Username: "organizer",
+		Email:    faker.Email(),
+		Password: "$2a$14$FEB9c6k0pEXUZB3txwOFCeurpu/j/wY5StHUykMXkZShMqdZi/Exm",
+		Role:     "organizer",
+	}
+
+	if err := db.Create(&organizer).Error; err != nil {
+		return nil, err
+
+	}
+
+	organizer2 := models.User{
+		Username: "organizer2",
+		Email:    faker.Email(),
+		Password: "$2a$14$FEB9c6k0pEXUZB3txwOFCeurpu/j/wY5StHUykMXkZShMqdZi/Exm",
+		Role:     "organizer",
+	}
+
+	if err := db.Create(&organizer2).Error; err != nil {
+		return nil, err
+
 	}
 
 	return &users, nil

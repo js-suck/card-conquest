@@ -43,6 +43,10 @@ func (m Match) GetID() uint {
 	return m.ID
 }
 
+func (m Match) New() IModel {
+	return Match{}
+}
+
 func (m Match) GetTableName() string {
 	return "matches"
 }
