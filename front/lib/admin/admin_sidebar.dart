@@ -18,12 +18,12 @@ class AdminSidebar extends StatelessWidget {
       onDestinationSelected: onItemSelected,
       labelType: NavigationRailLabelType.all,
       destinations: [
-        NavigationRailDestination(
+        const NavigationRailDestination(
           icon: Icon(Icons.dashboard),
           selectedIcon: Icon(Icons.dashboard),
           label: Text('Dashboard'),
         ),
-        NavigationRailDestination(
+        const NavigationRailDestination(
           icon: Icon(Icons.person),
           selectedIcon: Icon(Icons.person),
           label: Text('Users'),
@@ -31,14 +31,14 @@ class AdminSidebar extends StatelessWidget {
         NavigationRailDestination(
           icon: Icon(MdiIcons.swordCross),
           selectedIcon: Icon(MdiIcons.swordCross),
-          label: Text('Tournaments'),
+          label: const Text('Tournaments'),
         ),
-        NavigationRailDestination(
+        const NavigationRailDestination(
           icon: Icon(Icons.videogame_asset_rounded),
           selectedIcon: Icon(Icons.videogame_asset_rounded),
           label: Text('Games'),
         ),
-        NavigationRailDestination(
+        const NavigationRailDestination(
           icon: Icon(Icons.tag),
           selectedIcon: Icon(Icons.tag),
           label: Text('Tags'),

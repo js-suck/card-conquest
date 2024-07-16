@@ -1,7 +1,9 @@
-import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'dart:convert';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:http/http.dart' as http;
 
 class AdminDashboardScreen extends StatefulWidget {
   const AdminDashboardScreen({Key? key}) : super(key: key);
@@ -63,7 +65,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
 
   Future<List<dynamic>> _fetchList(String endpoint, String token) async {
     final response = await http.get(
-      Uri.parse('http://localhost:8080/api/v1/$endpoint'),
+      Uri.parse('${dotenv.env['API_URL']}$endpoint'),
       headers: {'Authorization': '$token'},
     );
 
@@ -86,17 +88,18 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : GridView.count(
-          crossAxisCount: 3,
-          padding: const EdgeInsets.all(16.0),
-          children: [
-            DashboardCard(title: 'Users', count: usersCount.toString()),
-            DashboardCard(title: 'Tournaments', count: tournamentsCount.toString()),
-            DashboardCard(title: 'Guilds', count: guildsCount.toString()),
-            DashboardCard(title: 'Games', count: gamesCount.toString()),
-            DashboardCard(title: 'Tags', count: tagsCount.toString()),
-            DashboardCard(title: 'Matches', count: matchesCount.toString()),
-        ],
-      ),
+              crossAxisCount: 3,
+              padding: const EdgeInsets.all(16.0),
+              children: [
+                DashboardCard(title: 'Users', count: usersCount.toString()),
+                DashboardCard(
+                    title: 'Tournaments', count: tournamentsCount.toString()),
+                DashboardCard(title: 'Guilds', count: guildsCount.toString()),
+                DashboardCard(title: 'Games', count: gamesCount.toString()),
+                DashboardCard(title: 'Tags', count: tagsCount.toString()),
+                DashboardCard(title: 'Matches', count: matchesCount.toString()),
+              ],
+            ),
     );
   }
 }

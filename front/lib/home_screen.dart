@@ -4,7 +4,12 @@ import 'package:front/extension/theme_extension.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:http/http.dart' as http;
+
 import 'auth/login_screen.dart';
 import 'auth/signup_screen.dart';
 
@@ -13,7 +18,8 @@ class HomePage extends StatelessWidget {
   final bool showVerificationDialog;
   final storage = const FlutterSecureStorage();
 
-  const HomePage({Key? key, this.showVerificationDialog = false}) : super(key: key);
+  const HomePage({Key? key, this.showVerificationDialog = false})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -140,7 +146,7 @@ class HomePage extends StatelessWidget {
   Future<void> _loginAsAdmin(BuildContext context) async {
     try {
       final response = await http.post(
-        Uri.parse('http://localhost:8080/api/v1/login'),
+        Uri.parse('${dotenv.env['API_URL']}login'),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
         },
@@ -182,7 +188,8 @@ class HomePage extends StatelessWidget {
       builder: (context) {
         return AlertDialog(
           title: const Text(t.verifyEmail),
-          content: const Text(t.verifyEmailMessage),
+          content: const Text(
+              t.verifyEmailMessage),
           actions: <Widget>[
             TextButton(
               child:  const Text(t.ok),

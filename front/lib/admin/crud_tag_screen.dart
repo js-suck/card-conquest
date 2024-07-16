@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:front/models/tag.dart';
 import 'package:front/services/api_service.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class CrudTagScreen extends StatefulWidget {
   const CrudTagScreen({Key? key}) : super(key: key);
@@ -25,7 +26,7 @@ class _CrudTagScreenState extends State<CrudTagScreen> {
   Future<void> _initialize() async {
     String? token = await _storage.read(key: 'jwt_token');
     if (token != null) {
-      apiService = ApiService('http://localhost:8080/api/v1', token);
+      apiService = ApiService('${dotenv.env['API_URL']}', token);
       await _fetchTags();
     } else {
       setState(() {
@@ -153,31 +154,34 @@ class _CrudTagScreenState extends State<CrudTagScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('CRUD Tag'), centerTitle: true, automaticallyImplyLeading: false),
+      appBar: AppBar(
+          title: const Text('CRUD Tag'),
+          centerTitle: true,
+          automaticallyImplyLeading: false),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : ListView.builder(
-        itemCount: tags.length,
-        itemBuilder: (context, index) {
-          final tag = tags[index];
-          return ListTile(
-            title: Text(tag.label ?? ''),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.edit),
-                  onPressed: () => _showTagDialog(tag),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.delete),
-                  onPressed: () => _deleteTag(tag.id!),
-                ),
-              ],
+              itemCount: tags.length,
+              itemBuilder: (context, index) {
+                final tag = tags[index];
+                return ListTile(
+                  title: Text(tag.label ?? ''),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.edit),
+                        onPressed: () => _showTagDialog(tag),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.delete),
+                        onPressed: () => _deleteTag(tag.id!),
+                      ),
+                    ],
+                  ),
+                );
+              },
             ),
-          );
-        },
-      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showTagDialog(null),
         child: const Icon(Icons.add),
