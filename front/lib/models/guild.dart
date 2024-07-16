@@ -8,6 +8,8 @@ class Guild {
   final String? description;
   final Media? media;
   List<Map<String,dynamic>>? players;
+  List<Map<String,dynamic>>? admins;
+
 
   Guild({
     required this.id,
@@ -15,6 +17,7 @@ class Guild {
     required this.description,
     this.media,
     this.players,
+    this.admins,
   });
 
   factory Guild.fromJson(Map<String, dynamic> json) {
@@ -27,6 +30,9 @@ class Guild {
       media : json['media'] != null ? Media.fromJson(json['media']['media']) : null,
       players: json['players'] != null && json['players'] is List
           ? List<Map<String,dynamic>>.from(json['players'].map((item) => item))
+          : null,
+      admins: json['admins'] != null && json['admins'] is List
+          ? List<Map<String,dynamic>>.from(json['admins'].map((item) => item))
           : null,
     );
   }

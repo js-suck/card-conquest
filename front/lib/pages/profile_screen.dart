@@ -88,6 +88,8 @@ class _ProfilePageState extends State<ProfilePage> {
       ));
 
     var response = await request.send();
+    print(response.statusCode);
+    print("Image uploaded successfully.");
     if (response.statusCode == 200) {
       _showSuccess('Image uploaded successfully.');
     } else {

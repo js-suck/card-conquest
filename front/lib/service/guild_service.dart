@@ -115,6 +115,24 @@ class GuildService {
     }
   }
 
+  Future<void> updateGuild(id, String name, String description ) async {
+    String? token = await storage.read(key: 'jwt_token');
+    final response = await http.put(
+      Uri.parse('${dotenv.env['API_URL']}guilds/$id'),
+      headers: {
+        HttpHeaders.authorizationHeader
+            : '$token',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({
+        'name': name,
+        'description': description,
+      }),
+    );
 
 
+    if (response.statusCode != 200) {
+      throw Exception('Failed to update guild');
+    }
+  }
 }
