@@ -22,4 +22,14 @@ class Media {
       fileExtension: json['file_extension'],
     );
   }
+
+  toJson() {
+    return {
+      'id': id,
+      'created_at': createdAt,
+      'updated_at': updatedAt,
+      'file_name': fileName,
+      'file_extension': fileExtension,
+    };
+  }
 }

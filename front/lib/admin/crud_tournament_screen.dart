@@ -1,7 +1,14 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:front/models/game.dart';
+import 'package:front/models/match/user.dart';
 import 'package:front/services/api_service.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
+import 'package:path/path.dart' as path;
+import 'package:http_parser/http_parser.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:front/models/match/tournament.dart';
 
 import '../models/game.dart';
 import '../models/match/tournament.dart';
@@ -19,6 +26,7 @@ class _CrudTournamentScreenState extends State<CrudTournamentScreen> {
   late ApiService apiService;
   List<Tournament> tournaments = [];
   bool _isLoading = true;
+  File? _imageFile;
 
   @override
   void initState() {
@@ -46,10 +54,12 @@ class _CrudTournamentScreenState extends State<CrudTournamentScreen> {
             data.map<Tournament>((json) => Tournament.fromJson(json)).toList();
         _isLoading = false;
       });
+      print('Tournaments fetched: ${tournaments.length}'); // Debugging
     } catch (e) {
       setState(() {
         _isLoading = false;
       });
+      print('Error fetching tournaments: $e'); // Debugging
     }
   }
 
@@ -62,18 +72,26 @@ class _CrudTournamentScreenState extends State<CrudTournamentScreen> {
         ..headers['Authorization'] = '${apiService.token}'
         ..fields['name'] = tournament.name
         ..fields['description'] = tournament.description!
-        ..fields['start_date'] = tournament.startDate
-        ..fields['end_date'] = tournament.endDate
+        ..fields['start_date'] = tournament.startDate.toIso8601String()
+        ..fields['end_date'] = tournament.endDate.toIso8601String()
         ..fields['organizer_id'] = tournament.organizer.id.toString()
         ..fields['game_id'] = tournament.game.id.toString()
-        ..fields['rounds'] = tournament.rounds.toString()
         ..fields['tagsIDs[]'] = tournament.tags.join(',')
         ..fields['location'] = tournament.location!
         ..fields['max_players'] = tournament.maxPlayers.toString();
 
+      if (_imageFile != null) {
+        request.files.add(await http.MultipartFile.fromPath(
+          'image',
+          _imageFile!.path,
+          contentType:
+              MediaType('image', path.extension(_imageFile!.path).substring(1)),
+        ));
+      }
+
       final response = await request.send();
       if (response.statusCode == 200) {
-        _fetchTournaments();
+        await _fetchTournaments();
       } else {
         print(
             'Failed to create tournament. Status code: ${response.statusCode}');
@@ -85,10 +103,24 @@ class _CrudTournamentScreenState extends State<CrudTournamentScreen> {
 
   Future<void> _updateTournament(Tournament tournament) async {
     try {
-      final response = await apiService.put(
-          'tournaments/${tournament.id}', tournament.toJson());
+      final Map<String, dynamic> tournamentData = {
+        'id': tournament.id,
+        'name': tournament.name,
+        'description': tournament.description,
+        'location': tournament.location,
+        'start_date': tournament.startDate.toIso8601String(),
+        'end_date': tournament.endDate.toIso8601String(),
+        'media': tournament.media?.toJson(),
+        'max_players': tournament.maxPlayers,
+        'organizer_id': tournament.organizer.id,
+        'game_id': tournament.game,
+        'tags': tournament.tags,
+        'status': tournament.status,
+      };
+      final response =
+          await apiService.put('tournaments/${tournament.id}', tournamentData);
       if (response.statusCode == 200) {
-        _fetchTournaments();
+        await _fetchTournaments();
       } else {
         print(
             'Failed to update tournament. Status code: ${response.statusCode}');
@@ -101,8 +133,8 @@ class _CrudTournamentScreenState extends State<CrudTournamentScreen> {
   Future<void> _deleteTournament(int id) async {
     try {
       final response = await apiService.delete('tournaments/$id');
-      if (response.statusCode == 200) {
-        _fetchTournaments();
+      if (response.statusCode == 204) {
+        await _fetchTournaments();
       } else {
         print(
             'Failed to delete tournament. Status code: ${response.statusCode}');
@@ -112,20 +144,30 @@ class _CrudTournamentScreenState extends State<CrudTournamentScreen> {
     }
   }
 
+  void _pickImage() async {
+    final pickedFile =
+        await ImagePicker().getImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      setState(() {
+        _imageFile = File(pickedFile.path);
+      });
+    }
+  }
+
   void _showTournamentDialog(Tournament? tournament) {
     final _nameController = TextEditingController(text: tournament?.name ?? '');
     final _descriptionController =
         TextEditingController(text: tournament?.description ?? '');
     final _locationController =
         TextEditingController(text: tournament?.location ?? '');
-    final _startDateController =
-        TextEditingController(text: tournament?.startDate ?? '');
-    final _endDateController =
-        TextEditingController(text: tournament?.endDate ?? '');
+    final _startDateController = TextEditingController(
+        text: tournament?.startDate.toIso8601String() ?? '');
+    final _endDateController = TextEditingController(
+        text: tournament?.endDate.toIso8601String() ?? '');
     final _maxPlayersController =
         TextEditingController(text: tournament?.maxPlayers.toString() ?? '0');
-    final _roundsController =
-        TextEditingController(text: tournament?.rounds.toString() ?? '1');
+    final _gameIdController =
+        TextEditingController(text: tournament?.game.id.toString() ?? '0');
 
     showDialog(
       context: context,
@@ -163,9 +205,13 @@ class _CrudTournamentScreenState extends State<CrudTournamentScreen> {
                   keyboardType: TextInputType.number,
                 ),
                 TextField(
-                  controller: _roundsController,
-                  decoration: const InputDecoration(labelText: 'Rounds'),
+                  controller: _gameIdController,
+                  decoration: const InputDecoration(labelText: 'Game ID'),
                   keyboardType: TextInputType.number,
+                ),
+                ElevatedButton(
+                  onPressed: _pickImage,
+                  child: const Text('Pick Image'),
                 ),
               ],
             ),
@@ -186,40 +232,37 @@ class _CrudTournamentScreenState extends State<CrudTournamentScreen> {
                       name: _nameController.text,
                       description: _descriptionController.text,
                       location: _locationController.text,
-                      startDate: _startDateController.text,
-                      endDate: _endDateController.text,
-                      imageUrl: '', // Placeholder
+                      startDate: DateTime.parse(_startDateController.text),
+                      endDate: DateTime.parse(_endDateController.text),
+                      media: null, // Placeholder for media
                       maxPlayers: int.parse(_maxPlayersController.text),
                       organizer: Organizer(
                           id: 1,
-                          name: 'Organizer Name',
-                          email: 'organizer@example.com'), // Placeholder
-                      game: Game(
-                          id: 1,
-                          name: 'Game Name',
-                          imageUrl: ''), // Placeholder
-                      tags: [],
-                      status: 'opened', // Default status
-                      rounds: int.parse(_roundsController.text),
+                          username: 'Organizer Name',
+                          email:
+                              'organizer@example.com'), // Placeholder for organizer
+                      game: Game(id: 1, name: 'Test'), // Placeholder for game
+                      tags: ['1'],
+                      status: 'opened',
+                      playersRegistered: 0, // Default status
                     ),
                   );
                 } else {
                   _updateTournament(
                     Tournament(
-                      id: tournament.id,
-                      name: _nameController.text,
-                      description: _descriptionController.text,
-                      location: _locationController.text,
-                      startDate: _startDateController.text,
-                      endDate: _endDateController.text,
-                      imageUrl: tournament.imageUrl,
-                      maxPlayers: int.parse(_maxPlayersController.text),
-                      organizer: tournament.organizer,
-                      game: tournament.game,
-                      tags: tournament.tags,
-                      status: tournament.status,
-                      rounds: int.parse(_roundsController.text),
-                    ),
+                        id: tournament.id,
+                        name: _nameController.text,
+                        description: _descriptionController.text,
+                        location: _locationController.text,
+                        startDate: DateTime.parse(_startDateController.text),
+                        endDate: DateTime.parse(_endDateController.text),
+                        media: tournament.media,
+                        maxPlayers: int.parse(_maxPlayersController.text),
+                        organizer: tournament.organizer,
+                        game: tournament.game,
+                        tags: tournament.tags,
+                        status: tournament.status,
+                        playersRegistered: tournament.playersRegistered),
                   );
                 }
                 Navigator.of(context).pop();
@@ -255,7 +298,7 @@ class _CrudTournamentScreenState extends State<CrudTournamentScreen> {
                       Text('End Date: ${tournament.endDate}'),
                       Text('Location: ${tournament.location}'),
                       Text('Max Players: ${tournament.maxPlayers}'),
-                      Text('Organizer: ${tournament.organizer.name}'),
+                      Text('Organizer: ${tournament.organizer.username}'),
                     ],
                   ),
                   trailing: Row(

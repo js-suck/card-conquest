@@ -23,13 +23,11 @@ class _CrudUserScreenState extends State<CrudUserScreen> {
   }
 
   Future<void> _initialize() async {
-    // Attendre que le token soit lu depuis le stockage sécurisé
     String? token = await _storage.read(key: 'jwt_token');
     if (token != null) {
       apiService = ApiService('http://localhost:8080/api/v1', token);
       await _fetchUsers();
     } else {
-      // Gérer le cas où le token est null
       setState(() {
         _isLoading = false;
       });
@@ -44,7 +42,6 @@ class _CrudUserScreenState extends State<CrudUserScreen> {
         _isLoading = false;
       });
     } catch (e) {
-      // Handle error
       setState(() {
         _isLoading = false;
       });
@@ -71,7 +68,7 @@ class _CrudUserScreenState extends State<CrudUserScreen> {
     }
   }
 
-  Future<void> _deleteUser(int id) async {
+  Future<void> _deleteUser(int? id) async {
     try {
       await apiService.delete('users/$id');
       _fetchUsers();
@@ -144,7 +141,7 @@ class _CrudUserScreenState extends State<CrudUserScreen> {
                   if (user == null) {
                     _createUser(
                       User(
-                        id: 0,
+                        id: null,
                         username: _usernameController.text,
                         email: _emailController.text,
                         role: 'user',
@@ -182,7 +179,7 @@ class _CrudUserScreenState extends State<CrudUserScreen> {
           final user = users[index];
           return ListTile(
             title: Text(user.username),
-            subtitle: Text(user.email),
+            subtitle: Text(user.email ?? ''),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
