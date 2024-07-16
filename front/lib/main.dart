@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'dart:developer';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
@@ -85,6 +86,14 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return Consumer(builder: (context, ThemeNotifier notifier, child) {
+      if (kIsWeb) {
+        return MaterialApp(
+          debugShowCheckedModeBanner: false,
+          initialRoute: '/login',
+          routes: routes,
+          theme: notifier.getTheme(),
+        );
+      }
       return MaterialApp(
         debugShowCheckedModeBanner: false,
         locale: _locale,

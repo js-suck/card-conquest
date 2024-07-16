@@ -7,14 +7,13 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
+import 'package:jwt_decoder/jwt_decoder.dart';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 
-
-Future<void> login(BuildContext context, String username,
-    String password) async {
-  const storage =
-  FlutterSecureStorage();
+Future<void> login(
+    BuildContext context, String username, String password) async {
+  const storage = FlutterSecureStorage();
   String? fcmToken = await storage.read(key: 'fcm_token');
   final response = await http.post(
     Uri.parse('${dotenv.env['API_URL']}login'),
@@ -31,9 +30,23 @@ Future<void> login(BuildContext context, String username,
   if (response.statusCode == 200) {
     var responseData = jsonDecode(response.body);
     String token = responseData['token'];
-
+    Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
+    if (kIsWeb) {
+      if (decodedToken['role'] != 'admin') {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Vous n\'êtes pas autorisé à accéder à cette page'),
+            duration: Duration(seconds: 1),
+          ),
+        );
+        return;
+      }
+      // Store the token in secure storage
+      await storage.write(key: 'jwt_token', value: token);
+      Navigator.pushReplacementNamed(context, '/admin');
+      return;
+    }
     await storage.delete(key: 'jwt_token');
-
     await storage.write(key: 'jwt_token', value: token);
 
     var tokenData = jsonDecode(
@@ -42,8 +55,8 @@ Future<void> login(BuildContext context, String username,
 
     await storage.write(key: 'user_id', value: userId.toString());
 
-
     Navigator.of(context).pushReplacementNamed('/main');
+    return;
   } else {
     final t = AppLocalizations.of(context)!;
 
@@ -81,11 +94,9 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-
   Future<void> sendUserDataToServer(auth.User user) async {
     print('Sending user data to server...');
-    const storage =
-    FlutterSecureStorage();
+    const storage = FlutterSecureStorage();
     String? fcmToken = await storage.read(key: 'fcm_token');
     final response = await http.post(
       Uri.parse('${dotenv.env['API_URL']}auth/google'),
@@ -109,8 +120,8 @@ class _LoginPageState extends State<LoginPage> {
 
       try {
         String normalizedToken = base64.normalize(token.split(".")[1]);
-        var tokenData = jsonDecode(
-            utf8.decode(base64Url.decode(normalizedToken)));
+        var tokenData =
+            jsonDecode(utf8.decode(base64Url.decode(normalizedToken)));
         print('Token data: $tokenData');
 
         int userId = tokenData['user_id'];
@@ -124,20 +135,20 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-
   Future<void> _googleSignIn() async {
     try {
       final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
-      final GoogleSignInAuthentication? googleAuth = await googleUser
-          ?.authentication;
+      final GoogleSignInAuthentication? googleAuth =
+          await googleUser?.authentication;
 
       final auth.AuthCredential credential = auth.GoogleAuthProvider.credential(
         accessToken: googleAuth?.accessToken,
         idToken: googleAuth?.idToken,
       );
 
-      auth.User? user = (await auth.FirebaseAuth.instance.signInWithCredential(
-          credential)).user;
+      auth.User? user =
+          (await auth.FirebaseAuth.instance.signInWithCredential(credential))
+              .user;
 
       if (user != null) {
         await sendUserDataToServer(user);
@@ -161,7 +172,9 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context)!;
     return Scaffold(
-      appBar: AppBar(backgroundColor: context.themeColors.backgroundColor),
+      appBar: !kIsWeb
+          ? AppBar(backgroundColor: context.themeColors.backgroundColor)
+          : null,
       body: SingleChildScrollView(
         child: Center(
           child: Column(
@@ -285,38 +298,39 @@ class _LoginPageState extends State<LoginPage> {
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: <Widget>[
-                              Image.asset(
-                                  'assets/images/google.png', width: 30),
+                              Image.asset('assets/images/google.png',
+                                  width: 30),
                               const SizedBox(width: 10),
                             ],
                           ),
                         ),
                       const SizedBox(height: 10),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: <Widget>[
-                          Flexible(
-                            child: Text(
-                              t.loginNoAccount,
-                              style: const TextStyle(fontSize: 14),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              Navigator.pushNamed(context, '/signup');
-                            },
-                            child: Text(
-                              t.loginSignup,
-                              style: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFFFF933D),
+                      if (!kIsWeb)
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: <Widget>[
+                            Flexible(
+                              child: Text(
+                                t.loginNoAccount,
+                                style: constTextStyle(fontSize: 14),
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
-                          ),
-                        ],
-                      ),
+                            TextButton(
+                              onPressed: () {
+                                Navigator.pushNamed(context, '/signup');
+                              },
+                              child: Text(
+                                t.loginSignup,
+                                style: constTextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFFFF933D),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                     ],
                   ),
                 ),
