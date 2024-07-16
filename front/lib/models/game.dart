@@ -18,12 +18,4 @@ class Game {
       media: json['media'] != null ? Media.fromJson(json['media']) : null,
     );
   }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'name': name,
-      'imageUrl': imageUrl,
-    };
-  }
 }
