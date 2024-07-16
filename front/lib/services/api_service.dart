@@ -21,21 +21,20 @@ class ApiService {
     }
   }
 
-  Future<void> post(String endpoint, Map<String, dynamic> data) async {
+  Future<http.Response> post(String endpoint, Map<String, dynamic> data) async {
     final response = await http.post(
       Uri.parse('$baseUrl/$endpoint'),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': '$token',
+        'accept': 'application/json',
       },
       body: jsonEncode(data),
     );
-    if (response.statusCode != 201) {
-      throw Exception('Failed to create data');
-    }
+    return response;
   }
 
-  Future<void> put(String endpoint, Map<String, dynamic> data) async {
+  Future<http.Response> put(String endpoint, Map<String, dynamic> data) async {
     final response = await http.put(
       Uri.parse('$baseUrl/$endpoint'),
       headers: {
@@ -44,20 +43,16 @@ class ApiService {
       },
       body: jsonEncode(data),
     );
-    if (response.statusCode != 200) {
-      throw Exception('Failed to update data');
-    }
+    return response;
   }
 
-  Future<void> delete(String endpoint) async {
+  Future<http.Response> delete(String endpoint) async {
     final response = await http.delete(
       Uri.parse('$baseUrl/$endpoint'),
       headers: {
         'Authorization': '$token',
       },
     );
-    if (response.statusCode != 200) {
-      throw Exception('Failed to delete data');
-    }
+    return response;
   }
 }
