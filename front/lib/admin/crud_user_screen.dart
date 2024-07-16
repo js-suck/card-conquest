@@ -19,10 +19,21 @@ class _CrudUserScreenState extends State<CrudUserScreen> {
   @override
   void initState() {
     super.initState();
-    // token
-    String? token = _storage.read(key: 'jwt_token') as String?;
-    apiService = ApiService('http://localhost:8080/api/v1', token!);
-    _fetchUsers();
+    _initialize();
+  }
+
+  Future<void> _initialize() async {
+    // Attendre que le token soit lu depuis le stockage sécurisé
+    String? token = await _storage.read(key: 'jwt_token');
+    if (token != null) {
+      apiService = ApiService('http://localhost:8080/api/v1', token);
+      await _fetchUsers();
+    } else {
+      // Gérer le cas où le token est null
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
   Future<void> _fetchUsers() async {
@@ -34,12 +45,17 @@ class _CrudUserScreenState extends State<CrudUserScreen> {
       });
     } catch (e) {
       // Handle error
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
-  Future<void> _createUser(User user) async {
+  Future<void> _createUser(User user, String password) async {
     try {
-      await apiService.post('users', user.toJson());
+      final Map<String, dynamic> userData = user.toJson();
+      userData['password'] = password;
+      await apiService.post('users', userData);
       _fetchUsers();
     } catch (e) {
       // Handle error
@@ -67,50 +83,84 @@ class _CrudUserScreenState extends State<CrudUserScreen> {
   void _showUserDialog(User? user) {
     final _usernameController = TextEditingController(text: user?.username ?? '');
     final _emailController = TextEditingController(text: user?.email ?? '');
+    final _passwordController = TextEditingController();
+    final _formKey = GlobalKey<FormState>();
 
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
           title: Text(user == null ? 'Create User' : 'Update User'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: _usernameController,
-                decoration: InputDecoration(labelText: 'Username'),
-              ),
-              TextField(
-                controller: _emailController,
-                decoration: InputDecoration(labelText: 'Email'),
-              ),
-            ],
+          content: Form(
+            key: _formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextFormField(
+                  controller: _usernameController,
+                  decoration: const InputDecoration(labelText: 'Username'),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter a username';
+                    }
+                    return null;
+                  },
+                ),
+                TextFormField(
+                  controller: _emailController,
+                  decoration: const InputDecoration(labelText: 'Email'),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter an email';
+                    }
+                    return null;
+                  },
+                ),
+                if (user == null)
+                  TextFormField(
+                    controller: _passwordController,
+                    decoration: const InputDecoration(labelText: 'Password'),
+                    obscureText: true,
+                    validator: (value) {
+                      if (value == null || value.length < 6) {
+                        return 'Password must be at least 6 characters';
+                      }
+                      return null;
+                    },
+                  ),
+              ],
+            ),
           ),
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: Text('Cancel'),
+              child: const Text('Cancel'),
             ),
             ElevatedButton(
               onPressed: () {
-                if (user == null) {
-                  _createUser(User(
-                    id: 0,
-                    username: _usernameController.text,
-                    email: _emailController.text,
-                    role: 'user',
-                  ));
-                } else {
-                  _updateUser(User(
-                    id: user.id,
-                    username: _usernameController.text,
-                    email: _emailController.text,
-                    role: user.role,
-                  ));
+                if (_formKey.currentState?.validate() ?? false) {
+                  if (user == null) {
+                    _createUser(
+                      User(
+                        id: 0,
+                        username: _usernameController.text,
+                        email: _emailController.text,
+                        role: 'user',
+                      ),
+                      _passwordController.text,
+                    );
+                  } else {
+                    _updateUser(User(
+                      id: user.id,
+                      username: _usernameController.text,
+                      email: _emailController.text,
+                      role: user.role,
+                    ));
+                  }
+                  Navigator.of(context).pop();
                 }
-                Navigator.of(context).pop();
               },
               child: Text(user == null ? 'Create' : 'Update'),
             ),
@@ -123,7 +173,7 @@ class _CrudUserScreenState extends State<CrudUserScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('CRUD User')),
+      appBar: AppBar(title: const Text('CRUD User'), centerTitle: true, automaticallyImplyLeading: false),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : ListView.builder(
