@@ -74,7 +74,8 @@ class _MyAppState extends State<MyApp> {
         // initialRoute: '/orga/tounament',
         routes: routes,
         onGenerateRoute: (settings) {
-          if (settings.name == '/orga/manage/tournament') {
+          if (settings.name == '/orga/manage/tournament' ||
+              settings.name == '/bracket') {
             final int tournamentId = settings.arguments as int;
             return MaterialPageRoute(
               builder: (context) =>

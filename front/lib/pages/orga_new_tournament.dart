@@ -11,7 +11,8 @@ import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:intl/intl.dart';
-import 'package:flutter_typeahead/flutter_typeahead.dart';
+import 'package:flutter_google_places/flutter_google_places.dart';
+import 'package:google_maps_webservice/places.dart';
 
 class OrgaPage extends StatelessWidget {
   const OrgaPage({super.key});
@@ -45,7 +46,6 @@ class MyForm extends StatefulWidget {
 class _MyFormState extends State<MyForm> {
   final storage = const FlutterSecureStorage();
   final TextEditingController _designationController = TextEditingController();
-  final TextEditingController _emailController = TextEditingController();
   final TextEditingController _locationController = TextEditingController();
   final TextEditingController _typeController = TextEditingController();
   final TextEditingController _selectGameController = TextEditingController();
@@ -60,6 +60,9 @@ class _MyFormState extends State<MyForm> {
   File? _selectedImage;
   int? _selectedValue;
   List<dynamic> games = [];
+
+  double? latitude;
+  double? longitude;
 
   Future<void> _selectStartDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
@@ -96,7 +99,7 @@ class _MyFormState extends State<MyForm> {
   }
 
   String _formatDateForBackend(DateTime date) {
-    return DateFormat('yyyy-MM-ddTHH:mm:ss.SSSZ').format(date.toUtc());
+    return '${DateFormat('yyyy-MM-ddTHH:mm:ss').format(date.toUtc())}Z';
   }
 
   Future<void> _loadGames() async {
@@ -122,55 +125,11 @@ class _MyFormState extends State<MyForm> {
     }
   }
 
-  Future<List<String>> _getSuggestions(String query) async {
-    String apiKey = dotenv.env['GOOGLE_API_KEY']!;
-    String url =
-        'https://maps.googleapis.com/maps/api/place/autocomplete/json?input=$query&key=$apiKey&language=fr';
-
-    var response = await http.get(Uri.parse(url));
-    if (response.statusCode == 200) {
-      var data = json.decode(response.body);
-      if (data['status'] == 'OK') {
-        return List<String>.from(
-            data['predictions'].map((prediction) => prediction['description']));
-      } else {
-        print('Places API returned status: ${data['status']}');
-        return [];
-      }
-    } else {
-      print('Failed to connect to the Places API: ${response.statusCode}');
-      return [];
-    }
-  }
-
-  Future<void> _getCoordinates(String address) async {
-    String apiKey = dotenv.env['GOOGLE_API_KEY']!;
-    String url =
-        'https://maps.googleapis.com/maps/api/geocode/json?address=$address&key=$apiKey';
-
-    var response = await http.get(Uri.parse(url));
-    if (response.statusCode == 200) {
-      var data = json.decode(response.body);
-      if (data['status'] == 'OK') {
-        var location = data['results'][0]['geometry']['location'];
-        setState(() {
-          _locationController.text = address;
-          // double latitude = location['lat'];
-          // double longitude = location['lng'];
-        });
-      } else {
-        print('Geocoding API returned status: ${data['status']}');
-      }
-    } else {
-      print('Failed to connect to the Geocoding API: ${response.statusCode}');
-    }
-  }
-
   @override
   void initState() {
     super.initState();
     _typeController.text = 'TKO';
-    _sizeController.text = '8';
+    _sizeController.text = '32';
     _loadGames();
   }
 
@@ -212,54 +171,64 @@ class _MyFormState extends State<MyForm> {
                 ),
                 const SizedBox(height: 20),
                 const Text(
-                  'Email:',
-                  style: TextStyle(fontSize: 18.0),
-                ),
-                Container(
-                  decoration: BoxDecoration(
-                    color: colorBGInput, // Couleur du rectangle gris
-                    borderRadius: BorderRadius.circular(8.0), // Bords arrondis
-                  ),
-                  child: TextField(
-                    controller: _emailController,
-                    keyboardType: TextInputType.emailAddress,
-                    decoration: const InputDecoration(
-                      contentPadding: EdgeInsets.symmetric(horizontal: 10.0),
-                      border: InputBorder.none,
-                      labelText: 'ex: jon.smith@email.com',
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                const Text(
                   'Adresse:',
                   style: TextStyle(fontSize: 18.0),
                 ),
                 Container(
                   decoration: BoxDecoration(
-                    color: colorBGInput,
+                    color: const Color(0xfafafafa),
                     borderRadius: BorderRadius.circular(8.0),
                   ),
-                  child: TypeAheadField(
+                  child: TextField(
                     controller: _locationController,
-                    suggestionsCallback: _getSuggestions,
-                    itemBuilder: (context, suggestion) {
-                      return ListTile(
-                        title: Text(suggestion),
-                      );
-                    },
-                    onSelected: (suggestion) {
-                      _locationController.text = suggestion;
-                      _getCoordinates(suggestion); // Appel à votre fonction _getCoordinates
-                    },
-                    textFieldConfiguration: TextFieldConfiguration(
-                      decoration: InputDecoration(
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 10.0),
-                        border: InputBorder.none,
-                        labelText: 'ex: 10 rue des ananas',
-                      ),
+                    keyboardType: TextInputType.text,
+                    decoration: const InputDecoration(
+                      contentPadding: EdgeInsets.symmetric(horizontal: 10.0),
+                      border: InputBorder.none,
+                      labelText: 'ex: 10 rue des ananas',
                     ),
-                  );
+                    onTap: () async {
+                      print("Tapped on address input");
+                      try {
+                        String? apiKey = dotenv.env['GOOGLE_API_KEY'];
+                        if (apiKey == null) {
+                          throw Exception(
+                              "API Key is not set in the environment variables");
+                        }
+
+                        Prediction? p = await PlacesAutocomplete.show(
+                          context: context,
+                          apiKey: apiKey,
+                          types: ["geocode"],
+                          mode: Mode.overlay,
+                          language: "fr",
+                          components: [Component(Component.country, "fr")],
+                          strictbounds: false,
+                        );
+
+                        print("Prediction received: $p");
+                        if (p != null) {
+                          GoogleMapsPlaces _places =
+                              GoogleMapsPlaces(apiKey: apiKey);
+                          PlacesDetailsResponse detail =
+                              await _places.getDetailsByPlaceId(p.placeId!);
+
+                          setState(() {
+                            _locationController.text = p.description!;
+                            latitude = detail.result.geometry!.location.lat;
+                            longitude = detail.result.geometry!.location.lng;
+                          });
+                        }
+                      } catch (e) {
+                        print("Error occurred: $e");
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('An error occurred: $e'),
+                          ),
+                        );
+                      }
+                    },
+                  ),
                 ),
                 const SizedBox(height: 20),
                 const Text(
@@ -273,7 +242,6 @@ class _MyFormState extends State<MyForm> {
                       controller: _startDateController,
                       decoration: const InputDecoration(
                         border: OutlineInputBorder(),
-                        labelText: 'Sélectionnez une date',
                       ),
                     ),
                   ),
@@ -290,7 +258,6 @@ class _MyFormState extends State<MyForm> {
                       controller: _endDateController,
                       decoration: const InputDecoration(
                         border: OutlineInputBorder(),
-                        labelText: 'Sélectionnez une date',
                       ),
                     ),
                   ),
@@ -393,7 +360,6 @@ class _MyFormState extends State<MyForm> {
                   ),
                   width: 300,
                   dropdownMenuEntries: const [
-                    DropdownMenuEntry(value: 8, label: '8 places'),
                     DropdownMenuEntry(value: 16, label: '16 places'),
                     DropdownMenuEntry(value: 32, label: '32 places'),
                     DropdownMenuEntry(value: 64, label: '64 places'),
@@ -447,7 +413,6 @@ class _MyFormState extends State<MyForm> {
   @override
   void dispose() {
     _designationController.dispose();
-    _emailController.dispose();
     _locationController.dispose();
     _typeController.dispose();
     _selectGameController.dispose();
@@ -469,20 +434,19 @@ class _MyFormState extends State<MyForm> {
     print("iciez1");
 
     if (_designationController.text.isEmpty ||
-        _emailController.text.isEmpty ||
         _locationController.text.isEmpty ||
         _descController.text.isEmpty) {
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
-          title: Text('Error'),
-          content: Text('Please fill in all required fields.'),
+          title: const Text('Error'),
+          content: const Text('Please fill in all required fields.'),
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.pop(context);
               },
-              child: Text('OK'),
+              child: const Text('OK'),
             ),
           ],
         ),
@@ -502,11 +466,12 @@ class _MyFormState extends State<MyForm> {
         request.fields['start_date'] = _formatDateForBackend(_startDate!);
         request.fields['end_date'] = _formatDateForBackend(_endDate!);
         request.fields['location'] = _locationController.text;
+        request.fields['latitude'] = latitude.toString();
+        request.fields['longitude'] = longitude.toString();
         request.fields['organizer_id'] = '1';
         request.fields['game_id'] = '1';
         num selectedValue = num.parse(_selectedValue.toString());
         int rounds = (log(selectedValue) / log(2)).ceil();
-        request.fields['rounds'] = rounds.toString();
         request.fields['rounds'] = rounds.toString();
         request.fields['max_players'] = _selectedValue.toString();
         if (_selectedImage != null) {
@@ -522,7 +487,6 @@ class _MyFormState extends State<MyForm> {
           var responseData = await http.Response.fromStream(response);
           // Vider le formulaire
           _designationController.clear();
-          _emailController.clear();
           _typeController.clear();
           _selectGameController.clear();
           _sizeController.clear();

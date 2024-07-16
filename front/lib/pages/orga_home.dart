@@ -127,7 +127,7 @@ class _OrganizerHomePageState extends State<OrganizerHomePage> {
                     return const Center(child: Text('Aucun tournoi en cours'));
                   } else {
                     var ongoingTournaments = snapshot.data!
-                        .where((t) => DateTime.parse(t.endDate)
+                        .where((t) => DateTime.parse(t.startDate)
                             .toUtc()
                             .isAfter(DateTime.now().toUtc()))
                         .toList();

@@ -141,16 +141,16 @@ class _MatchPageState extends State<MatchPage> {
     );
     if (response.statusCode == 200) {
       setState(() {
-        match.status = 'started';
+        match.status = 'finished';
       });
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Match finished successfully')),
       );
     } else {
-      print('Failed to start match: ${response.statusCode}');
+      print('Failed to finish match: ${response.statusCode}');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Failed to finished match: ${response.statusCode}'),
+          content: Text('Failed to finish match: ${response.statusCode}'),
         ),
       );
     }
@@ -277,8 +277,7 @@ class _MatchPageState extends State<MatchPage> {
                               children: isEditing
                                   ? [
                                       Container(
-                                        width:
-                                            50, // Ajustez la largeur selon vos besoins
+                                        width: 50,
                                         child: TextField(
                                           controller: playerOneScoreController,
                                           keyboardType: TextInputType.number,
@@ -300,8 +299,7 @@ class _MatchPageState extends State<MatchPage> {
                                         ),
                                       ),
                                       Container(
-                                        width:
-                                            50, // Ajustez la largeur selon vos besoins
+                                        width: 50,
                                         child: TextField(
                                           controller: playerTwoScoreController,
                                           keyboardType: TextInputType.number,
@@ -466,19 +464,22 @@ class _MatchPageState extends State<MatchPage> {
                       return ExpandableFab(
                         distance: 112.0,
                         children: [
-                          if (match.status != 'finished') ...[
+                          if (match.status != 'finished' &&
+                              match.status != 'created') ...[
                             FloatingActionButton(
-                              heroTag: "btn1$matchId",
+                              heroTag: "editMatch$matchId",
                               onPressed: () => _editMatch(match),
                               tooltip: "Mode d'édition",
                               child: const Icon(Icons.edit),
                             ),
-                            FloatingActionButton(
-                              heroTag: "finishMatch$matchId",
-                              onPressed: () => _finishMatch(match),
-                              tooltip: 'Finir le match',
-                              child: const Icon(Icons.cancel),
-                            ),
+                            if (isEditing == false) ...[
+                              FloatingActionButton(
+                                heroTag: "finishMatch$matchId",
+                                onPressed: () => _finishMatch(match),
+                                tooltip: 'Finir le match',
+                                child: const Icon(Icons.cancel),
+                              ),
+                            ]
                           ] else
                             FloatingActionButton(
                               heroTag: 'startMatch$matchId',
