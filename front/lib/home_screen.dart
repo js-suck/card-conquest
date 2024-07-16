@@ -3,12 +3,10 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:front/extension/theme_extension.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
-import 'dart:convert';
-
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:http/http.dart' as http;
+import 'package:jwt_decoder/jwt_decoder.dart';
 
 import 'auth/login_screen.dart';
 import 'auth/signup_screen.dart';
@@ -108,13 +106,14 @@ class HomePage extends StatelessWidget {
             const SizedBox(height: 10),
             const Text('Bienvenue sur notre application'),
             const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => SignUpPage()),
+            if (!kIsWeb)
+              ElevatedButton(
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => SignUpPage()),
+                ),
+                child: const Text('Inscription'),
               ),
-              child: const Text('Inscription'),
-            ),
             const SizedBox(height: 10),
             ElevatedButton(
               onPressed: () => Navigator.push(
@@ -124,19 +123,21 @@ class HomePage extends StatelessWidget {
               child: const Text('Connexion'),
             ),
             const SizedBox(height: 10),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pushNamed(context, '/main');
-              },
-              child: const Text('Continuer en tant qu\'Invité'),
-            ),
+            if (!kIsWeb)
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pushNamed(context, '/main');
+                },
+                child: const Text('Continuer en tant qu\'Invité'),
+              ),
             const SizedBox(height: 10),
-            ElevatedButton(
-              onPressed: () {
-                _loginAsAdmin(context);
-              },
-              child: const Text('Continuer en tant qu\'Admin'),
-            ),
+            if (kIsWeb)
+              ElevatedButton(
+                onPressed: () {
+                  _loginAsAdmin(context);
+                },
+                child: const Text('Dashboard Admin'),
+              ),
           ],
         ),
       ),
@@ -144,40 +145,15 @@ class HomePage extends StatelessWidget {
   }
 
   Future<void> _loginAsAdmin(BuildContext context) async {
-    try {
-      final response = await http.post(
-        Uri.parse('${dotenv.env['API_URL']}login'),
-        headers: <String, String>{
-          'Content-Type': 'application/json; charset=UTF-8',
-        },
-        body: jsonEncode(<String, String>{
-          'username': 'user',
-          'password': 'password',
-        }),
-      );
-
-      if (response.statusCode == 200) {
-        final Map<String, dynamic> data = jsonDecode(response.body);
-        await storage.write(key: 'jwt_token', value: data['token']);
+    // get token if exist
+    String? token = await storage.read(key: 'jwt_token');
+    if (token != null) {
+      Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
+      if (decodedToken['role'] == 'admin') {
         Navigator.pushNamed(context, '/admin');
-      } else {
-        // Handle error
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Failed to login as admin.'),
-            backgroundColor: Colors.red,
-          ),
-        );
       }
-    } catch (e, stackTrace) {
-      print('Error: $e');
-      print('StackTrace: $stackTrace');
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('An error occurred while trying to login as admin.'),
-          backgroundColor: Colors.red,
-        ),
-      );
+    } else {
+      Navigator.pushNamed(context, '/login');
     }
   }
 

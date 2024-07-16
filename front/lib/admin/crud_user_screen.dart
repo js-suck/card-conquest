@@ -81,6 +81,7 @@ class _CrudUserScreenState extends State<CrudUserScreen> {
   void _showUserDialog(User? user) {
     final _usernameController =
         TextEditingController(text: user?.username ?? '');
+    final _roleController = TextEditingController(text: user?.role ?? '');
     final _emailController = TextEditingController(text: user?.email ?? '');
     final _passwordController = TextEditingController();
     final _formKey = GlobalKey<FormState>();
@@ -101,6 +102,16 @@ class _CrudUserScreenState extends State<CrudUserScreen> {
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Please enter a username';
+                    }
+                    return null;
+                  },
+                ),
+                TextFormField(
+                  controller: _roleController,
+                  decoration: const InputDecoration(labelText: 'Role'),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter a role';
                     }
                     return null;
                   },
@@ -146,7 +157,7 @@ class _CrudUserScreenState extends State<CrudUserScreen> {
                         id: null,
                         username: _usernameController.text,
                         email: _emailController.text,
-                        role: 'user',
+                        role: _roleController.text,
                       ),
                       _passwordController.text,
                     );
