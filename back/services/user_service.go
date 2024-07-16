@@ -20,7 +20,7 @@ type UserService struct {
 
 func NewUserService(db *gorm.DB) *UserService {
 	return &UserService{
-		GenericService: NewGenericService(db, models.User{}),
+		GenericService: NewGenericService(db, &models.User{}),
 	}
 }
 
@@ -176,4 +176,14 @@ func (s UserService) FindByEmail(email string) (*models.User, error) {
 	}
 
 	return &user, nil
+}
+
+func (s UserService) UpdateProfilePicture(user *models.User, media models.Media) errors.IError {
+	tx := s.Db.Begin()
+	if err := tx.Model(&user).Association("Media").Replace(&media); err != nil {
+		tx.Rollback()
+		return errors.NewErrorResponse(500, err.Error())
+	}
+	tx.Commit()
+	return nil
 }

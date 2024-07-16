@@ -9,6 +9,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/stdlib"
 	"gorm.io/driver/postgres"
+	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 	"log"
@@ -19,7 +20,12 @@ import (
 
 var DB *gorm.DB
 
-func InitDB() (*gorm.DB, error) {
+func InitDB(testMode bool) (*gorm.DB, error) {
+
+	if testMode {
+		return InitDBTest()
+	}
+
 	mustGetenv := func(k string) string {
 		v := os.Getenv(k)
 		if v == "" {
@@ -102,4 +108,21 @@ func InitDB() (*gorm.DB, error) {
 
 	DB = gormDB
 	return gormDB, nil
+}
+
+func InitDBTest() (*gorm.DB, error) {
+	db, err := gorm.Open(sqlite.Open("test2.db"), &gorm.Config{})
+	if err != nil {
+		panic("failed to connect database")
+	}
+	// Drop all tables
+	err = db.Migrator().DropTable(&models.User{})
+	if err != nil {
+		log.Fatalf("failed to drop table: %v", err)
+	}
+	db.AutoMigrate(&models.User{})
+
+	DB = db
+
+	return db, nil
 }

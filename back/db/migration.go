@@ -4,6 +4,7 @@ import (
 	"authentication-api/models"
 	"authentication-api/services"
 	"fmt"
+	"github.com/bxcodec/faker/v3"
 	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -13,7 +14,72 @@ import (
 	"time"
 )
 
-const FirstTournamentName = "Test"
+const FirstTournamentName = "Yu-Gi-Oh! Championship"
+const SecondTournamentName = "Magic: The Gathering Tournament"
+const ThirdTournamentName = "Pokémon TCG Tournament"
+
+var tournamentsFixtures = []models.Tournament{
+	{
+		ID:        1,
+		BaseModel: models.BaseModel{},
+		Name:      FirstTournamentName,
+		Location:  "New York",
+		MediaModel: models.MediaModel{
+			Media: &models.Media{
+				FileName:      "yugioh.jpeg",
+				FileExtension: "jpeg",
+			},
+		},
+		UserID:     3,
+		GameID:     1,
+		Rounds:     3,
+		MaxPlayers: 32,
+		Longitude:  40.7128,
+		Latitude:   -74.0060,
+		StartDate:  "2024-04-12T00:00:00Z",
+		EndDate:    "2024-05-12T00:00:00Z",
+	},
+	{
+		ID:        2,
+		BaseModel: models.BaseModel{},
+		MediaModel: models.MediaModel{
+			Media: &models.Media{
+				FileName:      "mtg.jpg",
+				FileExtension: "jpg",
+			},
+		},
+		Name:       SecondTournamentName,
+		Location:   "Paris",
+		UserID:     4,
+		GameID:     2,
+		Rounds:     3,
+		MaxPlayers: 32,
+		Longitude:  48.8566,
+		Latitude:   2.3522,
+		StartDate:  "2024-08-12T00:00:00Z",
+		EndDate:    "2024-09-12T00:00:00Z",
+	},
+	{
+		ID:        3,
+		BaseModel: models.BaseModel{},
+		MediaModel: models.MediaModel{
+			Media: &models.Media{
+				FileName:      "pokemon.jpeg",
+				FileExtension: "jpeg",
+			},
+		},
+		Name:       ThirdTournamentName,
+		Location:   "London",
+		UserID:     5,
+		GameID:     3,
+		Rounds:     3,
+		MaxPlayers: 32,
+		Longitude:  51.5074,
+		Latitude:   -0.1278,
+		StartDate:  "2024-12-12T00:00:00Z",
+		EndDate:    "2025-01-12T00:00:00Z",
+	},
+}
 
 func gameMigration(db *gorm.DB) (*models.Game, error) {
 	err := db.AutoMigrate(&models.Game{})
@@ -75,50 +141,86 @@ func tournamentMigration(db *gorm.DB, game *models.Game) (*models.Tournament, er
 
 }
 
-func registrationsTournamentMigrations(db *gorm.DB) {
+func registrationsTournamenstMigrations(db *gorm.DB, users *[]models.User) {
 
-	media := models.Media{
-		BaseModel:     models.BaseModel{},
-		FileName:      "yugiho.webp",
-		FileExtension: "webp",
-	}
-	tournament := models.Tournament{}
+	int := 0
 
-	db.First(&tournament, "name = ?", FirstTournamentName)
+	for _, tournament := range tournamentsFixtures {
+		db.Create(&tournament)
 
-	tournament.MediaModel.Media = &media
+		// Associate users with the tournament and set the tournament owner
+		associateUsersWithTournament(db, tournament, users)
+		// Create the first tournament step
+		tournamentStep := createTournamentStep(db, tournament.ID, "First step", 1)
 
-	db.Create(&media)
-	tournamentStep := models.TournamentStep{
-		TournamentID: tournament.ID,
-		Name:         "First step",
-		Sequence:     1,
-	}
+		if int == 0 || int == 1 {
 
-	db.Create(&tournamentStep)
+			// Generate matches with position for the tournament step
+			generateTournamentMatches(db, tournamentStep.ID, tournament.ID)
 
-	users := make([]models.User, 10)
-
-	for i := 0; i < 10; i++ {
-		user := models.User{
-			Username: fmt.Sprintf("Test%d", i),
-			Password: "$2a$14$FEB9c6k0pEXUZB3txwOFCeurpu",
-			Email:    fmt.Sprintf("Test%d•gmail.com", i),
-			Role:     "user",
+			// change status of the tournament
+			db.Model(&tournament).Update("status", "started")
 		}
 
-		db.Create(&user)
-		tournament.Users = append(tournament.Users, &user)
-		tournament.UserID = user.ID
-		users[i] = user
-
-		db.Save(&tournament)
-
+		int++
 	}
 
-	tournamentService := services.NewTournamentService(db)
+}
 
-	tournamentService.GenerateMatchesWithPosition(tournamentStep.ID, tournament.ID)
+func createMediaRecord(db *gorm.DB, fileName, fileExtension string) models.Media {
+	media := models.Media{
+		FileName:      fileName,
+		FileExtension: fileExtension,
+	}
+	db.Create(&media)
+	return media
+}
+
+func fetchAndAssociateTournamentWithMedia(db *gorm.DB, tournamentName string, media *models.Media) models.Tournament {
+	var tournament models.Tournament
+	db.First(&tournament, "name = ?", tournamentName)
+	tournament.MediaModel.Media = media
+	db.Save(&tournament)
+	return tournament
+}
+
+func createTournamentStep(db *gorm.DB, tournamentID uint, name string, sequence int) models.TournamentStep {
+	tournamentStep := models.TournamentStep{
+		TournamentID: tournamentID,
+		Name:         name,
+		Sequence:     sequence,
+	}
+	db.Create(&tournamentStep)
+	return tournamentStep
+}
+
+func associateUsersWithTournament(db *gorm.DB, tournament models.Tournament, users *[]models.User) {
+	usersPtr := make([]*models.User, len(*users))
+	for i := range *users {
+		usersPtr[i] = &(*users)[i]
+	}
+	tournament.Users = usersPtr
+	tournament.UserID = (*users)[0].ID
+	db.Save(&tournament)
+}
+
+func generateTournamentMatches(db *gorm.DB, tournamentStepID, tournamentID uint) {
+	tournamentService := services.NewTournamentService(db)
+	matchService := services.NewMatchService(db)
+	tournamentService.GenerateMatchesWithPosition(tournamentStepID, tournamentID)
+
+	matchsOfTheTournament, _ := matchService.GetTournamentMatches(tournamentID)
+
+	for _, match := range matchsOfTheTournament {
+		players1, _, _ := matchService.GetMatchPlayers(match.ID)
+
+		score := models.Score{
+			MatchID: match.ID,
+			Score:   2,
+		}
+
+		matchService.UpdateScore(match.ID, &score, int(players1.ID))
+	}
 
 }
 
@@ -141,6 +243,75 @@ func mediaMigration(db *gorm.DB) (*models.Media, error) {
 
 	return &media, nil
 }
+
+func usersMigration(db *gorm.DB) (*[]models.User, error) {
+	users := make([]models.User, 10)
+
+	for i := 0; i < 10; i++ {
+
+		user := models.User{
+			Username: faker.FirstName(),
+			Email:    faker.Email(),
+			Password: "$2a$14$FEB9c6k0pEXUZB3txwOFCeurpu/j/wY5StHUykMXkZShMqdZi/Exm", // Replace with a secure password hashing mechanism
+			Role:     "user",
+		}
+
+		if err := db.Create(&user).Error; err != nil {
+			return nil, err
+		}
+		users[i] = user
+	}
+
+	user := models.User{
+		Username: "user",
+		Email:    faker.Email(),
+		Password: "$2a$14$FEB9c6k0pEXUZB3txwOFCeurpu/j/wY5StHUykMXkZShMqdZi/Exm",
+		Role:     "user",
+	}
+
+	if err := db.Create(&user).Error; err != nil {
+		return nil, err
+	}
+
+	user2 := models.User{
+		Username: "user2",
+		Email:    faker.Email(),
+		Password: "$2a$14$FEB9c6k0pEXUZB3txwOFCeurpu/j/wY5StHUykMXkZShMqdZi/Exm",
+		Role:     "user",
+	}
+
+	if err := db.Create(&user2).Error; err != nil {
+		return nil, err
+
+	}
+
+	organizer := models.User{
+		Username: "organizer",
+		Email:    faker.Email(),
+		Password: "$2a$14$FEB9c6k0pEXUZB3txwOFCeurpu/j/wY5StHUykMXkZShMqdZi/Exm",
+		Role:     "organizer",
+	}
+
+	if err := db.Create(&organizer).Error; err != nil {
+		return nil, err
+
+	}
+
+	organizer2 := models.User{
+		Username: "organizer2",
+		Email:    faker.Email(),
+		Password: "$2a$14$FEB9c6k0pEXUZB3txwOFCeurpu/j/wY5StHUykMXkZShMqdZi/Exm",
+		Role:     "organizer",
+	}
+
+	if err := db.Create(&organizer2).Error; err != nil {
+		return nil, err
+
+	}
+
+	return &users, nil
+}
+
 func matchMigration(db *gorm.DB, tournament *models.Tournament, user *models.User) (*models.Match, error) {
 	err := db.AutoMigrate(&models.Match{})
 
@@ -174,7 +345,32 @@ func matchMigration(db *gorm.DB, tournament *models.Tournament, user *models.Use
 
 	return &match, nil
 }
+func guildMigration(db *gorm.DB, users *[]models.User) (*models.Guild, error) {
+	media := createMediaRecord(db, "gentle_mates.png", "png")
 
+	err := db.AutoMigrate(&models.Guild{})
+	if err != nil {
+		fmt.Println(err.Error())
+		return nil, err
+	}
+
+	guild := models.Guild{
+		Name:        "Gentle mates",
+		Description: "Guild created for gentlemen and squeezos.",
+		MediaModel:  models.MediaModel{Media: &media},
+	}
+
+	db.Create(&guild)
+
+	guild.Players = users
+	guildAdmins := make([]models.User, 1)
+	guildAdmins[0] = (*users)[0]
+	guild.Admins = &guildAdmins
+
+	db.Save(&guild)
+
+	return &guild, nil
+}
 func terminateConnections(defaultDB *gorm.DB, dbName string) error {
 	// Terminate other connections to the database
 	sql := fmt.Sprintf(`
@@ -252,30 +448,8 @@ func MigrateDatabase() error {
 	err = db.AutoMigrate(&models.Media{})
 	err = db.AutoMigrate(&models.Score{})
 	err = db.AutoMigrate(&models.GameScore{})
-
-	var user models.User
-
-	db.First(&user, "username = ?", "user")
-	_, err = mediaMigration(db)
-
-	if user.ID == 0 {
-		user = models.User{Username: "user", Password: "$2a$14$FEB9c6k0pEXUZB3txwOFCeurpu/j/wY5StHUykMXkZShMqdZi/Exm", Email: "test@example.com", Role: "admin"}
-		db.Create(&user)
-	}
-
-	err = insertGamesFixtures(db)
-	if err != nil {
-		log.Fatalf("failed to insert games fixtures: %v", err)
-	}
-
-	_, err = tournamentMigration(db, &GamesFixtures[1])
-
-	registrationsTournamentMigrations(db)
-
-	if err != nil {
-		fmt.Println(err.Error())
-		return err
-	}
+	err = db.AutoMigrate(&models.Guild{})
+	err = db.AutoMigrate(&models.ChatMessage{})
 
 	// Add triggers and functions
 	createFunction := `
@@ -367,6 +541,39 @@ $$ LANGUAGE plpgsql;
 	}
 
 	log.Println("Triggers created successfully")
+
+	var user models.User
+
+	if user.ID == 0 {
+		user = models.User{Username: "admin", Password: "$2a$14$FEB9c6k0pEXUZB3txwOFCeurpu/j/wY5StHUykMXkZShMqdZi/Exm", Email: "test@example.com", Role: "admin"}
+		db.Create(&user)
+	}
+	users, errUsers := usersMigration(db)
+
+	if errUsers != nil {
+		log.Fatalf("failed to create users: %v", errUsers)
+
+	}
+
+	db.First(&user, "username = ?", "user")
+	_, err = mediaMigration(db)
+	_, errGuild := guildMigration(db, users)
+
+	if errGuild != nil {
+		log.Fatalf("failed to create guild: %v", errGuild)
+	}
+
+	err = insertGamesFixtures(db)
+	if err != nil {
+		log.Fatalf("failed to insert games fixtures: %v", err)
+	}
+
+	registrationsTournamenstMigrations(db, users)
+
+	if err != nil {
+		fmt.Println(err.Error())
+		return err
+	}
 
 	return nil
 }
