@@ -12,13 +12,10 @@ import 'package:front/routes/routes.dart';
 import 'package:front/service/notification_service.dart';
 import 'package:front/service/user_service.dart';
 import 'package:front/widget/bottom_bar.dart';
+import 'package:front/widget/bottom_bar.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-import 'home_screen.dart';
-
-import 'notifier/locale_notifier.dart';
-import 'notifier/theme_notifier.dart';
+import 'package:front/widget/bottom_bar.dart';
 
 Future main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -33,12 +30,11 @@ Future main() async {
     await NotificationService().init();
   }
 
-  await dotenv.load(fileName: "lib/.env");
+  await dotenv.load(fileName: "lib/env");
 
   final prefs = await SharedPreferences.getInstance();
   final localeCode = prefs.getString('locale') ?? 'en';
   final isDarkMode = prefs.getBool('isDarkMode') ?? false;
-
   runApp(
     MultiProvider(
       providers: [
@@ -53,9 +49,8 @@ Future main() async {
       ],
       child: const MyApp(),
     ),
-  );}
-
-
+  );
+}
 
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
@@ -98,21 +93,26 @@ class _MyAppState extends State<MyApp> {
           final Uri uri = Uri.parse(settings.name!);
           print(uri);
           print("pathSegments ${uri.path}");
-          if (uri.pathSegments.length == 2 && uri.pathSegments.first == 'chat') {
+          if (uri.pathSegments.length == 2 &&
+              uri.pathSegments.first == 'chat') {
             final String guildID = uri.pathSegments[1];
             return MaterialPageRoute(
-              builder: (context) =>ChatClientScreen(guildId: int.parse(guildID), username: 'laila', userId: 1, mediaUrl: 'https://www.placecage.com/200/300'),
+              builder: (context) => ChatClientScreen(
+                  guildId: int.parse(guildID),
+                  username: 'laila',
+                  userId: 1,
+                  mediaUrl: 'https://www.placecage.com/200/300'),
             );
           }
 
-          if (uri.pathSegments.length == 2 && uri.pathSegments.first == 'guild') {
+          if (uri.pathSegments.length == 2 &&
+              uri.pathSegments.first == 'guild') {
             final String guildID = uri.pathSegments[1];
             return MaterialPageRoute(
               builder: (context) => GuildView(),
             );
           }
           print("pathSegments ${routes.containsKey("/tournamentUpdatesDemo")}");
-
 
           if (routes.containsKey(uri.path)) {
             return MaterialPageRoute(builder: routes[uri.path]!);

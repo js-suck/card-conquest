@@ -1,16 +1,16 @@
 import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:front/models/game.dart';
+import 'package:front/models/match/tournament.dart';
 import 'package:front/models/match/user.dart';
 import 'package:front/services/api_service.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
-import 'package:path/path.dart' as path;
 import 'package:http_parser/http_parser.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:front/models/match/tournament.dart';
-
-import '../models/game.dart';
+import 'package:path/path.dart' as path;
 import '../models/match/tournament.dart';
 import '../models/organizer.dart';
 
@@ -37,7 +37,7 @@ class _CrudTournamentScreenState extends State<CrudTournamentScreen> {
   Future<void> _initialize() async {
     String? token = await _storage.read(key: 'jwt_token');
     if (token != null) {
-      apiService = ApiService('http://localhost:8080/api/v1', token);
+      apiService = ApiService('${dotenv.env['API_URL']}', token);
       await _fetchTournaments();
     } else {
       setState(() {
@@ -67,7 +67,7 @@ class _CrudTournamentScreenState extends State<CrudTournamentScreen> {
     try {
       final request = http.MultipartRequest(
         'POST',
-        Uri.parse('${apiService.baseUrl}/tournaments'),
+        Uri.parse('${apiService.baseUrl}tournaments'),
       )
         ..headers['Authorization'] = '${apiService.token}'
         ..fields['name'] = tournament.name
@@ -234,14 +234,16 @@ class _CrudTournamentScreenState extends State<CrudTournamentScreen> {
                       location: _locationController.text,
                       startDate: DateTime.parse(_startDateController.text),
                       endDate: DateTime.parse(_endDateController.text),
-                      media: null, // Placeholder for media
+                      media: null,
+                      // Placeholder for media
                       maxPlayers: int.parse(_maxPlayersController.text),
                       organizer: Organizer(
                           id: 1,
                           username: 'Organizer Name',
-                          email:
-                              'organizer@example.com'), // Placeholder for organizer
-                      game: Game(id: 1, name: 'Test'), // Placeholder for game
+                          email: 'organizer@example.com'),
+                      // Placeholder for organizer
+                      game: Game(id: 1, name: 'Test'),
+                      // Placeholder for game
                       tags: ['1'],
                       status: 'opened',
                       playersRegistered: 0, // Default status

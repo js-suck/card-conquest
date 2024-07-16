@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:front/models/game.dart';
 import 'package:front/services/api_service.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class CrudGameScreen extends StatefulWidget {
   const CrudGameScreen({Key? key}) : super(key: key);
@@ -25,7 +26,7 @@ class _CrudGameScreenState extends State<CrudGameScreen> {
   Future<void> _initialize() async {
     String? token = await _storage.read(key: 'jwt_token');
     if (token != null) {
-      apiService = ApiService('http://localhost:8080/api/v1', token);
+      apiService = ApiService('${dotenv.env['API_URL']}', token);
       await _fetchGames();
     } else {
       setState(() {
@@ -145,31 +146,34 @@ class _CrudGameScreenState extends State<CrudGameScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('CRUD Game'), centerTitle: true, automaticallyImplyLeading: false),
+      appBar: AppBar(
+          title: const Text('CRUD Game'),
+          centerTitle: true,
+          automaticallyImplyLeading: false),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : ListView.builder(
-        itemCount: games.length,
-        itemBuilder: (context, index) {
-          final game = games[index];
-          return ListTile(
-            title: Text(game.name),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.edit),
-                  onPressed: () => _showGameDialog(game),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.delete),
-                  onPressed: () => _deleteGame(game.id),
-                ),
-              ],
+              itemCount: games.length,
+              itemBuilder: (context, index) {
+                final game = games[index];
+                return ListTile(
+                  title: Text(game.name),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.edit),
+                        onPressed: () => _showGameDialog(game),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.delete),
+                        onPressed: () => _deleteGame(game.id),
+                      ),
+                    ],
+                  ),
+                );
+              },
             ),
-          );
-        },
-      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showGameDialog(null),
         child: const Icon(Icons.add),
