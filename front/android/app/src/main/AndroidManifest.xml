@@ -4,6 +4,9 @@
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
         android:label="Card Conquest">
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyCi3CmQ4VilcLT_vEbbEW8V6SFl1LDGu7g"/>
         <activity
             android:name=".MainActivity"
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
@@ -30,9 +33,10 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+
     </application>
     <!-- Required to query activities that can process text, see:
-         https://developer.android.com/training/package-visibility?hl=en and
+         https://developer.android.com/training/lsge-visibility?hl=en and
          https://developer.android.com/reference/android/content/Intent#ACTION_PROCESS_TEXT.
 
          In particular, this is used by the Flutter engine in io.flutter.plugin.text.ProcessTextPlugin. -->

@@ -20,22 +20,23 @@ class TournamentHistoryPage extends StatefulWidget {
 class _TournamentHistoryPageState extends State<TournamentHistoryPage>
     with SingleTickerProviderStateMixin {
   final storage = const FlutterSecureStorage();
-  int userId = 0;
+  late Future<int> userIdFuture;
   late TournamentService tournamentService;
 
   @override
   void initState() {
     super.initState();
     tournamentService = TournamentService();
-    _fetchUserId();
+    userIdFuture = _fetchUserId();
   }
 
-  Future<void> _fetchUserId() async {
+  Future<int> _fetchUserId() async {
     String? token = await storage.read(key: 'jwt_token');
     if (token != null) {
       Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
-      userId = decodedToken['user_id'];
+      return decodedToken['user_id'];
     }
+    return 0;
   }
 
   Future<void> _onTournamentTapped(int tournamentId, String status) async {
@@ -71,9 +72,16 @@ class _TournamentHistoryPageState extends State<TournamentHistoryPage>
   Widget build(BuildContext context) {
     var t = AppLocalizations.of(context)!;
     return DefaultTabController(
-      initialIndex: 0,
-      length: 2,
-      child: Scaffold(
+        initialIndex: 0,
+        length: 2,
+        child: FutureBuilder<int>(
+        future: userIdFuture,
+        builder: (context, snapshot) {
+      if (snapshot.connectionState == ConnectionState.waiting) {
+        return CircularProgressIndicator();
+      }
+      int userId = snapshot.data!;
+      return Scaffold(
         appBar: AppBar(
           title: TopAppBar(title: t.tournamentHistoryTitle),
           automaticallyImplyLeading: false,
@@ -116,7 +124,9 @@ class _TournamentHistoryPageState extends State<TournamentHistoryPage>
             ),
           ],
         ),
-      ),
+      );
+        },
+        ),
     );
   }
 }

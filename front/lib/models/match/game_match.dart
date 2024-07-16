@@ -9,7 +9,7 @@ class GameMatch {
 
   factory GameMatch.fromJson(Map<String, dynamic> json) {
     return GameMatch(
-      id: json['ID'],
+      id: json['ID'] ?? json['id'],
       name: json['name'],
     );
   }

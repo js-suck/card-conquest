@@ -1,7 +1,8 @@
+import 'guild.dart';
 import 'media.dart';
 
 class User {
-  final int? id;
+  final int id;
   late final String username;
   late final String? email;
   final String? address;
@@ -9,6 +10,7 @@ class User {
   final String? role;
   final String? country;
   final Media? media;
+  final List<Guild>? guilds;
 
   User({
     required this.id,
@@ -19,6 +21,7 @@ class User {
     this.role,
     this.country,
     this.media,
+    this.guilds,
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
@@ -31,6 +34,9 @@ class User {
       role: json['role'],
       country: json['country'],
       media: json['media'] != null ? Media.fromJson(json['media']) : null,
+      guilds: json['guilds'] != null && json['guilds'] is List
+          ? List<Guild>.from(json['guilds'].map((item) => Guild.fromJson(item)))
+          : null,
     );
   }
 }

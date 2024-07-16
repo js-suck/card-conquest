@@ -69,7 +69,7 @@ class TournamentService {
     String? token = await storage.read(key: 'jwt_token');
     List<Tournament> upcomingTournaments = [];
     final response = await http.get(
-      Uri.parse('${dotenv.env['API_URL']}tournaments/?UserID=$userId'),
+      Uri.parse('${dotenv.env['API_URL']}tournaments?UserID=$userId'),
       headers: {
         'Authorization': '$token',
       },
@@ -92,7 +92,7 @@ class TournamentService {
     String? token = await storage.read(key: 'jwt_token');
     List<Tournament> pastTournaments = [];
     final response = await http.get(
-      Uri.parse('${dotenv.env['API_URL']}tournaments/?UserID=$userId'),
+      Uri.parse('${dotenv.env['API_URL']}tournaments?UserID=$userId'),
       headers: {
         'Authorization': '$token',
       },
@@ -128,4 +128,49 @@ class TournamentService {
     return responseJson.map((json) => Tournament.fromJson(json)).toList();
   }
 
+
+  Future<void> subscribeToTournament(int userId, int tournamentId) async {
+    String? token = await storage.read(key: 'jwt_token');
+    final response = await http.post(
+      Uri.parse('${dotenv.env['API_URL']}users/subscriptions/$userId/tournaments/$tournamentId/subscribe'),
+      headers: {
+        HttpHeaders.authorizationHeader: '$token',
+      },
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to subscribe to tournament');
+    }
+  }
+
+  Future<void> unsubscribeFromTournament(int userId, int tournamentId) async {
+    String? token = await storage.read(key: 'jwt_token');
+    final response = await http.post(
+      Uri.parse('${dotenv.env['API_URL']}users/subscriptions/$userId/tournaments/$tournamentId/unsubscribe'),
+      headers: {
+        HttpHeaders.authorizationHeader: '$token',
+      },
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to unsubscribe from tournament');
+    }
+  }
+
+  Future<List<Tournament>> fetchSubscribedTournaments(int userId) async {
+    String? token = await storage.read(key: 'jwt_token');
+    final response = await http.get(
+      Uri.parse('${dotenv.env['API_URL']}users/subscriptions/$userId/tournaments'),
+      headers: {
+        HttpHeaders.authorizationHeader: '$token',
+      },
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to load subscribed tournaments');
+    }
+    final List<dynamic> responseJson = jsonDecode(response.body);
+    return responseJson.map((json) => Tournament.fromJson(json)).toList();
+  }
 }
+
