@@ -77,7 +77,7 @@ class _CrudGameScreenState extends State<CrudGameScreen> {
   Future<void> _deleteGame(int id) async {
     try {
       final response = await apiService.delete('games/$id');
-      if (response.statusCode == 200) {
+      if (response.statusCode == 204) {
         _fetchGames();
       } else {
         print('Failed to delete game. Status code: ${response.statusCode}');
@@ -120,7 +120,7 @@ class _CrudGameScreenState extends State<CrudGameScreen> {
                     Game(
                       id: 0,
                       name: _nameController.text,
-                      imageUrl: '', // Placeholder
+                      media: null, // Placeholder
                     ),
                   );
                 } else {
@@ -128,7 +128,7 @@ class _CrudGameScreenState extends State<CrudGameScreen> {
                     Game(
                       id: game.id,
                       name: _nameController.text,
-                      imageUrl: game.imageUrl,
+                      media: game.media,
                     ),
                   );
                 }

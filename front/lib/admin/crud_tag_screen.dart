@@ -45,6 +45,7 @@ class _CrudTagScreenState extends State<CrudTagScreen> {
       setState(() {
         _isLoading = false;
       });
+      print('Error fetching tags: $e');
     }
   }
 
@@ -57,7 +58,7 @@ class _CrudTagScreenState extends State<CrudTagScreen> {
         print('Failed to create tag. Status code: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error: $e');
+      print('Error creating tag: $e');
     }
   }
 
@@ -70,20 +71,20 @@ class _CrudTagScreenState extends State<CrudTagScreen> {
         print('Failed to update tag. Status code: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error: $e');
+      print('Error updating tag: $e');
     }
   }
 
   Future<void> _deleteTag(int id) async {
     try {
       final response = await apiService.delete('tags/$id');
-      if (response.statusCode == 200) {
+      if (response.statusCode == 204) {
         _fetchTags();
       } else {
         print('Failed to delete tag. Status code: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error: $e');
+      print('Error deleting tag: $e');
     }
   }
 
@@ -115,22 +116,31 @@ class _CrudTagScreenState extends State<CrudTagScreen> {
             ),
             ElevatedButton(
               onPressed: () {
-                if (tag == null) {
-                  _createTag(
-                    Tag(
-                      id: 0,
-                      label: _labelController.text,
-                    ),
-                  );
+                if (_labelController.text.isNotEmpty) {
+                  if (tag == null) {
+                    _createTag(
+                      Tag(
+                        id: null,
+                        label: _labelController.text,
+                      ),
+                    );
+                  } else {
+                    _updateTag(
+                      Tag(
+                        id: tag.id,
+                        label: _labelController.text,
+                      ),
+                    );
+                  }
+                  Navigator.of(context).pop();
                 } else {
-                  _updateTag(
-                    Tag(
-                      id: tag.id,
-                      label: _labelController.text,
+                  // Show an error message or alert if the label is empty
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Label cannot be empty'),
                     ),
                   );
                 }
-                Navigator.of(context).pop();
               },
               child: Text(tag == null ? 'Create' : 'Update'),
             ),
@@ -151,7 +161,7 @@ class _CrudTagScreenState extends State<CrudTagScreen> {
         itemBuilder: (context, index) {
           final tag = tags[index];
           return ListTile(
-            title: Text(tag.label),
+            title: Text(tag.label ?? ''),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -161,7 +171,7 @@ class _CrudTagScreenState extends State<CrudTagScreen> {
                 ),
                 IconButton(
                   icon: const Icon(Icons.delete),
-                  onPressed: () => _deleteTag(tag.id),
+                  onPressed: () => _deleteTag(tag.id!),
                 ),
               ],
             ),

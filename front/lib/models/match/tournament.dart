@@ -1,7 +1,7 @@
 import 'package:front/models/match/user.dart';
 import 'package:front/models/media.dart';
 
-import 'game_match.dart';
+import '../game.dart';
 
 class Tournament {
   final int id;
@@ -9,7 +9,7 @@ class Tournament {
   final String? description;
   final String? location;
   final Organizer organizer;
-  final GameMatch game;
+  final Game game;
   final DateTime startDate;
   final DateTime endDate;
   final Media? media;
@@ -45,7 +45,7 @@ class Tournament {
       description: json['description'] ?? '',
       location: json['location'] ?? '',
       organizer: Organizer.fromJson(json['Organizer'] ?? {}),
-      game: GameMatch.fromJson(json['game']),
+      game: Game.fromJson(json['game']),
       startDate: DateTime.parse(json['start_date']),
       endDate: DateTime.parse(json['end_date']),
       media: json['media'] != null ? Media.fromJson(json['media']) : null,
@@ -53,8 +53,32 @@ class Tournament {
       playersRegistered: json['players_registered'],
       status: json['status'] ?? 'unknown',
       tags: json['tags'] != null ? List<String>.from(json['tags']) : [],
-      latitude: json['latitude'] != null ? double.parse(json['latitude'].toString()) : null,
-      longitude: json['longitude'] != null ? double.parse(json['longitude'].toString()) : null,
+      latitude: json['latitude'] != null
+          ? double.parse(json['latitude'].toString())
+          : null,
+      longitude: json['longitude'] != null
+          ? double.parse(json['longitude'].toString())
+          : null,
     );
+  }
+
+  toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'description': description,
+      'location': location,
+      'Organizer': organizer.toJson(),
+      'game': game.toJson(),
+      'start_date': startDate.toIso8601String(),
+      'end_date': endDate.toIso8601String(),
+      'media': media?.toJson(),
+      'max_players': maxPlayers,
+      'players_registered': playersRegistered,
+      'status': status,
+      'tags': tags,
+      'latitude': latitude,
+      'longitude': longitude,
+    };
   }
 }

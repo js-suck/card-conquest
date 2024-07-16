@@ -16,4 +16,12 @@ class Organizer {
       email: json['email'],
     );
   }
+
+  toJson() {
+    return {
+      'ID': id,
+      'username': username,
+      'email': email,
+    };
+  }
 }
