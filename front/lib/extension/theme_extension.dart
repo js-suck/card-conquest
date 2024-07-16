@@ -14,9 +14,9 @@ extension ThemeExtension on BuildContext {
             themeNotifier.themeColors.invertedBackgroundColor,
         secondaryBackgroundAccentColor:
             themeNotifier.themeColors.secondaryBackgroundAccentColor,
-        secondaryBackgroundAccentActiveColor:
-            themeNotifier.themeColors.secondaryBackgroundAccentActiveColor,
         accentColor: themeNotifier.themeColors.accentColor,
-        fontColor: themeNotifier.themeColors.fontColor);
+        fontColor: themeNotifier.themeColors.fontColor,
+      secondaryBackgroundAccentActiveColor: themeNotifier.themeColors.secondaryBackgroundAccentActiveColor,
+    );
   }
 }

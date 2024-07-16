@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:front/extension/theme_extension.dart';
 import 'package:front/pages/bracket_screen.dart';
 import 'package:front/pages/games_screen.dart';
 import 'package:front/pages/tournaments_registration_screen.dart';
@@ -82,6 +83,13 @@ class _HomePageState extends State<HomeUserPage> {
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context)!;
     return Scaffold(
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.pushNamed(context, '/guild');
+        },
+        child: Icon(Icons.diversity_3),
+        backgroundColor: context.themeColors.accentColor,
+      ),
       appBar: TopAppBar(title: t.homeTitle, isAvatar: true, isPage: false),
       body: SingleChildScrollView(
         child: Column(
