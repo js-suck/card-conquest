@@ -75,7 +75,7 @@ func main() {
 		logrus.Fatalf("Erreur lors du chargement du fichier .env: %v", err)
 	}
 
-	DB, err := dbService.InitDB()
+	DB, err := dbService.InitDB(false)
 	if err != nil {
 		logrus.Fatalf("Failed to initialize database: %v", err)
 	}

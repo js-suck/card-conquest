@@ -9,6 +9,7 @@ type IModel interface {
 	GetID() uint
 	GetTableName() string
 	IsOwner(userID uint) bool
+	New() IModel
 }
 
 type ForeignKeyChecker interface {
@@ -46,6 +47,10 @@ type User struct {
 	Guilds               []Guild       `gorm:"many2many:guild_players;constraint:OnDelete:CASCADE;"`
 	FCMToken             string        `gorm:"type:varchar(255);default:null" json:"fcm_token"; default:null`
 	SuscribedTournaments []Tournament  `gorm:"many2many:user_suscribed_tournaments;constraint:OnDelete:CASCADE;"`
+}
+
+func (u *User) New() IModel {
+	return &User{}
 }
 
 type NewUserGoogle struct {

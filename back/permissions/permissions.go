@@ -177,7 +177,6 @@ func CanAccess(permissions []Permission, key string) bool {
 
 func PermissionMiddleware(requiredPermission string) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		c.Next()
 		idFloat, _ := c.Get("user_id")
 
 		idFloat64, ok := idFloat.(float64)

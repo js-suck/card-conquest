@@ -20,7 +20,7 @@ type UserService struct {
 
 func NewUserService(db *gorm.DB) *UserService {
 	return &UserService{
-		GenericService: NewGenericService(db, models.User{}),
+		GenericService: NewGenericService(db, &models.User{}),
 	}
 }
 

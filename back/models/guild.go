@@ -17,6 +17,10 @@ func (g *Guild) AfterFind(tx *gorm.DB) (err error) {
 	return
 }
 
+func (g Guild) New() IModel {
+	return &Guild{}
+}
+
 func (g Guild) IsOwner(userID uint) bool {
 	for _, user := range *g.Admins {
 		if user.ID == userID {

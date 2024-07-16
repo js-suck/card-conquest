@@ -96,15 +96,15 @@ func SetupRouter(db *gorm.DB) *gin.Engine {
 		publicRoutes.POST("/images", uploadFileHandler.UploadImage)
 
 		protectedRoutes.POST("/users", permissions.PermissionMiddleware(permissions.PermissionCreateUser), userHandler.PostUser)
-		protectedRoutes.PUT("/users/:id", middlewares.OwnerMiddleware("user", models.User{}), permissions.PermissionMiddleware(permissions.PermissionUpdateUser), userHandler.UpdateUser)
-		protectedRoutes.DELETE("/users/:id", middlewares.OwnerMiddleware("user", models.User{}), permissions.PermissionMiddleware(permissions.PermissionDeleteUser), userHandler.DeleteUser)
-		protectedRoutes.POST("/users/:id/upload/picture", middlewares.OwnerMiddleware("user", models.User{}), permissions.PermissionMiddleware(permissions.PermissionUpdateUser), userHandler.UploadPicture)
+		protectedRoutes.PUT("/users/:id", middlewares.OwnerMiddleware("user", &models.User{}), permissions.PermissionMiddleware(permissions.PermissionUpdateUser), userHandler.UpdateUser)
+		protectedRoutes.DELETE("/users/:id", middlewares.OwnerMiddleware("user", &models.User{}), permissions.PermissionMiddleware(permissions.PermissionDeleteUser), userHandler.DeleteUser)
+		protectedRoutes.POST("/users/:id/upload/picture", middlewares.OwnerMiddleware("user", &models.User{}), permissions.PermissionMiddleware(permissions.PermissionUpdateUser), userHandler.UploadPicture)
 		protectedRoutes.POST("/users/subscriptions/:userID/tournaments/:tournamentID/subscribe", tournamentHandler.SubscribeToTournament)
 		protectedRoutes.POST("/users/subscriptions/:userID/tournaments/:tournamentID/unsubscribe", tournamentHandler.UnsubscribeFromTournament)
 		protectedRoutes.GET("/users/subscriptions/:userID/tournaments", tournamentHandler.GetSubscribedTournaments)
 
 		protectedRoutes.POST("/tournaments", permissions.PermissionMiddleware(permissions.PermissionCreateTournament), tournamentHandler.CreateTournament)
-		protectedRoutes.PUT("/tournaments/:id", permissions.PermissionMiddleware(permissions.PermissionUpdateTournament), tournamentHandler.UpdateTournament)
+		protectedRoutes.PUT("/tournaments/:id", permissions.PermissionMiddleware(permissions.PermissionUpdateTournament), middlewares.OwnerMiddleware("tournament", models.Tournament{}), tournamentHandler.UpdateTournament)
 		protectedRoutes.DELETE("/tournaments/:id", permissions.PermissionMiddleware(permissions.PermissionDeleteTournament), tournamentHandler.DeleteTournament)
 
 		protectedRoutes.POST("/tournaments/:id/start", tournamentHandler.StartTournament)

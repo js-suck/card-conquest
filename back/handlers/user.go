@@ -203,9 +203,9 @@ func (h *UserHandler) DeleteUser(c *gin.Context) {
 // @Failure 500 {object} errors.ErrorResponse
 // @Security BearerAuth
 // @Param Authorization header string true "Insert your access token" default(Bearer <Add access token here>)
-// @Router /users/{userID} [put]
+// @Router /users/{id} [put]
 func (h *UserHandler) UpdateUser(c *gin.Context) {
-	userIDStr := c.Param("userID")
+	userIDStr := c.Param("id")
 	userID, err := strconv.Atoi(userIDStr)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, errors.NewBadRequestError("Invalid ID", err).ToGinH())
@@ -214,7 +214,7 @@ func (h *UserHandler) UpdateUser(c *gin.Context) {
 
 	user := models.User{}
 	err = h.UserService.Get(&user, uint(userID), "Media")
-	if err != nil {
+	if err != nil || user.ID == 0 {
 		c.JSON(http.StatusNotFound, errors.NewNotFoundError("User not found", err).ToGinH())
 		return
 	}
@@ -223,7 +223,7 @@ func (h *UserHandler) UpdateUser(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, errors.NewBadRequestError("Invalid data", err).ToGinH())
 		return
 	}
-
+	user.ID = uint(userID)
 	err = h.UserService.Update(&user)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, errors.NewInternalServerError("Error updating user", err).ToGinH())
