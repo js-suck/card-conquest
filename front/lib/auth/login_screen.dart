@@ -90,7 +90,7 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context)!;
     return Scaffold(
-      appBar: AppBar( backgroundColor: context.themeColors.backgroundColor),
+      appBar: AppBar(backgroundColor: context.themeColors.backgroundColor),
       body: SingleChildScrollView(
         child: Center(
           child: Column(

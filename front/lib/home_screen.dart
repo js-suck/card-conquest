@@ -6,7 +6,6 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'auth/login_screen.dart';
 import 'auth/signup_screen.dart';
 
-
 class HomePage extends StatelessWidget {
   final bool showVerificationDialog;
 
@@ -24,7 +23,8 @@ class HomePage extends StatelessWidget {
       foregroundColor: context.themeColors.secondaryBackgroundAccentColor,
       backgroundColor: context.themeColors.accentColor,
       minimumSize: const Size(230, 50),
-      textStyle: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+      textStyle:
+          const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(10),
       ),
@@ -36,7 +36,8 @@ class HomePage extends StatelessWidget {
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              context.themeColors.secondaryBackgroundAccentActiveColor.withOpacity(0.8),
+              context.themeColors.secondaryBackgroundAccentActiveColor
+                  .withOpacity(0.8),
               context.themeColors.accentColor.withOpacity(0.3),
             ],
             begin: Alignment.topLeft,
@@ -62,7 +63,8 @@ class HomePage extends StatelessWidget {
                 onPressed: () => Navigator.push(
                   context,
                   MaterialPageRoute(
-                      builder: (context) => SignUpPage()), // Navigate to SignUpPage
+                      builder: (context) =>
+                          SignUpPage()), // Navigate to SignUpPage
                 ),
                 child: Text(t.signup),
               ),
@@ -72,7 +74,8 @@ class HomePage extends StatelessWidget {
                 onPressed: () => Navigator.push(
                   context,
                   MaterialPageRoute(
-                      builder: (context) => const LoginPage()), // Navigate to LoginPage
+                      builder: (context) =>
+                          const LoginPage()), // Navigate to LoginPage
                 ),
                 child: Text(t.login),
               ),
@@ -82,7 +85,8 @@ class HomePage extends StatelessWidget {
                 onPressed: () {
                   //add jwt token
                   const storage = FlutterSecureStorage();
-                  const token = "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiaW52aXRlIiwibmFtZSI6Ikludml0w6kifQ.1TMIPCEDolEVv1TMX77Y7-RA6AW4zCG2JrcjFT4hM90";
+                  const token =
+                      "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiaW52aXRlIiwibmFtZSI6Ikludml0w6kifQ.1TMIPCEDolEVv1TMX77Y7-RA6AW4zCG2JrcjFT4hM90";
                   storage.write(key: 'jwt_token', value: token);
 
                   // Navigate to the main page
