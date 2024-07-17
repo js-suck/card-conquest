@@ -18,4 +18,12 @@ class Game {
       media: json['media'] != null ? Media.fromJson(json['media']) : null,
     );
   }
+
+  toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'media': media?.toJson(),
+    };
+  }
 }

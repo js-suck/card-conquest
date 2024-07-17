@@ -69,14 +69,14 @@ class _RegistrationPageState extends State<RegistrationPage> {
       if (response.statusCode == 200) {
         // Inscription réussie
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text(t.tournamentRegistrationRegistered)),
+          SnackBar(content: Text(t.tournamentRegistrationRegistered)),
         );
         // Rediriger vers la page principale
         Navigator.of(context).pop();
       } else {
         // Gérer les erreurs
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text(t.tournamentRegistrationFailed)),
+          SnackBar(content: Text(t.tournamentRegistrationFailed)),
         );
       }
     } else {

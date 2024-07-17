@@ -105,7 +105,7 @@ class _GuildViewState extends State<GuildView> {
 
       if (response.statusCode == 200) {
         setState(() {
-          futureUserGuild = _fetchAndFetchFullUserGuild(userConnected.id);
+          futureUserGuild = _fetchAndFetchFullUserGuild(userConnected.id ?? 0);
         });
       } else {
         throw Exception('Failed to join');
@@ -243,7 +243,7 @@ class _GuildViewState extends State<GuildView> {
                                               ChatClientScreen(
                                             guildId: userGuild.id ?? 0,
                                             username: userConnected.username,
-                                            userId: userConnected.id,
+                                            userId: userConnected.id ?? 0,
                                             mediaUrl:
                                                 userConnected.media?.fileName ??
                                                     '',
@@ -263,7 +263,8 @@ class _GuildViewState extends State<GuildView> {
                             itemCount: players.length,
                             itemBuilder: (context, index) {
                               var player = players[index];
-                              bool isAdmin = isMemberAdmin(userGuild, player['ID']);
+                              bool isAdmin =
+                                  isMemberAdmin(userGuild, player['ID']);
                               print('isAdmin: $isAdmin');
                               return Material(
                                 child: ListTile(
@@ -274,7 +275,8 @@ class _GuildViewState extends State<GuildView> {
                                   ),
                                   title: Row(
                                     children: [
-                                      Text('#${index + 1}. ${player['username']}'),
+                                      Text(
+                                          '#${index + 1}. ${player['username']}'),
                                       if (isAdmin)
                                         Icon(
                                           Icons.admin_panel_settings,
@@ -284,10 +286,11 @@ class _GuildViewState extends State<GuildView> {
                                     ],
                                   ),
                                   subtitle: Text('Score: ${player['score']}'),
-                                  trailing: isUserAdmin(userGuild) && player['ID'] != userConnected.id
+                                  trailing: isUserAdmin(userGuild) &&
+                                          player['ID'] != userConnected.id
                                       ? IconButton(
-                                    icon: Icon(Icons.delete),
-                                    onPressed: () {
+                                          icon: Icon(Icons.delete),
+                                          onPressed: () {
                                             showDialog(
                                               context: context,
                                               builder: (BuildContext context) {
@@ -318,7 +321,8 @@ class _GuildViewState extends State<GuildView> {
                                                             futureUserGuild =
                                                                 _fetchAndFetchFullUserGuild(
                                                                     userConnected
-                                                                        .id);
+                                                                            .id ??
+                                                                        0);
                                                           });
                                                         });
                                                         Navigator.of(context)
@@ -354,7 +358,8 @@ class _GuildViewState extends State<GuildView> {
                                         child: Text(t.cancel),
                                         onPressed: () {
                                           Navigator.push(context,
-                                              MaterialPageRoute(builder: (context) {
+                                              MaterialPageRoute(
+                                                  builder: (context) {
                                             return GuildView();
                                           }));
                                         },
