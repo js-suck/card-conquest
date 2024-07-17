@@ -54,13 +54,18 @@ func main() {
 		err := os.MkdirAll(logDir, os.ModePerm)
 		if err != nil {
 			fmt.Println("Failed to create log directory")
-			logrus.Fatalf("Failed to create log directory: %v", err)
+			logrus.Info("Failed to create log directory: %v", err)
 		}
 	}
 
 	logFile, err := os.OpenFile(logFilePath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err != nil {
-		logrus.Fatalf("Failed to open or create log file: %v", err)
+		logrus.Info("Failed to open or create log file: %v", err)
+		logrus.Info("Trying to log to /tmp/myapp.log")
+		logFile, _ = os.OpenFile("/tmp/myapp.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+		fmt.Println("Logging to file: ", "/tmp/myapp.log")
+		defer logFile.Close()
+		logrus.SetOutput(logFile)
 	} else {
 		fmt.Println("Logging to file: ", logFilePath)
 		defer logFile.Close()
