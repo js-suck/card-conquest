@@ -29,7 +29,7 @@ type UserHandler struct {
 // @Failure 500 {object} errors.ErrorResponse
 // @Security BearerAuth
 // @Param Authorization header string true "Insert your access token" default(Bearer <Add access token here>)
-// @Router /users/{id} [get]
+// @Router /users/{userID} [get]
 func (h *UserHandler) GetUser() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		idStr := c.Param("id")
@@ -171,7 +171,7 @@ func (h *UserHandler) PostUser(c *gin.Context) {
 // @Failure 500 {object} errors.ErrorResponse
 // @Security BearerAuth
 // @Param Authorization header string true "Insert your access token" default(Bearer <Add access token here>)
-// @Router /users/{id} [delete]
+// @Router /users/{userID} [delete]
 func (h *UserHandler) DeleteUser(c *gin.Context) {
 
 	idStr := c.Param("id")
@@ -214,7 +214,7 @@ func (h *UserHandler) UpdateUser(c *gin.Context) {
 
 	user := models.User{}
 	err = h.UserService.Get(&user, uint(userID), "Media")
-	if err != nil {
+	if err != nil || user.ID == 0 {
 		c.JSON(http.StatusNotFound, errors.NewNotFoundError("User not found", err).ToGinH())
 		return
 	}
@@ -223,7 +223,7 @@ func (h *UserHandler) UpdateUser(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, errors.NewBadRequestError("Invalid data", err).ToGinH())
 		return
 	}
-
+	user.ID = uint(userID)
 	err = h.UserService.Update(&user)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, errors.NewInternalServerError("Error updating user", err).ToGinH())
@@ -250,7 +250,7 @@ func (h *UserHandler) UpdateUser(c *gin.Context) {
 // @Router /users/{id}/upload/picture [post]
 func (h *UserHandler) UploadPicture(c *gin.Context) {
 	// create media
-	file, err := c.FormFile("image")
+	file, err := c.FormFile("file")
 
 	mediaModel, filePath, errUpload := h.FileService.UploadMedia(file)
 	if err != nil {
@@ -274,8 +274,8 @@ func (h *UserHandler) UploadPicture(c *gin.Context) {
 		c.JSON(http.StatusNotFound, errors.NewNotFoundError("User not found", err).ToGinH())
 		return
 	}
-	user.MediaModel.MediaID = &mediaModel.ID
-	err = h.UserService.Update(user)
+
+	err = h.UserService.UpdateProfilePicture(&user, *mediaModel)
 	c.JSON(http.StatusOK, gin.H{"message": "Image uploaded successfully!", "path": filePath})
 
 }

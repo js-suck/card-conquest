@@ -26,7 +26,7 @@ services:
     image: grafana/promtail:latest
     volumes:
       - ./promtail-config.yaml:/etc/promtail/promtail-config.yaml
-      - /var/log:/var/log
+      - ./var/log:/var/log
     networks:
       - loki-net
     depends_on:

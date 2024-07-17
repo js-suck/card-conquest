@@ -52,6 +52,14 @@ var UserPermissions = []Permission{
 		Key:       PermissionReadGuild,
 		CanAccess: true,
 	},
+	{
+		Key:       PermissionJoinGuild,
+		CanAccess: true,
+	},
+	{
+		Key:       PermissionLeaveGuild,
+		CanAccess: true,
+	},
 }
 
 var OrganizerPermissions = []Permission{
@@ -141,6 +149,8 @@ const (
 	PermissionUpdateGuild      = "update_guild"
 	PermissionDeleteGuild      = "delete_guild"
 	PermissionReadGuild        = "read_guild"
+	PermissionJoinGuild        = "join_guild"
+	PermissionLeaveGuild       = "leave_guild"
 	PermissionUpdateMatch      = "update_match"
 	PermissionReadMatch        = "read_match"
 	PermissionCreateMatch      = "create_match"
@@ -167,7 +177,6 @@ func CanAccess(permissions []Permission, key string) bool {
 
 func PermissionMiddleware(requiredPermission string) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		c.Next()
 		idFloat, _ := c.Get("user_id")
 
 		idFloat64, ok := idFloat.(float64)

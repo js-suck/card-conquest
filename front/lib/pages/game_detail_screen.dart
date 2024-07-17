@@ -198,21 +198,3 @@ class _GameDetailPageState extends State<GameDetailPage> with SingleTickerProvid
     );
   }
 }
-
-class TournamentsPage extends StatelessWidget {
-  final String? searchQuery;
-
-  const TournamentsPage({Key? key, this.searchQuery}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Tournois - ${searchQuery ?? ''}'),
-      ),
-      body: Center(
-        child: Text('Liste des tournois pour le jeu: ${searchQuery ?? ''}'),
-      ),
-    );
-  }
-}

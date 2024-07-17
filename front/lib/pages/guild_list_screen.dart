@@ -8,7 +8,6 @@ import 'package:front/pages/guild_screen.dart';
 import 'package:provider/provider.dart';
 
 import '../models/guild.dart' as guild;
-import '../models/guild.dart';
 import '../providers/user_provider.dart';
 import '../service/guild_service.dart';
 

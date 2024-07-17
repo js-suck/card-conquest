@@ -19,6 +19,7 @@ import '../pages/chat_screen.dart';
 import '../pages/create_guild_screen.dart';
 import '../pages/guild_list_screen.dart';
 import '../pages/guild_screen.dart';
+import 'package:front/admin/admin_home_screen.dart';
 
 var routes = <String, WidgetBuilder>{
   '/': (context) => const HomePage(),
@@ -41,4 +42,5 @@ var routes = <String, WidgetBuilder>{
   '/chat/:guildId': (context) => const ChatClientScreen(guildId: 1, username: 'laila', userId: 1, mediaUrl: 'https://www.placecage.com/200/300'),
   '/home_user': (context) => const HomeUserPage(),
   '/chat': (context) => const ChatClientScreen(guildId: 1, username: 'laila', userId: 1, mediaUrl: 'https://www.placecage.com/200/300'),
+  '/admin': (context) => const AdminHomeScreen(),
 };

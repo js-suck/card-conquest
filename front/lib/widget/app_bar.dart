@@ -80,6 +80,22 @@ Future<void> _onNotificationButtonPressed(BuildContext context) async {
   await NotificationService().resetCount();
 }
 
+  void _showNotificationsOverlay(
+      BuildContext context, List<RemoteMessage> notifications) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => NotificationsOverlay(notifications: notifications),
+    );
+  }
+
+Future<void> _onNotificationButtonPressed(BuildContext context) async {
+  List<RemoteMessage> notifications =
+      await NotificationService().getNotifications();
+  _showNotificationsOverlay(context, notifications);
+  await NotificationService().resetCount();
+}
+
   @override
   Widget build(BuildContext context) {
     return ClipRRect(

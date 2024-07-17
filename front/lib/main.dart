@@ -1,7 +1,7 @@
-import 'dart:convert';
 import 'dart:developer';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/services.dart';
@@ -21,8 +21,8 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 
-import 'feature_config_service.dart';
 import 'home_screen.dart';
+import 'feature_config_service.dart';
 import 'notifier/locale_notifier.dart';
 import 'notifier/theme_notifier.dart';
 import 'firebase_options.dart';
@@ -45,7 +45,6 @@ Future<void> main() async {
 
   final prefs = await SharedPreferences.getInstance();
   final providers = await getProviders();
-
   runApp(
     MultiProvider(
       providers: providers,
@@ -103,14 +102,22 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return Consumer(builder: (context, ThemeNotifier notifier, child) {
+      if (kIsWeb) {
+        return MaterialApp(
+          debugShowCheckedModeBanner: false,
+          initialRoute: '/login',
+          routes: routes,
+          theme: notifier.getTheme(),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+        );
+      }
       return MaterialApp(
         debugShowCheckedModeBanner: false,
         locale: _locale,
         initialRoute: '/',
         onGenerateRoute: (settings) {
           final Uri uri = Uri.parse(settings.name!);
-          print(uri);
-          print("pathSegments ${uri.path}");
           if (uri.pathSegments.length == 2 && uri.pathSegments.first == 'chat') {
             final String guildID = uri.pathSegments[1];
             return MaterialPageRoute(

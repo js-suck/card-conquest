@@ -281,6 +281,14 @@ func (s MatchService) GetTournamentMatches(u uint) ([]models.Match, errors.IErro
 	return matches, nil
 }
 
+func (s MatchService) GetMatchPlayers(u uint) (*models.User, *models.User, errors.IError) {
+	match := models.Match{}
+	if err := s.Db.Preload("PlayerOne").Preload("PlayerTwo").First(&match, u).Error; err != nil {
+		return nil, nil, errors.NewInternalServerError("Failed to get match", err)
+	}
+	return &match.PlayerOne, &match.PlayerTwo, nil
+}
+
 func (s *MatchService) GetAll(models interface{}, filterParams FilterParams, preloads ...string) errors.IError {
 	query := s.Db
 
@@ -431,8 +439,10 @@ func (s MatchService) SendMatchUpdatesForGRPC(u uint) {
 	update := &authentication_api.MatchResponse{}
 
 	update = &authentication_api.MatchResponse{
-		MatchId: int32(uint32(match.ID)),
-		Status:  match.Status,
+		MatchId:   int32(uint32(match.ID)),
+		Status:    match.Status,
+		Location:  match.Tournament.Location,
+		StartDate: match.StartTime.Format(time.RFC3339),
 		PlayerOne: &authentication_api.PlayerMatch{
 			Id:       int32(uint32(match.PlayerOne.ID)),
 			Username: match.PlayerOne.Username,

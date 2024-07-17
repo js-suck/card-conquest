@@ -50,7 +50,6 @@ class ChatClientScreen extends StatefulWidget {
   final int userId;
   final String mediaUrl;
 
-
   const ChatClientScreen({
     super.key,
     required this.guildId,

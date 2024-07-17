@@ -13,7 +13,7 @@ class User {
   List<Guild>? guilds;
 
   User({
-    required this.id,
+    this.id,
     required this.username,
     this.email,
     this.address,
@@ -54,5 +54,18 @@ class User {
 
   void setGuilds(List<Guild> guilds){
     this.guilds = guilds;
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'username': username,
+      'email': email,
+      'address': address,
+      'phone': phone,
+      'role': role,
+      'country': country,
+      'media': media?.toJson(),
+    };
   }
 }

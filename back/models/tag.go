@@ -19,6 +19,10 @@ func (t Tag) GetTableName() string {
 	return "tags"
 }
 
+func (t Tag) New() IModel {
+	return Tag{}
+}
+
 type NewTagPayload struct {
 	Label string `json:"label" validate:"required"`
 }

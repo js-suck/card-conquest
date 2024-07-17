@@ -43,6 +43,10 @@ func (m Match) GetID() uint {
 	return m.ID
 }
 
+func (m Match) New() IModel {
+	return Match{}
+}
+
 func (m Match) GetTableName() string {
 	return "matches"
 }
@@ -66,7 +70,6 @@ func (m Match) ToRead() MatchRead {
 				ID:   m.Tournament.GameID,
 				Name: m.Tournament.Name,
 			},
-			Media: nil,
 		},
 		PlayerOne: m.PlayerOne.ToReadWithImage(),
 		PlayerTwo: m.PlayerTwo.ToReadWithImage(),
