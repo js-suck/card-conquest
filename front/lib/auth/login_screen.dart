@@ -9,12 +9,13 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
+import 'package:provider/provider.dart';
 
+import '../providers/feature_flag_provider.dart';
 
-Future<void> login(BuildContext context, String username,
-    String password) async {
-  const storage =
-  FlutterSecureStorage();
+Future<void> login(
+    BuildContext context, String username, String password) async {
+  const storage = FlutterSecureStorage();
   String? fcmToken = await storage.read(key: 'fcm_token');
   final response = await http.post(
     Uri.parse('${dotenv.env['API_URL']}login'),
@@ -42,7 +43,6 @@ Future<void> login(BuildContext context, String username,
 
     await storage.write(key: 'user_id', value: userId.toString());
 
-
     Navigator.of(context).pushReplacementNamed('/main');
   } else {
     final t = AppLocalizations.of(context)!;
@@ -68,6 +68,17 @@ class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
+  late bool isGoogleSignInEnabled = false;
+
+  @override
+  void initState() {
+    super.initState();
+
+    final featureNotifier = Provider.of<FeatureNotifier>(context, listen: false);
+    isGoogleSignInEnabled = featureNotifier.isFeatureEnabled('googleSignIn');
+  }
+
+
 
   void _login() {
     if (_formKey.currentState?.validate() == true) {
@@ -81,11 +92,9 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-
   Future<void> sendUserDataToServer(auth.User user) async {
     print('Sending user data to server...');
-    const storage =
-    FlutterSecureStorage();
+    const storage = FlutterSecureStorage();
     String? fcmToken = await storage.read(key: 'fcm_token');
     final response = await http.post(
       Uri.parse('${dotenv.env['API_URL']}auth/google'),
@@ -109,8 +118,8 @@ class _LoginPageState extends State<LoginPage> {
 
       try {
         String normalizedToken = base64.normalize(token.split(".")[1]);
-        var tokenData = jsonDecode(
-            utf8.decode(base64Url.decode(normalizedToken)));
+        var tokenData =
+            jsonDecode(utf8.decode(base64Url.decode(normalizedToken)));
         print('Token data: $tokenData');
 
         int userId = tokenData['user_id'];
@@ -124,20 +133,20 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-
   Future<void> _googleSignIn() async {
     try {
       final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
-      final GoogleSignInAuthentication? googleAuth = await googleUser
-          ?.authentication;
+      final GoogleSignInAuthentication? googleAuth =
+          await googleUser?.authentication;
 
       final auth.AuthCredential credential = auth.GoogleAuthProvider.credential(
         accessToken: googleAuth?.accessToken,
         idToken: googleAuth?.idToken,
       );
 
-      auth.User? user = (await auth.FirebaseAuth.instance.signInWithCredential(
-          credential)).user;
+      auth.User? user =
+          (await auth.FirebaseAuth.instance.signInWithCredential(credential))
+              .user;
 
       if (user != null) {
         await sendUserDataToServer(user);
@@ -271,7 +280,7 @@ class _LoginPageState extends State<LoginPage> {
                         ],
                       ),
                       const SizedBox(height: 10),
-                      if (!kIsWeb)
+                      if (!kIsWeb && isGoogleSignInEnabled)
                         ElevatedButton(
                           onPressed: _googleSignIn,
                           style: ElevatedButton.styleFrom(
@@ -285,8 +294,8 @@ class _LoginPageState extends State<LoginPage> {
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: <Widget>[
-                              Image.asset(
-                                  'assets/images/google.png', width: 30),
+                              Image.asset('assets/images/google.png',
+                                  width: 30),
                               const SizedBox(width: 10),
                             ],
                           ),
