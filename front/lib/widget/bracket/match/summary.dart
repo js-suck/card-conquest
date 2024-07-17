@@ -17,6 +17,7 @@ class Summary extends StatefulWidget {
 
 class _SummaryState extends State<Summary> {
   late MatchService matchService;
+  bool isEditing = false;
 
   @override
   void initState() {

@@ -4,6 +4,10 @@ import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:front/extension/theme_extension.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
@@ -13,10 +17,12 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import '../generated/chat.pb.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
+import '../generated/chat.pb.dart';
+
 Future<void> login(
     BuildContext context, String username, String password) async {
   final storage =
-  new FlutterSecureStorage(); // Create instance of secure storage
+      new FlutterSecureStorage(); // Create instance of secure storage
   String? fcmToken = await storage.read(key: 'fcm_token');
   final response = await http.post(
     Uri.parse('${dotenv.env['API_URL']}login'),
@@ -29,6 +35,7 @@ Future<void> login(
       'fcm_token': fcmToken ?? 'test',
     }),
   );
+  String userRole = '';
 
   if (response.statusCode == 200) {
     var responseData = jsonDecode(response.body);
@@ -52,8 +59,15 @@ Future<void> login(
     }
     // Store the token in secure storage
     await storage.write(key: 'jwt_token', value: token);
-    Navigator.pushReplacementNamed(context, '/main');
-    return;
+    if (token != null) {
+      Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
+      userRole = decodedToken['role'];
+    }
+    if (userRole == 'organizer') {
+      Navigator.pushReplacementNamed(context, '/orga/home');
+    } else {
+      Navigator.pushReplacementNamed(context, '/main');
+    }
   } else {
     // Handle error in login
     ScaffoldMessenger.of(context).showSnackBar(
@@ -117,7 +131,7 @@ class _LoginPageState extends State<LoginPage> {
       try {
         String normalizedToken = base64.normalize(token.split(".")[1]);
         var tokenData =
-        jsonDecode(utf8.decode(base64Url.decode(normalizedToken)));
+            jsonDecode(utf8.decode(base64Url.decode(normalizedToken)));
         print('Token data: $tokenData');
 
         int userId = tokenData['user_id'];
@@ -135,7 +149,7 @@ class _LoginPageState extends State<LoginPage> {
     try {
       final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
       final GoogleSignInAuthentication? googleAuth =
-      await googleUser?.authentication;
+          await googleUser?.authentication;
 
       final auth.AuthCredential credential = auth.GoogleAuthProvider.credential(
         accessToken: googleAuth?.accessToken,
