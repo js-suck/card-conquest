@@ -13,7 +13,7 @@ class User {
   List<Guild>? guilds;
 
   User({
-    this.id,
+    required this.id,
     required this.username,
     this.email,
     this.address,
@@ -52,7 +52,7 @@ class User {
     return role == "organizer";
   }
 
-  void setGuilds(List<Guild> guilds){
+  void setGuilds(List<Guild> guilds) {
     this.guilds = guilds;
   }
 

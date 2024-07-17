@@ -6,6 +6,7 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:front/models/user.dart';
 import 'package:front/pages/guild_screen.dart';
 import 'package:provider/provider.dart';
+import '../models/guild.dart';
 
 import '../models/guild.dart' as guild;
 import '../providers/user_provider.dart';
@@ -138,7 +139,7 @@ class _GuildListScreenState extends State<GuildListScreen> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) =>  GuildView(guildId: guild.id)),
+                            builder: (context) => GuildView(guildId: guild.id)),
                       );
                     },
                   ));

@@ -19,7 +19,6 @@ import 'package:front/service/user_service.dart';
 import 'package:front/widget/bottom_bar.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:firebase_remote_config/firebase_remote_config.dart';
 
 import 'home_screen.dart';
 import 'feature_config_service.dart';
@@ -31,7 +30,8 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   if (!kIsWeb) {
-    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+    await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform);
 
     final fcmToken = await FirebaseMessaging.instance.getToken();
     await FirebaseMessaging.instance.setAutoInitEnabled(true);
@@ -79,10 +79,10 @@ class _MyAppState extends State<MyApp> {
   }
 
   Future<void> _loadDefaultValues() async {
-    final String defaultConfig = await rootBundle.loadString('assets/default_config.json');
+    final String defaultConfig =
+        await rootBundle.loadString('assets/default_config.json');
     final Map<String, dynamic> defaultConfigMap = json.decode(defaultConfig);
   }
-
 
   @override
   void didChangeDependencies() {
@@ -118,14 +118,20 @@ class _MyAppState extends State<MyApp> {
         initialRoute: '/',
         onGenerateRoute: (settings) {
           final Uri uri = Uri.parse(settings.name!);
-          if (uri.pathSegments.length == 2 && uri.pathSegments.first == 'chat') {
+          if (uri.pathSegments.length == 2 &&
+              uri.pathSegments.first == 'chat') {
             final String guildID = uri.pathSegments[1];
             return MaterialPageRoute(
-              builder: (context) =>ChatClientScreen(guildId: int.parse(guildID), username: 'laila', userId: 1, mediaUrl: 'https://www.placecage.com/200/300'),
+              builder: (context) => ChatClientScreen(
+                  guildId: int.parse(guildID),
+                  username: 'laila',
+                  userId: 1,
+                  mediaUrl: 'https://www.placecage.com/200/300'),
             );
           }
 
-          if (uri.pathSegments.length == 2 && uri.pathSegments.first == 'guild') {
+          if (uri.pathSegments.length == 2 &&
+              uri.pathSegments.first == 'guild') {
             final String guildID = uri.pathSegments[1];
             return MaterialPageRoute(
               builder: (context) => GuildView(),

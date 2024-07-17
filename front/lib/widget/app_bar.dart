@@ -51,18 +51,19 @@ class _TopAppBarState extends State<TopAppBar> {
     _loadUser();
   }
 
-Future<void> _loadUser() async {
-  String? token = await _storage.read(key: 'jwt_token');
-  if (token == null || JwtDecoder.isExpired(token)) return;
+  Future<void> _loadUser() async {
+    String? token = await _storage.read(key: 'jwt_token');
+    if (token == null || JwtDecoder.isExpired(token)) return;
 
-  Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
-  userModel.User user = (await userService.fetchUser(decodedToken['user_id']));
-  Provider.of<UserProvider>(context, listen: false).setUser(user);
+    Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
+    userModel.User user =
+        (await userService.fetchUser(decodedToken['user_id']));
+    Provider.of<UserProvider>(context, listen: false).setUser(user);
 
-  setState(() {
-    userId = decodedToken['user_id'];
-  });
-}
+    setState(() {
+      userId = decodedToken['user_id'];
+    });
+  }
 
   void _showNotificationsOverlay(
       BuildContext context, List<RemoteMessage> notifications) {
@@ -73,28 +74,12 @@ Future<void> _loadUser() async {
     );
   }
 
-Future<void> _onNotificationButtonPressed(BuildContext context) async {
-  List<RemoteMessage> notifications =
-      await NotificationService().getNotifications();
-  _showNotificationsOverlay(context, notifications);
-  await NotificationService().resetCount();
-}
-
-  void _showNotificationsOverlay(
-      BuildContext context, List<RemoteMessage> notifications) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      builder: (context) => NotificationsOverlay(notifications: notifications),
-    );
+  Future<void> _onNotificationButtonPressed(BuildContext context) async {
+    List<RemoteMessage> notifications =
+        await NotificationService().getNotifications();
+    _showNotificationsOverlay(context, notifications);
+    await NotificationService().resetCount();
   }
-
-Future<void> _onNotificationButtonPressed(BuildContext context) async {
-  List<RemoteMessage> notifications =
-      await NotificationService().getNotifications();
-  _showNotificationsOverlay(context, notifications);
-  await NotificationService().resetCount();
-}
 
   @override
   Widget build(BuildContext context) {
@@ -144,8 +129,7 @@ Future<void> _onNotificationButtonPressed(BuildContext context) async {
                       if (snapshot.connectionState == ConnectionState.waiting) {
                         return CircularProgressIndicator();
                       } else if (snapshot.hasError) {
-                        return Text(
-                            'Erreur: ${snapshot.error}');
+                        return Text('Erreur: ${snapshot.error}');
                       } else {
                         return Badge.count(
                           count: snapshot.data ?? 0,
