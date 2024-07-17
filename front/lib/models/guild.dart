@@ -3,7 +3,7 @@ import 'user.dart';
 import 'media.dart';
 
 class Guild {
-  final int? id;
+  final int id;
   final String? name;
   final String? description;
   final Media? media;

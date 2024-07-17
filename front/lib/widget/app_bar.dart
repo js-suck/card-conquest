@@ -6,10 +6,15 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:front/utils/custom_future_builder.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
+import 'package:provider/provider.dart';
 
+import '../generated/chat.pb.dart';
+import '../providers/user_provider.dart';
 import '../service/notification_service.dart';
 import '../service/user_service.dart';
 import 'notification/notification_overlay.dart';
+
+import "../models/user.dart" as userModel;
 
 class TopAppBar extends StatefulWidget implements PreferredSizeWidget {
   const TopAppBar({
@@ -18,6 +23,7 @@ class TopAppBar extends StatefulWidget implements PreferredSizeWidget {
     this.isAvatar = true,
     this.isPage = true,
     this.isSettings = false,
+    this.roundedCorners = true,
     this.actions = const <Widget>[],
   });
 
@@ -25,6 +31,7 @@ class TopAppBar extends StatefulWidget implements PreferredSizeWidget {
   final bool isAvatar;
   final bool isPage;
   final bool isSettings;
+  final bool roundedCorners;
   final List<Widget> actions;
 
   @override
@@ -51,10 +58,13 @@ class _TopAppBarState extends State<TopAppBar> {
     if (token == null || JwtDecoder.isExpired(token)) return;
 
     Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
+    userModel.User user =
+        (await userService.fetchUser(decodedToken['user_id']));
+    Provider.of<UserProvider>(context, listen: false).setUser(user);
+
     setState(() {
       userId = decodedToken['user_id'];
     });
-
   }
 
   void _showNotificationsOverlay(
@@ -66,20 +76,22 @@ class _TopAppBarState extends State<TopAppBar> {
     );
   }
 
-Future<void> _onNotificationButtonPressed(BuildContext context) async {
-  List<RemoteMessage> notifications =
-      await NotificationService().getNotifications();
-  _showNotificationsOverlay(context, notifications);
-  await NotificationService().resetCount();
-}
+  Future<void> _onNotificationButtonPressed(BuildContext context) async {
+    List<RemoteMessage> notifications =
+        await NotificationService().getNotifications();
+    _showNotificationsOverlay(context, notifications);
+    await NotificationService().resetCount();
+  }
 
   @override
   Widget build(BuildContext context) {
     return ClipRRect(
-      borderRadius: const BorderRadius.only(
-        bottomLeft: Radius.circular(30),
-        bottomRight: Radius.circular(30),
-      ),
+      borderRadius: widget.roundedCorners
+          ? const BorderRadius.only(
+              bottomLeft: Radius.circular(30),
+              bottomRight: Radius.circular(30),
+            )
+          : BorderRadius.zero,
       child: AppBar(
         toolbarHeight: kToolbarHeight + 20,
         iconTheme: const IconThemeData(
@@ -121,8 +133,7 @@ Future<void> _onNotificationButtonPressed(BuildContext context) async {
                       if (snapshot.connectionState == ConnectionState.waiting) {
                         return CircularProgressIndicator();
                       } else if (snapshot.hasError) {
-                        return Text(
-                            'Erreur: ${snapshot.error}');
+                        return Text('Erreur: ${snapshot.error}');
                       } else {
                         return Badge.count(
                           count: snapshot.data ?? 0,

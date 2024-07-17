@@ -9,6 +9,7 @@ import 'package:front/service/tournament_service.dart';
 import 'package:front/utils/custom_future_builder.dart';
 import 'package:front/widget/app_bar.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 
 class RegistrationPage extends StatefulWidget {
   final int tournamentId;
@@ -65,6 +66,8 @@ class _RegistrationPageState extends State<RegistrationPage> {
         },
       );
 
+      final t = AppLocalizations.of(context)!;
+
       if (response.statusCode == 200) {
         // Inscription réussie
         ScaffoldMessenger.of(context).showSnackBar(
@@ -82,6 +85,11 @@ class _RegistrationPageState extends State<RegistrationPage> {
       // Rediriger vers la page de connexion si l'utilisateur n'est pas connecté
       Navigator.pushReplacementNamed(context, '/login');
     }
+  }
+
+  String _formatDateTime(DateTime dateTime) {
+    final DateFormat formatter = DateFormat('dd/MM/yyyy HH:mm');
+    return formatter.format(dateTime);
   }
 
   @override
@@ -129,16 +137,12 @@ class _RegistrationPageState extends State<RegistrationPage> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                '${tournament.startDate.day.toString().padLeft(2, '0')}/${tournament.startDate.month.toString().padLeft(2, '0')}/${tournament.startDate.year}',
+                                _formatDateTime(
+                                    tournament.startDate as DateTime),
                                 style: const TextStyle(
                                     color: Colors.white,
                                     fontSize: 18,
                                     fontWeight: FontWeight.bold),
-                              ),
-                              Text(
-                                '${tournament.startDate.hour.toString().padLeft(2, '0')}:${tournament.startDate.minute.toString().padLeft(2, '0')}',
-                                style: const TextStyle(
-                                    color: Colors.white, fontSize: 14),
                               ),
                             ],
                           ),
@@ -155,6 +159,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                   const SizedBox(height: 16),
                   Wrap(
                     spacing: 8,
+                    runSpacing: 4,
                     children: [
                       Container(
                         padding: const EdgeInsets.symmetric(

@@ -140,7 +140,7 @@ class _GameDetailPageState extends State<GameDetailPage> with SingleTickerProvid
       return Center(child: Text(t.noGamesFound));
     }
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(8.0),
+      padding: const EdgeInsets.all(4.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -195,24 +195,6 @@ class _GameDetailPageState extends State<GameDetailPage> with SingleTickerProvid
           trailing: Text('#${user['Rank']}'),
         );
       },
-    );
-  }
-}
-
-class TournamentsPage extends StatelessWidget {
-  final String? searchQuery;
-
-  const TournamentsPage({Key? key, this.searchQuery}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Tournois - ${searchQuery ?? ''}'),
-      ),
-      body: Center(
-        child: Text('Liste des tournois pour le jeu: ${searchQuery ?? ''}'),
-      ),
     );
   }
 }

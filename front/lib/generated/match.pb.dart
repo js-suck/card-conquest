@@ -176,6 +176,8 @@ class MatchResponse extends $pb.GeneratedMessage {
     PlayerMatch? playerOne,
     PlayerMatch? playerTwo,
     $core.int? winnerId,
+    $core.String? location,
+    $core.String? startDate,
   }) {
     final $result = create();
     if (matchId != null) {
@@ -193,6 +195,12 @@ class MatchResponse extends $pb.GeneratedMessage {
     if (winnerId != null) {
       $result.winnerId = winnerId;
     }
+    if (location != null) {
+      $result.location = location;
+    }
+    if (startDate != null) {
+      $result.startDate = startDate;
+    }
     return $result;
   }
   MatchResponse._() : super();
@@ -205,6 +213,8 @@ class MatchResponse extends $pb.GeneratedMessage {
     ..aOM<PlayerMatch>(3, _omitFieldNames ? '' : 'playerOne', protoName: 'playerOne', subBuilder: PlayerMatch.create)
     ..aOM<PlayerMatch>(4, _omitFieldNames ? '' : 'playerTwo', protoName: 'playerTwo', subBuilder: PlayerMatch.create)
     ..a<$core.int>(5, _omitFieldNames ? '' : 'winnerId', $pb.PbFieldType.O3, protoName: 'winnerId')
+    ..aOS(6, _omitFieldNames ? '' : 'location')
+    ..aOS(7, _omitFieldNames ? '' : 'startDate', protoName: 'startDate')
     ..hasRequiredFields = false
   ;
 
@@ -277,6 +287,24 @@ class MatchResponse extends $pb.GeneratedMessage {
   $core.bool hasWinnerId() => $_has(4);
   @$pb.TagNumber(5)
   void clearWinnerId() => clearField(5);
+
+  @$pb.TagNumber(6)
+  $core.String get location => $_getSZ(5);
+  @$pb.TagNumber(6)
+  set location($core.String v) { $_setString(5, v); }
+  @$pb.TagNumber(6)
+  $core.bool hasLocation() => $_has(5);
+  @$pb.TagNumber(6)
+  void clearLocation() => clearField(6);
+
+  @$pb.TagNumber(7)
+  $core.String get startDate => $_getSZ(6);
+  @$pb.TagNumber(7)
+  set startDate($core.String v) { $_setString(6, v); }
+  @$pb.TagNumber(7)
+  $core.bool hasStartDate() => $_has(6);
+  @$pb.TagNumber(7)
+  void clearStartDate() => clearField(7);
 }
 
 

@@ -10,21 +10,20 @@ import 'package:http/http.dart' as http;
 class TournamentService {
   final storage = new FlutterSecureStorage();
 
-  Future<Tournament> fetchTournament(int tournamentId) async {
+  Future<Tournament> fetchTournament(int id) async {
     String? token = await storage.read(key: 'jwt_token');
 
     final response = await http.get(
-      Uri.parse('${dotenv.env['API_URL']}tournaments/$tournamentId'),
+      Uri.parse('${dotenv.env['API_URL']}tournaments/$id'),
       headers: {
-        HttpHeaders.authorizationHeader: '$token',
+        'Authorization': '$token',
       },
     );
-
-    if (response.statusCode != 200) {
+    if (response.statusCode == 200) {
+      return Tournament.fromJson(json.decode(response.body));
+    } else {
       throw Exception('Failed to load tournament');
     }
-    final Map<String, dynamic> responseJson = jsonDecode(response.body);
-    return Tournament.fromJson(responseJson);
   }
 
   Future<List<Tournament>> fetchTournaments() async {
