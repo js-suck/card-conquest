@@ -5,7 +5,7 @@ class Tag {
   final int? id;
   final DateTime? createdAt;
   final DateTime? updatedAt;
-  final String? name;
+  final String? label;
   final List<Tournament>? tournaments;
   final List<Game>? games;
 
@@ -13,7 +13,7 @@ class Tag {
     this.id,
     this.createdAt,
     this.updatedAt,
-    this.name,
+    this.label,
     this.tournaments,
     this.games,
   });
@@ -27,7 +27,7 @@ class Tag {
       updatedAt: json['updated_at'] != null
           ? DateTime.parse(json['updated_at'])
           : null,
-      name: json['name'],
+      label: json['label'],
       tournaments: json['tournaments'] != null
           ? (json['tournaments'] as List)
               .map((i) => Tournament.fromJson(i))
@@ -37,5 +37,16 @@ class Tag {
           ? (json['games'] as List).map((i) => Game.fromJson(i)).toList()
           : null,
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'created_at': createdAt?.toIso8601String(),
+      'updated_at': updatedAt?.toIso8601String(),
+      'label': label,
+      'tournaments': tournaments?.map((e) => e.toJson()).toList(),
+      'games': games?.map((e) => e.toJson()).toList(),
+    };
   }
 }
