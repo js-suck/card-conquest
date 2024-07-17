@@ -80,11 +80,11 @@ class _CrudUserScreenState extends State<CrudUserScreen> {
 
   void _showUserDialog(User? user) {
     final _usernameController =
-        TextEditingController(text: user?.username ?? '');
-    final _roleController = TextEditingController(text: user?.role ?? '');
+    TextEditingController(text: user?.username ?? '');
     final _emailController = TextEditingController(text: user?.email ?? '');
     final _passwordController = TextEditingController();
     final _formKey = GlobalKey<FormState>();
+    String? _selectedRole = user?.role;
 
     showDialog(
       context: context,
@@ -106,12 +106,23 @@ class _CrudUserScreenState extends State<CrudUserScreen> {
                     return null;
                   },
                 ),
-                TextFormField(
-                  controller: _roleController,
+                DropdownButtonFormField<String>(
+                  value: _selectedRole,
                   decoration: const InputDecoration(labelText: 'Role'),
+                  items: ['user', 'organizer', 'admin']
+                      .map((role) => DropdownMenuItem(
+                    value: role,
+                    child: Text(role),
+                  ))
+                      .toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedRole = value;
+                    });
+                  },
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please enter a role';
+                      return 'Please select a role';
                     }
                     return null;
                   },
@@ -157,7 +168,7 @@ class _CrudUserScreenState extends State<CrudUserScreen> {
                         id: null,
                         username: _usernameController.text,
                         email: _emailController.text,
-                        role: _roleController.text,
+                        role: _selectedRole!,
                       ),
                       _passwordController.text,
                     );
@@ -166,7 +177,7 @@ class _CrudUserScreenState extends State<CrudUserScreen> {
                       id: user.id,
                       username: _usernameController.text,
                       email: _emailController.text,
-                      role: user.role,
+                      role: _selectedRole!,
                     ));
                   }
                   Navigator.of(context).pop();
@@ -190,28 +201,28 @@ class _CrudUserScreenState extends State<CrudUserScreen> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : ListView.builder(
-              itemCount: users.length,
-              itemBuilder: (context, index) {
-                final user = users[index];
-                return ListTile(
-                  title: Text(user.username),
-                  subtitle: Text(user.email ?? ''),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.edit),
-                        onPressed: () => _showUserDialog(user),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.delete),
-                        onPressed: () => _deleteUser(user.id),
-                      ),
-                    ],
-                  ),
-                );
-              },
+        itemCount: users.length,
+        itemBuilder: (context, index) {
+          final user = users[index];
+          return ListTile(
+            title: Text(user.username),
+            subtitle: Text(user.email ?? ''),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.edit),
+                  onPressed: () => _showUserDialog(user),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.delete),
+                  onPressed: () => _deleteUser(user.id),
+                ),
+              ],
             ),
+          );
+        },
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showUserDialog(null),
         child: const Icon(Icons.add),

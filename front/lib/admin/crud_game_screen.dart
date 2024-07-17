@@ -52,7 +52,7 @@ class _CrudGameScreenState extends State<CrudGameScreen> {
   Future<void> _createGame(Game game) async {
     try {
       final response = await apiService.post('games', game.toJson());
-      if (response.statusCode == 200) {
+      if (response.statusCode == 201) {
         _fetchGames();
       } else {
         print('Failed to create game. Status code: ${response.statusCode}');

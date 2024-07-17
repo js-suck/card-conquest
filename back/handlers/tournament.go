@@ -124,7 +124,7 @@ func (h *TournamentHandler) CreateTournament(c *gin.Context) {
 		MaxPlayers:  payload.MaxPlayers,
 	}
 
-	tags, err := h.TounamentService.GetTagsByIDs(tagsIDs)
+	tags, err := h.TournamentService.GetTagsByIDs(tagsIDs)
 	if c.Request.MultipartForm != nil && len(c.Request.MultipartForm.File["image"]) > 0 {
 		file, err := c.FormFile("image")
 		if err != nil {
@@ -146,7 +146,7 @@ func (h *TournamentHandler) CreateTournament(c *gin.Context) {
 
 		}
 	}
-	tags, err := h.TournamentService.GetTagsByIDs(tagsIDs)
+
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, errors.NewErrorResponse(500, err.Error()).ToGinH())
 		return
@@ -606,7 +606,7 @@ func (h *TournamentHandler) SubscribeToTournament(c *gin.Context) {
 	userID, _ := strconv.Atoi(c.Param("userID"))
 	tournamentID, _ := strconv.Atoi(c.Param("tournamentID"))
 
-	err := h.TounamentService.UserSubscribeToTournaments(uint(userID), uint(tournamentID))
+	err := h.TournamentService.UserSubscribeToTournaments(uint(userID), uint(tournamentID))
 	if err != nil {
 		c.JSON(err.Code(), err)
 		return
@@ -633,7 +633,7 @@ func (h *TournamentHandler) UnsubscribeFromTournament(c *gin.Context) {
 	userID, _ := strconv.Atoi(c.Param("userID"))
 	tournamentID, _ := strconv.Atoi(c.Param("tournamentID"))
 
-	err := h.TounamentService.UserUnsubscribeToTournaments(uint(userID), uint(tournamentID))
+	err := h.TournamentService.UserUnsubscribeToTournaments(uint(userID), uint(tournamentID))
 	if err != nil {
 		c.JSON(err.Code(), err)
 		return
@@ -659,7 +659,7 @@ func (h *TournamentHandler) GetSubscribedTournaments(c *gin.Context) {
 	userID, _ := strconv.Atoi(c.Param("userID"))
 	var tournaments []models.Tournament
 
-	err := h.TounamentService.GetSubscribedTournaments(uint(userID), &tournaments)
+	err := h.TournamentService.GetSubscribedTournaments(uint(userID), &tournaments)
 	if err != nil {
 		c.JSON(err.Code(), err)
 		return
