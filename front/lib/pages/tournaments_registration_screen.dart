@@ -66,6 +66,8 @@ class _RegistrationPageState extends State<RegistrationPage> {
         },
       );
 
+      final t = AppLocalizations.of(context)!;
+
       if (response.statusCode == 200) {
         // Inscription réussie
         ScaffoldMessenger.of(context).showSnackBar(

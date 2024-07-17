@@ -2,6 +2,10 @@ import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:front/extension/theme_extension.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -14,6 +18,8 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import '../providers/feature_flag_provider.dart';
+
+import '../generated/chat.pb.dart';
 
 Future<void> login(
     BuildContext context, String username, String password) async {
@@ -30,6 +36,7 @@ Future<void> login(
       'fcm_token': fcmToken ?? 'test',
     }),
   );
+  String userRole = '';
 
   if (response.statusCode == 200) {
     var responseData = jsonDecode(response.body);
@@ -63,8 +70,15 @@ Future<void> login(
 
     await storage.write(key: 'user_id', value: userId.toString());
 
-    Navigator.of(context).pushReplacementNamed('/main');
-    return;
+    if (token != null) {
+      Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
+      userRole = decodedToken['role'];
+    }
+    if (userRole == 'organizer') {
+      Navigator.pushReplacementNamed(context, '/orga/home');
+    } else {
+      Navigator.of(context).pushReplacementNamed('/main');
+    }
   } else {
     final t = AppLocalizations.of(context)!;
 
