@@ -439,8 +439,10 @@ func (s MatchService) SendMatchUpdatesForGRPC(u uint) {
 	update := &authentication_api.MatchResponse{}
 
 	update = &authentication_api.MatchResponse{
-		MatchId: int32(uint32(match.ID)),
-		Status:  match.Status,
+		MatchId:   int32(uint32(match.ID)),
+		Status:    match.Status,
+		Location:  match.Tournament.Location,
+		StartDate: match.StartTime.Format(time.RFC3339),
 		PlayerOne: &authentication_api.PlayerMatch{
 			Id:       int32(uint32(match.PlayerOne.ID)),
 			Username: match.PlayerOne.Username,

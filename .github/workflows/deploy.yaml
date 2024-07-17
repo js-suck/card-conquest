@@ -1,0 +1,37 @@
+name: Deployment
+
+concurrency:
+  group: production
+  cancel-in-progress: true
+
+on:
+  push:
+    branches:
+      - main
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  deployment:
+    name: Connexion au serveur de prod
+    runs-on: ubuntu-latest
+    steps:
+      - name: Connect with SSH to server and deploy
+        uses: garygrossgarten/github-action-ssh@release
+        with:
+          command: |
+            cd /home/vivia/card-conquest/back
+            git stash
+            git pull --rebase origin main
+            git log --oneline -n 5
+            git stash pop
+            cd api/
+            go mod tidy
+            go build -o card-conquest-back
+            sudo systemctl restart card-conquest-back
+            sudo systemctl status card-conquest-back
+            curl -o /dev/null -s -w "%{http_code}\n" https://card-conquest.site/swagger/index.html
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.username }}
+          passphrase: ${{ secrets.PASSPHRASE }}
