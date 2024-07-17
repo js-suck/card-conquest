@@ -16,7 +16,9 @@ class Tournament {
   final int maxPlayers;
   final int playersRegistered;
   final String status;
-  final List<String> tags;
+  final List<String>? tags;
+  final double? latitude;
+  final double? longitude;
 
   Tournament({
     required this.id,
@@ -31,7 +33,9 @@ class Tournament {
     required this.maxPlayers,
     required this.playersRegistered,
     required this.status,
-    required this.tags,
+    this.tags,
+    this.latitude,
+    this.longitude,
   });
 
   factory Tournament.fromJson(Map<String, dynamic> json) {
@@ -49,6 +53,32 @@ class Tournament {
       playersRegistered: json['players_registered'],
       status: json['status'] ?? 'unknown',
       tags: json['tags'] != null ? List<String>.from(json['tags']) : [],
+      latitude: json['latitude'] != null
+          ? double.parse(json['latitude'].toString())
+          : null,
+      longitude: json['longitude'] != null
+          ? double.parse(json['longitude'].toString())
+          : null,
     );
+  }
+
+  toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'description': description,
+      'location': location,
+      'organizer': organizer.toJson(),
+      'game': game.toJson(),
+      'start_date': startDate.toIso8601String(),
+      'end_date': endDate.toIso8601String(),
+      'media': media?.toJson(),
+      'max_players': maxPlayers,
+      'players_registered': playersRegistered,
+      'status': status,
+      'tags': tags,
+      'latitude': latitude,
+      'longitude': longitude,
+    };
   }
 }

@@ -75,3 +75,19 @@ func (s *GuildService) GetGuildsByUserId(userId uint, guilds *[]models.Guild) er
 
 	return nil
 }
+
+func (s *GuildService) CanDeleteUserFromGuild(guildID uint, connectedUserID uint, userID uint) errors.IError {
+	guild := models.Guild{}
+	user := models.User{}
+	if err := s.Db.Preload("Admins").First(&guild, guildID).Error; err != nil {
+		return errors.NewInternalServerError("Guild not found", err)
+	}
+	if err := s.Db.First(&user, userID).Error; err != nil {
+		return errors.NewInternalServerError("User not found", err)
+	}
+	if !guild.IsOwner(connectedUserID) && connectedUserID != userID {
+		return errors.NewUnauthorizedError("You are not allowed to delete this user from the guild")
+	}
+
+	return nil
+}

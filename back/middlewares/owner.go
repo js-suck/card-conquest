@@ -4,14 +4,13 @@ import (
 	"authentication-api/db"
 	"authentication-api/models"
 	"errors"
-	"fmt"
 	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
 
-func getCurrentUserFromContext(c *gin.Context) (*models.User, error) {
+func GetCurrentUserFromContext(c *gin.Context) (*models.User, error) {
 	userID, exists := c.Get("user_id")
 	if !exists {
 		return nil, errors.New("user not found in context")
@@ -27,8 +26,7 @@ func getCurrentUserFromContext(c *gin.Context) (*models.User, error) {
 
 func OwnerMiddleware(resource string, model models.IModel) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		user, err := getCurrentUserFromContext(c)
-		fmt.Println(user)
+		user, err := GetCurrentUserFromContext(c)
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "forbidden"})
 			return
@@ -52,10 +50,16 @@ func OwnerMiddleware(resource string, model models.IModel) gin.HandlerFunc {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "invalid resource ID"})
 			return
 		}
+		newModel := model.New()
 
-		switch m := model.(type) {
-		case models.User:
-			if err := db.DB.First(&m, id).Error; err != nil {
+		switch m := newModel.(type) {
+		case *models.User:
+			if err := db.DB.First(m, id).Error; err != nil {
+				c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "resource not found"})
+				return
+			}
+		default:
+			if err := db.DB.First(m, id).Error; err != nil {
 				c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "resource not found"})
 				return
 			}
@@ -63,9 +67,7 @@ func OwnerMiddleware(resource string, model models.IModel) gin.HandlerFunc {
 				c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "forbidden"})
 				return
 			}
-		default:
-			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "unsupported resource type"})
-			return
+			c.Next()
 		}
 
 		c.Next()

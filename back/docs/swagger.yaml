@@ -270,6 +270,10 @@ definitions:
         type: string
       status:
         type: string
+      subscribers:
+        items:
+          $ref: '#/definitions/models.User'
+        type: array
       tags:
         items:
           $ref: '#/definitions/models.Tag'
@@ -351,6 +355,10 @@ definitions:
         type: string
       role:
         type: string
+      suscribedTournaments:
+        items:
+          $ref: '#/definitions/models.Tournament'
+        type: array
       tournaments:
         items:
           $ref: '#/definitions/models.Tournament'
@@ -1979,7 +1987,20 @@ paths:
     get:
       consumes:
       - application/json
+      description: Get all users
       parameters:
+      - description: Filter by isVerified
+        in: query
+        name: isVerified
+        type: string
+      - description: Sort by
+        in: query
+        name: sort
+        type: string
+      - description: Filter by role
+        in: query
+        name: role
+        type: string
       - description: Filter by country
         in: query
         name: country
@@ -2003,6 +2024,7 @@ paths:
             $ref: '#/definitions/errors.ErrorResponse'
       security:
       - BearerAuth: []
+      summary: Get all users
       tags:
       - User
     post:
@@ -2075,7 +2097,49 @@ paths:
       summary: Get user stats
       tags:
       - User
-  /users/{id}:
+  /users/{id}/upload/picture:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Upload a picture
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Image file
+        in: formData
+        name: image
+        required: true
+        type: file
+      - default: Bearer <Add access token here>
+        description: Insert your access token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Upload a picture
+      tags:
+      - User
+  /users/{userID}:
     delete:
       consumes:
       - application/json
@@ -2191,48 +2255,6 @@ paths:
       summary: Update a user
       tags:
       - User
-  /users/{id}/upload/picture:
-    post:
-      consumes:
-      - multipart/form-data
-      description: Upload a picture
-      parameters:
-      - description: User ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      - description: Image file
-        in: formData
-        name: image
-        required: true
-        type: file
-      - default: Bearer <Add access token here>
-        description: Insert your access token
-        in: header
-        name: Authorization
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            type: string
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/errors.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/errors.ErrorResponse'
-      security:
-      - BearerAuth: []
-      summary: Upload a picture
-      tags:
-      - User
   /users/ranks:
     get:
       consumes:
@@ -2263,6 +2285,129 @@ paths:
       summary: Get users ranks
       tags:
       - User
+  /users/subscriptions/{userID}/tournaments:
+    get:
+      consumes:
+      - application/json
+      description: Get all tournaments a user is subscribed to
+      parameters:
+      - description: User ID
+        in: path
+        name: userID
+        required: true
+        type: integer
+      - default: Bearer <Add access token here>
+        description: Insert your access token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Tournament'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get all tournaments a user is subscribed to
+      tags:
+      - tournament
+  /users/subscriptions/{userID}/tournaments/{tournamentID}/subscribe:
+    post:
+      consumes:
+      - application/json
+      description: Subscribe a user to a tournament
+      parameters:
+      - description: User ID
+        in: path
+        name: userID
+        required: true
+        type: integer
+      - description: Tournament ID
+        in: path
+        name: tournamentID
+        required: true
+        type: integer
+      - default: Bearer <Add access token here>
+        description: Insert your access token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Subscribe a user to a tournament
+      tags:
+      - tournament
+  /users/subscriptions/{userID}/tournaments/{tournamentID}/unsubscribe:
+    post:
+      consumes:
+      - application/json
+      description: Unsubscribe a user from a tournament
+      parameters:
+      - description: User ID
+        in: path
+        name: userID
+        required: true
+        type: integer
+      - description: Tournament ID
+        in: path
+        name: tournamentID
+        required: true
+        type: integer
+      - default: Bearer <Add access token here>
+        description: Insert your access token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Unsubscribe a user from a tournament
+      tags:
+      - tournament
 securityDefinitions:
   BearerAuth:
     in: header

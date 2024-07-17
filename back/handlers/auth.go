@@ -36,6 +36,7 @@ type GoogleUser struct {
 	Email       string `json:"email"`
 	DisplayName string `json:"displayName"`
 	PhotoURL    string `json:"photoURL"`
+	FcmToken    string `json:"fcm_token"`
 }
 
 // Login godoc
@@ -193,6 +194,14 @@ func (h *AuthHandler) RegisterWithGoogle(c *gin.Context) {
 			return
 		}
 
+		if googleUser.FcmToken != "" {
+			err := h.UserService.AddFCMToken(existingUser.ID, googleUser.FcmToken)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Error adding FCM token"})
+				return
+			}
+		}
+
 		c.JSON(http.StatusOK, gin.H{
 			"message": "User already exists, logged in successfully",
 			"token":   token,
@@ -274,6 +283,14 @@ func (h *AuthHandler) RegisterWithGoogle(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create authentication token"})
 		return
+	}
+
+	if googleUser.FcmToken != "" {
+		err := h.UserService.AddFCMToken(user.ID, googleUser.FcmToken)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error adding FCM token"})
+			return
+		}
 	}
 
 	c.JSON(http.StatusCreated, gin.H{
