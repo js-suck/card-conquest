@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"authentication-api/errors"
+	"authentication-api/middlewares"
 	"authentication-api/models"
 	"authentication-api/services"
 	"github.com/gin-gonic/gin"
@@ -11,13 +12,13 @@ import (
 )
 
 type TournamentHandler struct {
-	TournamentService *services.TournamentService
-	FileService       *services.FileService
-	MatchService      *services.MatchService
+	TounamentService *services.TournamentService
+	FileService      *services.FileService
+	MatchService     *services.MatchService
 }
 
 func NewTournamentHandler(tournamentService *services.TournamentService, fileService *services.FileService, matchService *services.MatchService) *TournamentHandler {
-	return &TournamentHandler{TournamentService: tournamentService, FileService: fileService, MatchService: matchService}
+	return &TournamentHandler{TounamentService: tournamentService, FileService: fileService, MatchService: matchService}
 }
 
 func (h *TournamentHandler) parseFilterParams(c *gin.Context) services.FilterParams {
@@ -83,15 +84,13 @@ func (h *TournamentHandler) parseFilterParams(c *gin.Context) services.FilterPar
 // @Param Authorization header string true "Insert your access token" default(Bearer <Add access token here>)
 // @Router /tournaments [post]
 func (h *TournamentHandler) CreateTournament(c *gin.Context) {
-	file, err := c.FormFile("image")
-	if err != nil {
-		if errors.IsFileNotFound(err) {
-			file = nil
-		} else {
-			c.JSON(http.StatusBadRequest, errors.NewBadRequestError("Something went wrong with the file", err).ToGinH())
-			return
-		}
+
+	user, errUserCtx := middlewares.GetCurrentUserFromContext(c)
+	if errUserCtx != nil {
+		c.JSON(http.StatusForbidden, errors.NewErrorResponse(403, "Forbidden").ToGinH())
+		return
 	}
+
 	tagsIDsStr := c.PostFormArray("tagsIDs[]")
 	var tagsIDs []uint
 
@@ -117,7 +116,7 @@ func (h *TournamentHandler) CreateTournament(c *gin.Context) {
 		StartDate:   payload.StartDate,
 		EndDate:     payload.EndDate,
 		Location:    payload.Location,
-		UserID:      payload.UserID,
+		UserID:      user.ID,
 		GameID:      payload.GameID,
 		Rounds:      payload.Rounds,
 		Longitude:   payload.Longitude,
@@ -125,25 +124,35 @@ func (h *TournamentHandler) CreateTournament(c *gin.Context) {
 		MaxPlayers:  payload.MaxPlayers,
 	}
 
-	if file != nil {
-		// Upload de l'image
-		mediaModel, _, errUpload := h.FileService.UploadMedia(file)
-		if errUpload != nil {
-			c.JSON(http.StatusBadRequest, errors.NewBadRequestError("Invalid request", errUpload).ToGinH())
-			return
+	tags, err := h.TounamentService.GetTagsByIDs(tagsIDs)
+	if c.Request.MultipartForm != nil && len(c.Request.MultipartForm.File["image"]) > 0 {
+		file, err := c.FormFile("image")
+		if err != nil {
+			if errors.IsFileNotFound(err) {
+				file = nil
+			} else {
+				c.JSON(http.StatusBadRequest, errors.NewBadRequestError("Something went wrong with the file", err).ToGinH())
+				return
+			}
 		}
-		tournament.MediaModel.Media = mediaModel
+		if file != nil {
+			// Upload de l'image
+			mediaModel, _, errUpload := h.FileService.UploadMedia(file)
+			if errUpload != nil {
+				c.JSON(http.StatusBadRequest, errors.NewBadRequestError("Invalid request", errUpload).ToGinH())
+				return
+			}
+			tournament.MediaModel.Media = mediaModel
 
+		}
 	}
-
-	tags, err := h.TournamentService.GetTagsByIDs(tagsIDs)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, errors.NewErrorResponse(500, err.Error()).ToGinH())
 		return
 	}
 	tournament.Tags = tags
 
-	errorCreated := h.TournamentService.CreateTournament(&tournament)
+	errorCreated := h.TounamentService.CreateTournament(&tournament)
 	if errorCreated != nil {
 		c.JSON(errorCreated.Code(), errorCreated.Error())
 		return
@@ -175,7 +184,7 @@ func (h *TournamentHandler) GetTournament(c *gin.Context) {
 
 	tournament := models.Tournament{}
 
-	errService := h.TournamentService.Get(&tournament, uint(idInt), "User", "Game", "Media", "Users")
+	errService := h.TounamentService.Get(&tournament, uint(idInt), "User", "Game", "Media", "Users")
 
 	if err != nil {
 		c.JSON(errService.Code(), err)
@@ -218,7 +227,7 @@ func (h *TournamentHandler) GetTournaments(c *gin.Context) {
 
 	filterParams := h.parseFilterParams(c)
 
-	err := h.TournamentService.GetAll(&tournaments, filterParams, "User", "Game", "Media", "Users")
+	err := h.TounamentService.GetAll(&tournaments, filterParams, "User", "Game", "Media", "Users")
 
 	// use toRead method to convert the model to the read model
 	for i, tournament := range tournaments {
@@ -232,21 +241,22 @@ func (h *TournamentHandler) GetTournaments(c *gin.Context) {
 	}
 
 	if tournamentsParams.WithRecents {
-		err = h.TournamentService.GetRecentsTournaments(&recentTournaments)
+		err = h.TounamentService.GetRecentsTournaments(&recentTournaments)
 
 		if err != nil {
 			c.JSON(err.Code(), err)
 			return
 		}
 
+		formattedRecentTournaments := make([]models.TournamentRead, len(recentTournaments))
 		for i, tournament := range recentTournaments {
-			formattedTournaments = append(formattedTournaments, tournament.ToRead())
 			recentTournaments[i] = tournament
+			formattedRecentTournaments[i] = tournament.ToRead()
 		}
 
 		c.JSON(http.StatusOK, gin.H{
 			"allTournaments":    formattedTournaments,
-			"recentTournaments": recentTournaments,
+			"recentTournaments": formattedRecentTournaments,
 		})
 
 	} else {
@@ -283,7 +293,7 @@ func (h *TournamentHandler) RegisterUser(context *gin.Context) {
 		return
 	}
 
-	errService := h.TournamentService.RegisterUser(uint(tournamentID), uint(userID))
+	errService := h.TounamentService.RegisterUser(uint(tournamentID), uint(userID))
 	if errService != nil {
 		context.JSON(errService.Code(), errService)
 		return
@@ -373,7 +383,7 @@ func (h *TournamentHandler) StartTournament(context *gin.Context) {
 		return
 	}
 
-	errService := h.TournamentService.StartTournament(uint(tournamentID))
+	errService := h.TounamentService.StartTournament(uint(tournamentID))
 	if errService != nil {
 		context.JSON(errService.Code(), errService)
 		return
@@ -431,7 +441,7 @@ func (h *TournamentHandler) GetTournamentRankings(c *gin.Context) {
 
 		filterParams := h.parseFilterParams(c)
 
-		ranking, errService := h.TournamentService.CalculateRanking(&filterParams)
+		ranking, errService := h.TounamentService.CalculateRanking(&filterParams)
 		if errService != nil {
 			c.JSON(errService.Code(), errService)
 			return
@@ -441,7 +451,7 @@ func (h *TournamentHandler) GetTournamentRankings(c *gin.Context) {
 
 	}
 
-	ranking, errService := h.TournamentService.GetGlobalRankings()
+	ranking, errService := h.TounamentService.GetGlobalRankings()
 	if errService != nil {
 		c.JSON(errService.Code(), errService)
 		return
@@ -486,6 +496,14 @@ func (h *TournamentHandler) UpdateTournament(c *gin.Context) {
 	}
 
 	file, err := c.FormFile("image")
+	if err != nil {
+		if errors.IsFileNotFound(err) {
+			file = nil
+		} else {
+			c.JSON(http.StatusBadRequest, errors.NewBadRequestError("Something went wrong with the file", err).ToGinH())
+			return
+		}
+	}
 
 	tagsIDsStr := c.PostFormArray("tagsIDs[]")
 	var tagsIDs []uint
@@ -507,9 +525,7 @@ func (h *TournamentHandler) UpdateTournament(c *gin.Context) {
 	}
 
 	tournament := models.Tournament{
-		BaseModel: models.BaseModel{
-			ID: uint(tournamentID),
-		},
+		ID:          uint(tournamentID),
 		Name:        payload.Name,
 		Description: payload.Description,
 		StartDate:   payload.StartDate,
@@ -521,10 +537,9 @@ func (h *TournamentHandler) UpdateTournament(c *gin.Context) {
 		Longitude:   payload.Longitude,
 		Latitude:    payload.Latitude,
 		MaxPlayers:  payload.MaxPlayers,
-		Status:      payload.Status,
 	}
 
-	tags, err := h.TournamentService.GetTagsByIDs(tagsIDs)
+	tags, err := h.TounamentService.GetTagsByIDs(tagsIDs)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, errors.NewErrorResponse(500, err.Error()).ToGinH())
 		return
@@ -540,7 +555,7 @@ func (h *TournamentHandler) UpdateTournament(c *gin.Context) {
 		tournament.MediaModel.Media = mediaModel
 	}
 
-	errorUpdated := h.TournamentService.Update(&tournament)
+	errorUpdated := h.TounamentService.Update(&tournament)
 	if errorUpdated != nil {
 		c.JSON(errorUpdated.Code(), errorUpdated.Error())
 		return
@@ -569,10 +584,90 @@ func (h *TournamentHandler) DeleteTournament(c *gin.Context) {
 		return
 	}
 
-	if err := h.TournamentService.Delete(uint(id)); err != nil {
+	if err := h.TounamentService.Delete(uint(id)); err != nil {
 		c.JSON(err.Code(), err)
 		return
 	}
 
 	c.Status(http.StatusNoContent)
+}
+
+// SubscribeToTournament godoc
+// @Summary Subscribe a user to a tournament
+// @Description Subscribe a user to a tournament
+// @Tags tournament
+// @Accept json
+// @Produce json
+// @Param userID path int true "User ID"
+// @Param tournamentID path int true "Tournament ID"
+// @Success 200 {object} string
+// @Failure 400 {object} errors.ErrorResponse
+// @Failure 500 {object} errors.ErrorResponse
+// @Security BearerAuth
+// @Param Authorization header string true "Insert your access token" default(Bearer <Add access token here>)
+// @Router /users/subscriptions/{userID}/tournaments/{tournamentID}/subscribe [post]
+func (h *TournamentHandler) SubscribeToTournament(c *gin.Context) {
+	userID, _ := strconv.Atoi(c.Param("userID"))
+	tournamentID, _ := strconv.Atoi(c.Param("tournamentID"))
+
+	err := h.TounamentService.UserSubscribeToTournaments(uint(userID), uint(tournamentID))
+	if err != nil {
+		c.JSON(err.Code(), err)
+		return
+	}
+
+	c.JSON(http.StatusOK, "User subscribed successfully")
+}
+
+// UnsubscribeFromTournament godoc
+// @Summary Unsubscribe a user from a tournament
+// @Description Unsubscribe a user from a tournament
+// @Tags tournament
+// @Accept json
+// @Produce json
+// @Param userID path int true "User ID"
+// @Param tournamentID path int true "Tournament ID"
+// @Success 200 {object} string
+// @Failure 400 {object} errors.ErrorResponse
+// @Failure 500 {object} errors.ErrorResponse
+// @Security BearerAuth
+// @Param Authorization header string true "Insert your access token" default(Bearer <Add access token here>)
+// @Router /users/subscriptions/{userID}/tournaments/{tournamentID}/unsubscribe [post]
+func (h *TournamentHandler) UnsubscribeFromTournament(c *gin.Context) {
+	userID, _ := strconv.Atoi(c.Param("userID"))
+	tournamentID, _ := strconv.Atoi(c.Param("tournamentID"))
+
+	err := h.TounamentService.UserUnsubscribeToTournaments(uint(userID), uint(tournamentID))
+	if err != nil {
+		c.JSON(err.Code(), err)
+		return
+	}
+
+	c.JSON(http.StatusOK, "User unsubscribed successfully")
+}
+
+// GetSubscribedTournaments godoc
+// @Summary Get all tournaments a user is subscribed to
+// @Description Get all tournaments a user is subscribed to
+// @Tags tournament
+// @Accept json
+// @Produce json
+// @Param userID path int true "User ID"
+// @Success 200 {array} models.Tournament
+// @Failure 400 {object} errors.ErrorResponse
+// @Failure 500 {object} errors.ErrorResponse
+// @Security BearerAuth
+// @Param Authorization header string true "Insert your access token" default(Bearer <Add access token here>)
+// @Router /users/subscriptions/{userID}/tournaments [get]
+func (h *TournamentHandler) GetSubscribedTournaments(c *gin.Context) {
+	userID, _ := strconv.Atoi(c.Param("userID"))
+	var tournaments []models.Tournament
+
+	err := h.TounamentService.GetSubscribedTournaments(uint(userID), &tournaments)
+	if err != nil {
+		c.JSON(err.Code(), err)
+		return
+	}
+
+	c.JSON(http.StatusOK, tournaments)
 }
