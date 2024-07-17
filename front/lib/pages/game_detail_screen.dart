@@ -149,7 +149,7 @@ class _GameDetailPageState extends State<GameDetailPage> with SingleTickerProvid
       return Center(child: Text(t.noGamesFound));
     }
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(8.0),
+      padding: const EdgeInsets.all(4.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

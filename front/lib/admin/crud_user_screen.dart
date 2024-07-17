@@ -80,7 +80,7 @@ class _CrudUserScreenState extends State<CrudUserScreen> {
 
   void _showUserDialog(User? user) {
     final _usernameController =
-    TextEditingController(text: user?.username ?? '');
+        TextEditingController(text: user?.username ?? '');
     final _emailController = TextEditingController(text: user?.email ?? '');
     final _passwordController = TextEditingController();
     final _formKey = GlobalKey<FormState>();
@@ -111,9 +111,9 @@ class _CrudUserScreenState extends State<CrudUserScreen> {
                   decoration: const InputDecoration(labelText: 'Role'),
                   items: ['user', 'organizer', 'admin']
                       .map((role) => DropdownMenuItem(
-                    value: role,
-                    child: Text(role),
-                  ))
+                            value: role,
+                            child: Text(role),
+                          ))
                       .toList(),
                   onChanged: (value) {
                     setState(() {
@@ -165,7 +165,7 @@ class _CrudUserScreenState extends State<CrudUserScreen> {
                   if (user == null) {
                     _createUser(
                       User(
-                        id: null,
+                        id: 0,
                         username: _usernameController.text,
                         email: _emailController.text,
                         role: _selectedRole!,

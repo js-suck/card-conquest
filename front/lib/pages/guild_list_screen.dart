@@ -3,8 +3,13 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:front/models/user.dart';
+import 'package:front/pages/guild_screen.dart';
+import 'package:provider/provider.dart';
+import '../models/guild.dart';
 
 import '../models/guild.dart' as guild;
+import '../providers/user_provider.dart';
 import '../service/guild_service.dart';
 
 class GuildListScreen extends StatefulWidget {
@@ -56,9 +61,13 @@ class _GuildListScreenState extends State<GuildListScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(t.guildJoinedSuccess)),
         );
+        List<Guild> userGuilds =
+            await guildService.fetchUserGuild(int.parse(userID));
+
+        Provider.of<UserProvider>(context, listen: false)
+            .updateUserGuilds(userGuilds);
 
         Navigator.pushNamed(context, '/guild');
-
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(t.guildJoinFailed)),
@@ -73,18 +82,11 @@ class _GuildListScreenState extends State<GuildListScreen> {
 
   @override
   Widget build(BuildContext context) {
+    User? user = Provider.of<UserProvider>(context).user;
     final t = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
         title: Text(t.guildList),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.add),
-            onPressed: () {
-              Navigator.pushNamed(context, '/guild/create');
-            },
-          ),
-        ],
         bottom: PreferredSize(
           preferredSize: Size.fromHeight(60.0),
           child: Column(
@@ -124,23 +126,23 @@ class _GuildListScreenState extends State<GuildListScreen> {
                 itemBuilder: (context, index) {
                   var guild = _filteredGuilds[index];
                   return Card(
-                    child: ListTile(
-                      leading: CircleAvatar(
-                        backgroundImage: CachedNetworkImageProvider(
-                          '${dotenv.env['MEDIA_URL']}${guild.media?.fileName}',
-                        ),
-                        radius: 25,
+                      child: ListTile(
+                    leading: CircleAvatar(
+                      backgroundImage: CachedNetworkImageProvider(
+                        '${dotenv.env['MEDIA_URL']}${guild.media?.fileName}',
                       ),
-                      title: Text(guild.name ?? ''),
-                      subtitle: Text(guild.description ?? ''),
-                      trailing: ElevatedButton(
-                        onPressed: () {
-                          join(context, guild.id.toString());
-                        },
-                        child:  Text(t.guildJoin),
-                      ),
+                      radius: 25,
                     ),
-                  );
+                    title: Text(guild.name ?? ''),
+                    subtitle: Text(guild.description ?? ''),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => GuildView(guildId: guild.id)),
+                      );
+                    },
+                  ));
                 },
               );
             } else {
@@ -149,13 +151,16 @@ class _GuildListScreenState extends State<GuildListScreen> {
           },
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.pushNamed(context, '/guild/create');
-        },
-        child: Icon(Icons.add),
-        tooltip: t.guildCreateMine,
-      ),
+      floatingActionButton:
+          user != null && (user.IsAdmin() || user.IsOrganizer())
+              ? FloatingActionButton(
+                  onPressed: () {
+                    Navigator.pushNamed(context, '/guild/create');
+                  },
+                  child: Icon(Icons.add),
+                  tooltip: t.guildCreateMine,
+                )
+              : null,
     );
   }
 }

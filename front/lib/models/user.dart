@@ -2,7 +2,7 @@ import 'guild.dart';
 import 'media.dart';
 
 class User {
-  final int? id;
+  final int id;
   late final String username;
   late final String? email;
   final String? address;
@@ -10,10 +10,10 @@ class User {
   final String? role;
   final String? country;
   final Media? media;
-  final List<Guild>? guilds;
+  List<Guild>? guilds;
 
   User({
-    this.id,
+    required this.id,
     required this.username,
     this.email,
     this.address,
@@ -38,6 +38,22 @@ class User {
           ? List<Guild>.from(json['guilds'].map((item) => Guild.fromJson(item)))
           : null,
     );
+  }
+
+  bool IsAdmin() {
+    return role == "admin";
+  }
+
+  bool IsUser() {
+    return role == "user";
+  }
+
+  bool IsOrganizer() {
+    return role == "organizer";
+  }
+
+  void setGuilds(List<Guild> guilds) {
+    this.guilds = guilds;
   }
 
   Map<String, dynamic> toJson() {

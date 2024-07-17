@@ -32,8 +32,7 @@ var routes = <String, WidgetBuilder>{
   '/profile': (context) => const ProfilePage(),
   '/settings': (context) => const SettingsPage(),
   '/games': (context) => const GamesPage(),
-  '/tournamentUpdatesDemo': (context) =>
-      TournamentUpdateScreen(tournamentID: 1),
+  '/tournamentUpdatesDemo': (context) =>  TournamentUpdateScreen(tournamentID: 1),
   '/tournaments/map': (context) => TournamentMap(),
   '/bracket': (context) => const BracketPage(tournamentID: 1),
   '/match': (context) => MatchPage(),
@@ -43,18 +42,10 @@ var routes = <String, WidgetBuilder>{
   '/guild': (context) => const GuildView(),
   '/guilds': (context) => const GuildListScreen(),
   '/guild/create': (context) => const CreateGuildPage(),
-  '/chat/:guildId': (context) => const ChatClientScreen(
-      guildId: 1,
-      username: 'laila',
-      userId: 1,
-      mediaUrl: 'https://www.placecage.com/200/300'),
+  '/chat/:guildId': (context) => const ChatClientScreen(guildId: 1, username: 'laila', userId: 1, mediaUrl: 'https://www.placecage.com/200/300'),
   '/orga/add/tournament': (context) => const OrgaPage(),
   '/orga/home': (context) => OrganizerHomePage(),
   '/home_user': (context) => const HomeUserPage(),
+  '/chat': (context) => const ChatClientScreen(guildId: 1, username: 'laila', userId: 1, mediaUrl: 'https://www.placecage.com/200/300'),
   '/admin': (context) => const AdminHomeScreen(),
-  '/chat': (context) => const ChatClientScreen(
-      guildId: 1,
-      username: 'laila',
-      userId: 1,
-      mediaUrl: 'https://www.placecage.com/200/300'),
 };
