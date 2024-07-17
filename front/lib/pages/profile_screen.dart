@@ -61,7 +61,7 @@ class _ProfilePageState extends State<ProfilePage> {
       userData = {
         'username': user.username,
         'email': user.email,
-        "guilds" : user.guilds
+        "guilds": user.guilds
       };
       _isLoading = false;
     });

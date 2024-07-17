@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:front/auth/login_screen.dart';
 import 'package:front/auth/signup_screen.dart';
 import 'package:front/home_screen.dart';
+import 'package:front/pages/orga_manage.dart';
 import 'package:front/main_screen.dart';
+import 'package:front/pages/orga_new_tournament.dart';
+import 'package:front/pages/orga_home.dart';
 import 'package:front/pages/bracket_screen.dart';
 import 'package:front/pages/games_screen.dart';
 import 'package:front/pages/home_user_screen.dart';
@@ -45,6 +48,8 @@ var routes = <String, WidgetBuilder>{
       username: 'laila',
       userId: 1,
       mediaUrl: 'https://www.placecage.com/200/300'),
+  '/orga/add/tournament': (context) => const OrgaPage(),
+  '/orga/home': (context) => OrganizerHomePage(),
   '/home_user': (context) => const HomeUserPage(),
   '/admin': (context) => const AdminHomeScreen(),
   '/chat': (context) => const ChatClientScreen(

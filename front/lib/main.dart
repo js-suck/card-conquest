@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:front/pages/orga_manage.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
@@ -105,6 +106,13 @@ class _MyAppState extends State<MyApp> {
         locale: _locale,
         initialRoute: '/',
         onGenerateRoute: (settings) {
+          if (settings.name == '/orga/manage/tournament') {
+            final int tournamentId = settings.arguments as int;
+            return MaterialPageRoute(
+              builder: (context) =>
+                  OrganizerManagePage(tournamentId: tournamentId),
+            );
+          }
           final Uri uri = Uri.parse(settings.name!);
           if (uri.pathSegments.length == 2 &&
               uri.pathSegments.first == 'chat') {
