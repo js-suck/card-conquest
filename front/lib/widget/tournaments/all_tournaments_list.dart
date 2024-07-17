@@ -60,7 +60,7 @@ class AllTournamentsList extends StatelessWidget {
                   ),
                 )
               ],
-      )
+            )
           : GridView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),

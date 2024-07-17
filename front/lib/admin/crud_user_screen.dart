@@ -246,5 +246,4 @@ class _CrudUserScreenState extends State<CrudUserScreen> {
       ),
     );
   }
-
 }

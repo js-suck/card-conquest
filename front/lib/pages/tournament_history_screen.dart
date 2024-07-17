@@ -40,6 +40,7 @@ class _TournamentHistoryPageState extends State<TournamentHistoryPage>
     } else {
       throw Exception('Failed to load user id');
     }
+    return 0;
   }
 
   Future<void> _onTournamentTapped(int tournamentId, String status) async {

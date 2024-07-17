@@ -148,7 +148,7 @@ class TournamentService {
     }
     return responseJson.map((json) => Tournament.fromJson(json)).toList();
   }
-
+  
   Future<void> subscribeToTournament(int userId, int tournamentId) async {
     String? token = await storage.read(key: 'jwt_token');
     final response = await http.post(
@@ -193,3 +193,4 @@ class TournamentService {
     return responseJson.map((json) => Tournament.fromJson(json)).toList();
   }
 }
+
