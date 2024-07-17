@@ -19,25 +19,27 @@ import 'match.pb.dart' as $0;
 
 export 'match.pb.dart';
 
-@$pb.GrpcServiceName('protos.MatchService')
 class MatchServiceClient extends $grpc.Client {
-  static final _$subscribeMatchUpdates = $grpc.ClientMethod<$0.MatchRequest, $0.MatchResponse>(
-      '/protos.MatchService/SubscribeMatchUpdates',
-      ($0.MatchRequest value) => value.writeToBuffer(),
-      ($core.List<$core.int> value) => $0.MatchResponse.fromBuffer(value));
+  static final _$subscribeMatchUpdates =
+      $grpc.ClientMethod<$0.MatchRequest, $0.MatchResponse>(
+          '/protos.MatchService/SubscribeMatchUpdates',
+          ($0.MatchRequest value) => value.writeToBuffer(),
+          ($core.List<$core.int> value) => $0.MatchResponse.fromBuffer(value));
 
   MatchServiceClient($grpc.ClientChannel channel,
       {$grpc.CallOptions? options,
       $core.Iterable<$grpc.ClientInterceptor>? interceptors})
-      : super(channel, options: options,
-        interceptors: interceptors);
+      : super(channel, options: options, interceptors: interceptors);
 
-  $grpc.ResponseStream<$0.MatchResponse> subscribeMatchUpdates($0.MatchRequest request, {$grpc.CallOptions? options}) {
-    return $createStreamingCall(_$subscribeMatchUpdates, $async.Stream.fromIterable([request]), options: options);
+  $grpc.ResponseStream<$0.MatchResponse> subscribeMatchUpdates(
+      $0.MatchRequest request,
+      {$grpc.CallOptions? options}) {
+    return $createStreamingCall(
+        _$subscribeMatchUpdates, $async.Stream.fromIterable([request]),
+        options: options);
   }
 }
 
-@$pb.GrpcServiceName('protos.MatchService')
 abstract class MatchServiceBase extends $grpc.Service {
   $core.String get $name => 'protos.MatchService';
 
@@ -51,9 +53,11 @@ abstract class MatchServiceBase extends $grpc.Service {
         ($0.MatchResponse value) => value.writeToBuffer()));
   }
 
-  $async.Stream<$0.MatchResponse> subscribeMatchUpdates_Pre($grpc.ServiceCall call, $async.Future<$0.MatchRequest> request) async* {
+  $async.Stream<$0.MatchResponse> subscribeMatchUpdates_Pre(
+      $grpc.ServiceCall call, $async.Future<$0.MatchRequest> request) async* {
     yield* subscribeMatchUpdates(call, await request);
   }
 
-  $async.Stream<$0.MatchResponse> subscribeMatchUpdates($grpc.ServiceCall call, $0.MatchRequest request);
+  $async.Stream<$0.MatchResponse> subscribeMatchUpdates(
+      $grpc.ServiceCall call, $0.MatchRequest request);
 }
