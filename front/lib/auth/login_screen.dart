@@ -22,7 +22,7 @@ import '../generated/chat.pb.dart';
 Future<void> login(
     BuildContext context, String username, String password) async {
   final storage =
-  new FlutterSecureStorage(); // Create instance of secure storage
+      new FlutterSecureStorage(); // Create instance of secure storage
   String? fcmToken = await storage.read(key: 'fcm_token');
   final response = await http.post(
     Uri.parse('${dotenv.env['API_URL']}login'),
