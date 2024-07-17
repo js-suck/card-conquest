@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -87,19 +86,57 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : GridView.count(
+          : Column(
+        children: [
+          Container(
+            height: MediaQuery.of(context).size.height * 0.7,
+            padding: const EdgeInsets.all(16.0),
+            child: GridView.count(
               crossAxisCount: 3,
-              padding: const EdgeInsets.all(16.0),
+              childAspectRatio: 2,
               children: [
-                DashboardCard(title: 'Users', count: usersCount.toString()),
                 DashboardCard(
-                    title: 'Tournaments', count: tournamentsCount.toString()),
-                DashboardCard(title: 'Guilds', count: guildsCount.toString()),
-                DashboardCard(title: 'Games', count: gamesCount.toString()),
-                DashboardCard(title: 'Tags', count: tagsCount.toString()),
-                DashboardCard(title: 'Matches', count: matchesCount.toString()),
+                  title: 'Users',
+                  count: usersCount.toString(),
+                  icon: Icons.person,
+                  color: Colors.blue,
+                ),
+                DashboardCard(
+                  title: 'Tournaments',
+                  count: tournamentsCount.toString(),
+                  icon: Icons.emoji_events,
+                  color: Colors.orange,
+                ),
+                DashboardCard(
+                  title: 'Guilds',
+                  count: guildsCount.toString(),
+                  icon: Icons.group,
+                  color: Colors.green,
+                ),
+                DashboardCard(
+                  title: 'Games',
+                  count: gamesCount.toString(),
+                  icon: Icons.videogame_asset,
+                  color: Colors.red,
+                ),
+                DashboardCard(
+                  title: 'Tags',
+                  count: tagsCount.toString(),
+                  icon: Icons.label,
+                  color: Colors.purple,
+                ),
+                DashboardCard(
+                  title: 'Matches',
+                  count: matchesCount.toString(),
+                  icon: Icons.credit_card_rounded,
+                  color: Colors.teal,
+                ),
               ],
             ),
+          ),
+          // Vous pouvez ajouter d'autres widgets ici si nécessaire
+        ],
+      ),
     );
   }
 }
@@ -107,11 +144,15 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
 class DashboardCard extends StatelessWidget {
   final String title;
   final String count;
+  final IconData icon;
+  final Color color;
 
   const DashboardCard({
     Key? key,
     required this.title,
     required this.count,
+    required this.icon,
+    required this.color,
   }) : super(key: key);
 
   @override
@@ -120,14 +161,22 @@ class DashboardCard extends StatelessWidget {
       margin: const EdgeInsets.all(8.0),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       elevation: 4,
-      child: Padding(
+      child: Container(
+        width: double.infinity,
         padding: const EdgeInsets.all(12.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            CircleAvatar(
+              backgroundColor: color.withOpacity(0.1),
+              child: Icon(icon, size: 40.0, color: color),
+              radius: 30,
+            ),
+            const SizedBox(height: 16.0),
+            Text(count, style: Theme.of(context).textTheme.headlineMedium),
+            const SizedBox(height: 8.0),
             Text(title, style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 8.0),
-            Text(count, style: Theme.of(context).textTheme.headlineMedium),
           ],
         ),
       ),
