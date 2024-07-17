@@ -9,3 +9,6 @@ time="2024-07-16T14:32:02+02:00" level=info msg="Server is running on port 50051
 time="2024-07-16T15:32:18+02:00" level=info msg="Application started"
 time="2024-07-16T15:32:19+02:00" level=info msg="Aucun argument fourni."
 time="2024-07-16T15:32:19+02:00" level=info msg="Server is running on port 50051"
+time="2024-07-17T10:33:12+02:00" level=info msg="Application started"
+time="2024-07-17T10:33:20+02:00" level=info msg="Aucun argument fourni."
+time="2024-07-17T10:33:20+02:00" level=info msg="Server is running on port 50051"
