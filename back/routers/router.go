@@ -110,6 +110,7 @@ func SetupRouter(db *gorm.DB) *gin.Engine {
 		protectedRoutes.POST("/tournaments/:id/start", tournamentHandler.StartTournament)
 		protectedRoutes.POST("/tournaments/:id/register/:userID", tournamentHandler.RegisterUser)
 		protectedRoutes.POST("/tournaments/:id/generate-matches", tournamentHandler.GenerateMatches)
+		protectedRoutes.DELETE("/tournaments/:id", tournamentHandler.DeleteTournament)
 
 		//protectedRoutes.POST("/matches/:id/finish", tournamentHandler.FinishMatch)
 		protectedRoutes.POST("/matchs/update/score", permissions.PermissionMiddleware(permissions.PermissionUpdateMatch), matchHandler.UpdateScore)
