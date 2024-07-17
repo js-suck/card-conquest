@@ -59,7 +59,7 @@ class TournamentService {
     }
     final Map<String, dynamic> responseJson = jsonDecode(response.body);
     final List<dynamic> recentTournamentsJson =
-        responseJson['recentTournaments'];
+    responseJson['recentTournaments'];
     return recentTournamentsJson
         .map((json) => TournamentHome.fromJson(json))
         .toList();
@@ -67,47 +67,59 @@ class TournamentService {
 
   Future<List<Tournament>> fetchUpcomingTournamentsOfUser(int userId) async {
     String? token = await storage.read(key: 'jwt_token');
-    List<Tournament> upcomingTournaments = [];
     final response = await http.get(
       Uri.parse('${dotenv.env['API_URL']}tournaments?UserID=$userId'),
       headers: {
         'Authorization': '$token',
       },
     );
+
     if (response.statusCode != 200) {
       throw Exception('Failed to load upcoming tournaments');
     }
-    List<dynamic> tournaments = json.decode(response.body);
+
+    List<dynamic>? tournaments = jsonDecode(response.body);
+    if (tournaments == null) {
+      return [];
+    }
+
+    List<Tournament> upcomingTournaments = [];
     for (var tournament in tournaments) {
       Tournament tournamentObj = Tournament.fromJson(tournament);
-      if (tournamentObj.status == 'opened' ||
-          tournamentObj.status == 'started') {
+      if (tournamentObj.status == 'opened' || tournamentObj.status == 'started') {
         upcomingTournaments.add(tournamentObj);
       }
     }
+
     return upcomingTournaments;
   }
 
   Future<List<Tournament>> fetchPastTournamentsOfUser(int userId) async {
     String? token = await storage.read(key: 'jwt_token');
-    List<Tournament> pastTournaments = [];
     final response = await http.get(
       Uri.parse('${dotenv.env['API_URL']}tournaments?UserID=$userId'),
       headers: {
         'Authorization': '$token',
       },
     );
+
     if (response.statusCode != 200) {
-      throw Exception('Failed to load upcoming tournaments');
+      throw Exception('Failed to load past tournaments');
     }
-    List<dynamic> tournaments = json.decode(response.body);
+
+    List<dynamic>? tournaments = jsonDecode(response.body);
+    if (tournaments == null) {
+      return [];
+    }
+
+    List<Tournament> pastTournaments = [];
     for (var tournament in tournaments) {
       Tournament tournamentObj = Tournament.fromJson(tournament);
-      if (tournamentObj.status == 'finished' ||
-          tournamentObj.status == 'canceled') {
+      if (tournamentObj.status == 'finished' || tournamentObj.status == 'canceled') {
         pastTournaments.add(tournamentObj);
       }
     }
+
     return pastTournaments;
   }
 
@@ -125,9 +137,11 @@ class TournamentService {
       throw Exception('Failed to load tournaments');
     }
     final List<dynamic> responseJson = jsonDecode(response.body);
+    if(responseJson == null){
+      return [];
+    }
     return responseJson.map((json) => Tournament.fromJson(json)).toList();
   }
-
 
   Future<void> subscribeToTournament(int userId, int tournamentId) async {
     String? token = await storage.read(key: 'jwt_token');
@@ -173,4 +187,3 @@ class TournamentService {
     return responseJson.map((json) => Tournament.fromJson(json)).toList();
   }
 }
-
