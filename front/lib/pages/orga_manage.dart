@@ -15,6 +15,7 @@ import 'package:front/widget/expandable_fab.dart';
 import 'package:flutter_google_places/flutter_google_places.dart';
 import 'package:google_maps_webservice/places.dart';
 import 'package:intl/intl.dart';
+import 'package:front/pages/bracket_screen.dart';
 
 class OrganizerManagePage extends StatefulWidget {
   final int tournamentId;
@@ -27,22 +28,24 @@ class OrganizerManagePage extends StatefulWidget {
 
 class _OrganizerManagePageState extends State<OrganizerManagePage>
     with SingleTickerProviderStateMixin {
-  late Future<Tournament> futureTournament;
   late TabController _tabController;
   final storage = const FlutterSecureStorage();
-  ValueNotifier<String> locationNotifier = ValueNotifier<String>("");
 
-  late TextEditingController _nameController;
-  late TextEditingController _descriptionController;
-  late TextEditingController _locationController;
-  late TextEditingController _startDateController;
-  late TextEditingController _endDateController;
+  bool _loading = true;
+  Tournament? _tournament;
+
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _descriptionController = TextEditingController();
+  final TextEditingController _locationController = TextEditingController();
+  final TextEditingController _startDateController = TextEditingController();
+  final TextEditingController _endDateController = TextEditingController();
 
   double? latitude;
   double? longitude;
   File? _selectedImage;
   DateTime? _startDate;
   DateTime? _endDate;
+
   Future<void> _selectStartDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
@@ -84,13 +87,19 @@ class _OrganizerManagePageState extends State<OrganizerManagePage>
   @override
   void initState() {
     super.initState();
-    futureTournament = fetchTournament(widget.tournamentId);
     _tabController = TabController(length: 2, vsync: this);
-    _nameController = TextEditingController();
-    _descriptionController = TextEditingController();
-    _locationController = TextEditingController();
-    _startDateController = TextEditingController();
-    _endDateController = TextEditingController();
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
+      final tournament = await fetchTournament(widget.tournamentId);
+      setState(() {
+        _nameController.text = tournament.name;
+        _locationController.text = tournament.location;
+        _descriptionController.text = tournament.description;
+        _startDateController.text = _formatDateForDisplay(tournament.startDate);
+        _endDateController.text = _formatDateForDisplay(tournament.endDate);
+        _tournament = tournament;
+        _loading = false;
+      });
+    });
   }
 
   Future<Tournament> fetchTournament(int id) async {
@@ -112,15 +121,6 @@ class _OrganizerManagePageState extends State<OrganizerManagePage>
 
   Future<void> updateTournament(Tournament tournament) async {
     String? token = await storage.read(key: 'jwt_token');
-    print(_nameController.text);
-    print(_descriptionController.text);
-    print(_locationController.text);
-    print(latitude.toString());
-    print(longitude.toString());
-    print(_startDate);
-    print(_endDate);
-    print(_formatDateForBackend(_startDate!));
-    print(_formatDateForBackend(_endDate!));
     final response = await http.put(
       Uri.parse('${dotenv.env['API_URL']}tournaments/${tournament.id}'),
       headers: {
@@ -131,12 +131,10 @@ class _OrganizerManagePageState extends State<OrganizerManagePage>
         'name': _nameController.text,
         'description': _descriptionController.text,
         'location': _locationController.text,
-        //'latitude': latitude.toString(),
-        //'longitude': longitude.toString(),
-        //'max_players': int.parse(_maxPlayersController.text),
+        'latitude': latitude.toString(),
+        'longitude': longitude.toString(),
         'start_date': _formatDateForBackend(_startDate!),
         'end_date': _formatDateForBackend(_endDate!),
-        // Ajoutez d'autres attributs selon vos besoins
       }),
     );
 
@@ -178,7 +176,9 @@ class _OrganizerManagePageState extends State<OrganizerManagePage>
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Tournoi démarré avec succès')),
       );
-      // Mettez à jour l'interface utilisateur ou effectuez d'autres actions nécessaires après le démarrage du tournoi
+      setState(() {
+        _tournament?.status = 'started';
+      });
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -203,6 +203,9 @@ class _OrganizerManagePageState extends State<OrganizerManagePage>
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Tournament finished successfully')),
       );
+      setState(() {
+        _tournament?.status = 'finished';
+      });
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -214,26 +217,20 @@ class _OrganizerManagePageState extends State<OrganizerManagePage>
 
   @override
   Widget build(BuildContext context) {
+    String? status = _tournament?.status;
+
     return Scaffold(
       appBar: const TopAppBar(
         title: 'Gestion',
         roundedCorners: false,
       ),
-      body: FutureBuilder<Tournament>(
-        future: futureTournament,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
+      body: Builder(
+        builder: (context) {
+          if (_loading) {
             return const Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(child: Text('Erreur: ${snapshot.error}'));
-          } else if (snapshot.hasData) {
-            Tournament tournament = snapshot.data!;
-            _nameController.text = tournament.name;
-            _locationController.text = tournament.location;
-            _descriptionController.text = tournament.description;
-            _startDateController.text =
-                _formatDateForDisplay(tournament.startDate);
-            _endDateController.text = _formatDateForDisplay(tournament.endDate);
+            // } else if (snapshot.hasError) {
+            //   return Center(child: Text('Erreur: ${snapshot.error}'));
+          } else {
             return Column(
               children: [
                 Container(
@@ -255,13 +252,14 @@ class _OrganizerManagePageState extends State<OrganizerManagePage>
                   child: TabBarView(
                     controller: _tabController,
                     children: [
-                      (tournament.players.isEmpty)
+                      (_tournament == null ||
+                              _tournament?.players.isEmpty == true)
                           ? const Center(
                               child: Text('Aucun utilisateur inscrit'))
                           : ListView.builder(
-                              itemCount: tournament.players.length,
+                              itemCount: _tournament!.players.length,
                               itemBuilder: (context, index) {
-                                final player = tournament.players[index];
+                                final player = _tournament!.players[index];
                                 return ListTile(
                                   leading: CircleAvatar(
                                     child: Text(player['username'][0]),
@@ -285,7 +283,6 @@ class _OrganizerManagePageState extends State<OrganizerManagePage>
                                 borderRadius: BorderRadius.circular(8.0),
                               ),
                               child: TextField(
-                                key: UniqueKey(),
                                 controller: _nameController,
                                 keyboardType: TextInputType.text,
                                 decoration: const InputDecoration(
@@ -306,7 +303,6 @@ class _OrganizerManagePageState extends State<OrganizerManagePage>
                                   borderRadius: BorderRadius.circular(8.0),
                                 ),
                                 child: TextField(
-                                  key: UniqueKey(),
                                   controller: _locationController,
                                   keyboardType: TextInputType.text,
                                   decoration: const InputDecoration(
@@ -338,8 +334,6 @@ class _OrganizerManagePageState extends State<OrganizerManagePage>
                                       );
 
                                       if (p != null) {
-                                        print(p.description);
-                                        print('pppppp');
                                         GoogleMapsPlaces _places =
                                             GoogleMapsPlaces(apiKey: apiKey);
                                         PlacesDetailsResponse detail =
@@ -359,8 +353,6 @@ class _OrganizerManagePageState extends State<OrganizerManagePage>
                                         print(_locationController.text);
                                         print('aahahah');
                                         // Perte de focus pour forcer la mise à jour visuelle
-                                        FocusScope.of(context)
-                                            .requestFocus(FocusNode());
                                       }
                                     } catch (e) {
                                       print("Error occurred: $e");
@@ -385,7 +377,6 @@ class _OrganizerManagePageState extends State<OrganizerManagePage>
                                 borderRadius: BorderRadius.circular(8.0),
                               ),
                               child: TextField(
-                                key: UniqueKey(),
                                 controller: _descriptionController,
                                 keyboardType: TextInputType.text,
                                 decoration: const InputDecoration(
@@ -404,7 +395,6 @@ class _OrganizerManagePageState extends State<OrganizerManagePage>
                               onTap: () => _selectStartDate(context),
                               child: IgnorePointer(
                                 child: TextField(
-                                  key: UniqueKey(),
                                   controller: _startDateController,
                                   decoration: const InputDecoration(
                                     border: OutlineInputBorder(),
@@ -421,7 +411,6 @@ class _OrganizerManagePageState extends State<OrganizerManagePage>
                               onTap: () => _selectEndDate(context),
                               child: IgnorePointer(
                                 child: TextField(
-                                  key: UniqueKey(),
                                   controller: _endDateController,
                                   decoration: const InputDecoration(
                                     border: OutlineInputBorder(),
@@ -458,7 +447,9 @@ class _OrganizerManagePageState extends State<OrganizerManagePage>
                             const SizedBox(height: 20),
                             ElevatedButton(
                               onPressed: () {
-                                updateTournament(tournament);
+                                if (_tournament != null) {
+                                  updateTournament(_tournament!);
+                                }
                               },
                               child: const Text('Modifier le tournoi'),
                             ),
@@ -470,40 +461,69 @@ class _OrganizerManagePageState extends State<OrganizerManagePage>
                 ),
               ],
             );
-          } else {
-            return const Center(child: Text('Aucun tournoi trouvé'));
           }
+          // } else {
+          //   return const Center(child: Text('Aucun tournoi trouvé'));
+          // }
         },
       ),
-      floatingActionButton: ExpandableFab(
-        distance: 112.0,
-        children: [
-          FloatingActionButton(
-            heroTag: "startTournament${widget.tournamentId}",
-            onPressed: _startTournament,
-            tooltip: 'Démarrer le tournoi',
-            child: const Icon(Icons.play_arrow),
-          ),
-          FloatingActionButton(
-            heroTag: "finishTournament${widget.tournamentId}",
-            onPressed: () => _finishTournament(widget.tournamentId),
-            tooltip: 'Terminer le tournoi',
-            child: const Icon(Icons.stop),
-          ),
-          FloatingActionButton(
-            heroTag: "bracket${widget.tournamentId}",
-            onPressed: () {
-              Navigator.pushNamed(
-                context,
-                '/bracket',
-                arguments: widget.tournamentId,
-              );
-            },
-            tooltip: 'Voir le bracket',
-            child: const Icon(Icons.format_list_numbered),
-          ),
-        ],
-      ),
+      floatingActionButton: _tournament?.players.isEmpty == false
+          ? ExpandableFab(
+              distance: 112.0,
+              children: [
+                if (status == 'opened') ...[
+                  FloatingActionButton(
+                    heroTag: "startTournament${widget.tournamentId}",
+                    onPressed: _startTournament,
+                    tooltip: 'Démarrer le tournoi',
+                    child: const Icon(Icons.play_arrow),
+                  ),
+                ] else if (status == 'started') ...[
+                  FloatingActionButton(
+                    heroTag: "finishTournament${widget.tournamentId}",
+                    onPressed: () => _finishTournament(widget.tournamentId),
+                    tooltip: 'Terminer le tournoi',
+                    child: const Icon(Icons.stop),
+                  ),
+                  FloatingActionButton(
+                    heroTag: "bracket${widget.tournamentId}",
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              BracketPage(tournamentID: widget.tournamentId),
+                        ),
+                      );
+                    },
+                    tooltip: 'Voir le bracket',
+                    child: const Icon(Icons.format_list_numbered),
+                  ),
+                ] else if (status == 'finished') ...[
+                  FloatingActionButton(
+                    heroTag: "startTournament${widget.tournamentId}",
+                    onPressed: _startTournament,
+                    tooltip: 'Redémarrer le tournoi',
+                    child: const Icon(Icons.play_arrow),
+                  ),
+                  FloatingActionButton(
+                    heroTag: "bracket${widget.tournamentId}",
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              BracketPage(tournamentID: widget.tournamentId),
+                        ),
+                      );
+                    },
+                    tooltip: 'Voir le bracket',
+                    child: const Icon(Icons.format_list_numbered),
+                  ),
+                ],
+              ],
+            )
+          : null,
     );
   }
 
@@ -524,6 +544,7 @@ class Tournament {
   final String name;
   final String description;
   final String location;
+  late String status;
   final DateTime startDate;
   final DateTime endDate;
   final String imageFilename;
@@ -535,6 +556,7 @@ class Tournament {
     required this.name,
     required this.description,
     required this.location,
+    required this.status,
     required this.startDate,
     required this.endDate,
     required this.imageFilename,
@@ -548,6 +570,7 @@ class Tournament {
       name: json['name'],
       description: json['description'],
       location: json['location'],
+      status: json['status'],
       startDate: DateTime.parse(json['start_date']),
       endDate: DateTime.parse(json['end_date']),
       imageFilename: json['media']['file_name'],

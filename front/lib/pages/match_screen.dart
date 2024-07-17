@@ -30,7 +30,7 @@ class _MatchPageState extends State<MatchPage> {
   late MatchService matchService;
   late int matchId;
   final bool isBracket = true;
-  bool isEditing = false; // État pour gérer le mode édition
+  bool isEditing = false;
   TextEditingController playerOneScoreController = TextEditingController();
   TextEditingController playerTwoScoreController = TextEditingController();
 
