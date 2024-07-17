@@ -155,37 +155,55 @@ class _CrudTagScreenState extends State<CrudTagScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-          title: const Text('CRUD Tag'),
-          centerTitle: true,
-          automaticallyImplyLeading: false),
+        title: const Text('CRUD Tag', style: TextStyle(color: Colors.white, fontSize: 24.0)),
+        centerTitle: true,
+        automaticallyImplyLeading: false,
+      ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : ListView.builder(
-              itemCount: tags.length,
-              itemBuilder: (context, index) {
-                final tag = tags[index];
-                return ListTile(
-                  title: Text(tag.label ?? ''),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.edit),
-                        onPressed: () => _showTagDialog(tag),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.delete),
-                        onPressed: () => _deleteTag(tag.id!),
-                      ),
-                    ],
-                  ),
-                );
-              },
+        itemCount: tags.length,
+        itemBuilder: (context, index) {
+          final tag = tags[index];
+          return Container(
+            margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+            padding: const EdgeInsets.all(8.0),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              border: Border.all(color: Colors.grey),
+              borderRadius: BorderRadius.circular(8.0),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black12,
+                  blurRadius: 6.0,
+                  offset: Offset(0, 2),
+                ),
+              ],
             ),
+            child: ListTile(
+              title: Text(tag.label ?? '', style: TextStyle(fontWeight: FontWeight.bold)),
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.edit),
+                    onPressed: () => _showTagDialog(tag),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.delete),
+                    onPressed: () => _deleteTag(tag.id!),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showTagDialog(null),
         child: const Icon(Icons.add),
       ),
     );
   }
+
 }

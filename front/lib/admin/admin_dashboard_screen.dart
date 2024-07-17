@@ -80,7 +80,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Admin Dashboard'),
+        title: const Text('Admin Dashboard', style: TextStyle(color: Colors.white, fontSize: 24.0),),
         centerTitle: true,
         automaticallyImplyLeading: false,
       ),

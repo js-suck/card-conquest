@@ -147,37 +147,55 @@ class _CrudGameScreenState extends State<CrudGameScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-          title: const Text('CRUD Game'),
-          centerTitle: true,
-          automaticallyImplyLeading: false),
+        title: const Text('CRUD Game', style: TextStyle(color: Colors.white, fontSize: 24.0)),
+        centerTitle: true,
+        automaticallyImplyLeading: false,
+      ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : ListView.builder(
-              itemCount: games.length,
-              itemBuilder: (context, index) {
-                final game = games[index];
-                return ListTile(
-                  title: Text(game.name),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.edit),
-                        onPressed: () => _showGameDialog(game),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.delete),
-                        onPressed: () => _deleteGame(game.id),
-                      ),
-                    ],
-                  ),
-                );
-              },
+        itemCount: games.length,
+        itemBuilder: (context, index) {
+          final game = games[index];
+          return Container(
+            margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+            padding: const EdgeInsets.all(8.0),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              border: Border.all(color: Colors.grey),
+              borderRadius: BorderRadius.circular(8.0),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black12,
+                  blurRadius: 6.0,
+                  offset: Offset(0, 2),
+                ),
+              ],
             ),
+            child: ListTile(
+              title: Text(game.name, style: TextStyle(fontWeight: FontWeight.bold)),
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.edit),
+                    onPressed: () => _showGameDialog(game),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.delete),
+                    onPressed: () => _deleteGame(game.id),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showGameDialog(null),
         child: const Icon(Icons.add),
       ),
     );
   }
+
 }
