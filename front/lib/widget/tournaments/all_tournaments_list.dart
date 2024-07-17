@@ -29,7 +29,7 @@ class AllTournamentsList extends StatelessWidget {
     if (screenWidth < 1200 && screenWidth > 600) {
       return 0.62;
     } else if (screenWidth < 600) {
-      return 0.56;
+      return 0.53;
     } else {
       return 0.55;
     }

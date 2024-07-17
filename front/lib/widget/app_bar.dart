@@ -6,10 +6,15 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:front/utils/custom_future_builder.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
+import 'package:provider/provider.dart';
 
+import '../generated/chat.pb.dart';
+import '../providers/user_provider.dart';
 import '../service/notification_service.dart';
 import '../service/user_service.dart';
 import 'notification/notification_overlay.dart';
+
+import "../models/user.dart" as userModel;
 
 class TopAppBar extends StatefulWidget implements PreferredSizeWidget {
   const TopAppBar({
@@ -53,6 +58,10 @@ class _TopAppBarState extends State<TopAppBar> {
     if (token == null || JwtDecoder.isExpired(token)) return;
 
     Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
+    userModel.User user =
+        (await userService.fetchUser(decodedToken['user_id']));
+    Provider.of<UserProvider>(context, listen: false).setUser(user);
+
     setState(() {
       userId = decodedToken['user_id'];
     });
