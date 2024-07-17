@@ -12,13 +12,17 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
 import 'package:jwt_decoder/jwt_decoder.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+
+import '../generated/chat.pb.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import '../generated/chat.pb.dart';
 
 Future<void> login(
     BuildContext context, String username, String password) async {
   final storage =
-      new FlutterSecureStorage(); // Create instance of secure storage
+  new FlutterSecureStorage(); // Create instance of secure storage
   String? fcmToken = await storage.read(key: 'fcm_token');
   final response = await http.post(
     Uri.parse('${dotenv.env['API_URL']}login'),

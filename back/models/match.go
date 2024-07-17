@@ -70,7 +70,6 @@ func (m Match) ToRead() MatchRead {
 				ID:   m.Tournament.GameID,
 				Name: m.Tournament.Name,
 			},
-			Media: nil,
 		},
 		PlayerOne: m.PlayerOne.ToReadWithImage(),
 		PlayerTwo: m.PlayerTwo.ToReadWithImage(),

@@ -6,3 +6,4 @@
 test.db
 /uploads/
 /firebase/privateKey.json
+/var/log/*
