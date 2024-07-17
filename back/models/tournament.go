@@ -74,9 +74,10 @@ type TournamentRead struct {
 	Location          string               `json:"location"`
 	Organizer         UserReadTournament   `json:",omitempty"`
 	Game              GameReadTournament   `json:"game"`
-	StartDate         string               `json:"start_date"`
-	EndDate           string               `json:"end_date"`
+	StartDate         time.Time            `json:"start_date"`
+	EndDate           time.Time            `json:"end_date"`
 	Media             *Media               `json:"media, omitempty"`
+	Rounds            int                  `json:"rounds"`
 	MaxPlayers        int                  `json:"max_players"`
 	PlayersRegistered int                  `json:"players_registered"`
 	Status            string               `json:"status"`
@@ -98,22 +99,6 @@ type NewTournamentPayload struct {
 	MaxPlayers  int       `json:"max_players" validate:"required" example:"32"`
 }
 
-type UpdateTournamentPayload struct {
-	Name        string  `json:"name" example:"Tournament 1" form:"name"`
-	Description string  `json:"description" example:"Tournament 1 description" form:"description"`
-	Location    string  `json:"location" example:"New York" form:"location"`
-	UserID      uint    `json:"organizer_id" example:"1" form:"organizer_id"`
-	GameID      uint    `json:"game_id" example:"1" form:"game_id"`
-	StartDate   string  `json:"start_date" json:"start_date" form:"start_date"`
-	EndDate     string  `json:"end_date" json:"end_date" form:"end_date"`
-	Rounds      int     `json:"rounds" example:"3" form:"rounds"`
-	TagsIDs     []uint  `json:"tags_idss" form:"tags_ids"`
-	MaxPlayers  int     `json:"max_players" example:"32" form:"max_players"`
-	Longitude   float64 `json:"longitude" form:"longitude"`
-	Latitude    float64 `json:"latitude" form:"latitude"`
-	Image       []byte  `gorm:"type:longblob" json:"-"`
-}
-
 func (t Tournament) GetTableName() string {
 	return "tournaments"
 }
@@ -123,6 +108,18 @@ func (t Tournament) GetID() uint {
 }
 
 func (t Tournament) ToRead() TournamentRead {
+
+	startDate, err := time.Parse(time.RFC3339, t.StartDate)
+	if err != nil {
+		// Gestion de l'erreur si la conversion échoue
+		// Vous pouvez choisir de gérer cela comme vous le souhaitez
+	}
+
+	endDate, err := time.Parse(time.RFC3339, t.EndDate)
+	if err != nil {
+		// Gestion de l'erreur si la conversion échoue
+		// Vous pouvez choisir de gérer cela comme vous le souhaitez
+	}
 	obj := TournamentRead{
 		ID:          t.ID,
 		Name:        t.Name,
@@ -132,13 +129,14 @@ func (t Tournament) ToRead() TournamentRead {
 			ID:   t.Game.ID,
 			Name: t.Game.Name,
 		},
-		StartDate: t.StartDate,
-		EndDate:   t.EndDate,
+		StartDate: startDate,
+		EndDate:   endDate,
 		Organizer: UserReadTournament{
 			ID:    t.UserID,
 			Name:  t.User.Username,
 			Email: t.User.Email,
 		},
+		Rounds:            t.Rounds,
 		MaxPlayers:        t.MaxPlayers,
 		PlayersRegistered: len(t.Users),
 		Status:            t.Status,
@@ -151,9 +149,6 @@ func (t Tournament) ToRead() TournamentRead {
 			ID: t.MediaModel.Media.GetID(),
 		}}
 	}
-
-	// add players registered
-
 	if t.Users != nil && len(t.Users) > 0 {
 		players := make([]UserReadTournament, len(t.Users))
 
@@ -171,11 +166,27 @@ func (t Tournament) ToRead() TournamentRead {
 
 		obj.Players = players
 	}
-
 	return obj
 
 }
 
 func (t Tournament) IsOwner(userID uint) bool {
 	return t.UserID == userID
+}
+
+type UpdateTournamentPayload struct {
+	Name        string  `json:"name" example:"Tournament 1" form:"name"`
+	Description string  `json:"description" example:"Tournament 1 description" form:"description"`
+	Location    string  `json:"location" example:"New York" form:"location"`
+	UserID      uint    `json:"organizer_id" example:"1" form:"organizer_id"`
+	GameID      uint    `json:"game_id" example:"1" form:"game_id"`
+	StartDate   string  `json:"start_date" json:"start_date" form:"start_date"`
+	EndDate     string  `json:"end_date" json:"end_date" form:"end_date"`
+	Status      string  `json:"status" form:"status"`
+	Rounds      int     `json:"rounds" example:"3" form:"rounds"`
+	TagsIDs     []uint  `json:"tags_idss" form:"tags_ids"`
+	MaxPlayers  int     `json:"max_players" example:"32" form:"max_players"`
+	Longitude   float64 `json:"longitude" form:"longitude"`
+	Latitude    float64 `json:"latitude" form:"latitude"`
+	Image       []byte  `gorm:"type:longblob" json:"-"`
 }
