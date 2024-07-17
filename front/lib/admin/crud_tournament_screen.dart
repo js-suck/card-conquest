@@ -254,7 +254,7 @@ class _CrudTournamentScreenState extends State<CrudTournamentScreen> {
                       // Placeholder for game
                       tags: null,
                       status: 'opened',
-                      playersRegistered: 0, // Default status
+                      playersRegistered: 0, players: [], // Default status
                     ),
                   );
                 } else {
@@ -272,7 +272,7 @@ class _CrudTournamentScreenState extends State<CrudTournamentScreen> {
                         game: tournament.game,
                         tags: tournament.tags,
                         status: tournament.status,
-                        playersRegistered: tournament.playersRegistered),
+                        playersRegistered: tournament.playersRegistered, players: []),
                   );
                 }
                 Navigator.of(context).pop();

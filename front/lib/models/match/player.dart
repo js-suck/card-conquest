@@ -1,7 +1,7 @@
-import '../media.dart';
+import 'package:front/models/media.dart';
 
 class Player {
-  final int? id;
+  final int id;
   final String username;
   final String? email;
   final Media? media;
@@ -20,5 +20,14 @@ class Player {
       email: json['email'],
       media: json['media'] != null ? Media.fromJson(json['media']) : null,
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'ID': id,
+      'username': username,
+      'email': email,
+      'media': media?.toJson(),
+    };
   }
 }

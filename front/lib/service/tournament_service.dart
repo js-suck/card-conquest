@@ -27,6 +27,13 @@ class TournamentService {
     return Tournament.fromJson(responseJson);
   }
 
+  Future<bool> isUserRegistered(int tournamentId, int userId) async {
+    final tournament = await fetchTournament(tournamentId);
+    final players = tournament.players ?? [];
+    var id;
+    return players.any((player) => player?.id == userId);
+  }
+
   Future<List<Tournament>> fetchTournaments() async {
     String? token = await storage.read(key: 'jwt_token');
 
