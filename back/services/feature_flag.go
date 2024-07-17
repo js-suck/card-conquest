@@ -25,11 +25,23 @@ func (s *FeatureFlagService) GetFeatureFlag(name string) (bool, error) {
 }
 
 func (s *FeatureFlagService) SetFeatureFlag(name string, enabled bool) error {
-	featureFlag := models.FeatureFlag{
-		Name:    name,
-		Enabled: enabled,
+	var featureFlag models.FeatureFlag
+	result := s.db.First(&featureFlag, "name = ?", name)
+	if result.Error != nil {
+		if result.Error == gorm.ErrRecordNotFound {
+			featureFlag = models.FeatureFlag{
+				Name:    name,
+				Enabled: enabled,
+			}
+			result = s.db.Create(&featureFlag)
+		} else {
+			return result.Error
+		}
+	} else {
+		featureFlag.Enabled = enabled
+		result = s.db.Save(&featureFlag)
 	}
-	result := s.db.Create(&featureFlag)
+
 	if result.Error != nil {
 		return result.Error
 	}

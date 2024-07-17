@@ -223,7 +223,32 @@ func generateTournamentMatches(db *gorm.DB, tournamentStepID, tournamentID uint)
 	}
 
 }
+func featureFlagMigration(db *gorm.DB) (*models.FeatureFlag, error) {
 
+	featureFlag := models.FeatureFlag{
+		Name:    "googleSignIn",
+		Enabled: true,
+	}
+
+	db.Create(&featureFlag)
+
+	featureFlag2 := models.FeatureFlag{
+		Name:    "notification",
+		Enabled: true,
+	}
+
+	db.Create(&featureFlag2)
+
+	featureFlag3 := models.FeatureFlag{
+		Name:    "guild",
+		Enabled: true,
+	}
+
+	db.Create(&featureFlag3)
+
+	return &featureFlag, nil
+
+}
 func mediaMigration(db *gorm.DB) (*models.Media, error) {
 	err := db.AutoMigrate(&models.Media{})
 
@@ -450,6 +475,7 @@ func MigrateDatabase() error {
 	err = db.AutoMigrate(&models.GameScore{})
 	err = db.AutoMigrate(&models.Guild{})
 	err = db.AutoMigrate(&models.ChatMessage{})
+	err = db.AutoMigrate(&models.FeatureFlag{})
 
 	// Add triggers and functions
 	createFunction := `
@@ -569,7 +595,7 @@ $$ LANGUAGE plpgsql;
 	}
 
 	registrationsTournamenstMigrations(db, users)
-
+	featureFlagMigration(db)
 	if err != nil {
 		fmt.Println(err.Error())
 		return err
