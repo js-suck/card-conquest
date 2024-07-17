@@ -56,7 +56,6 @@ class _TopAppBarState extends State<TopAppBar> {
     setState(() {
       userId = decodedToken['user_id'];
     });
-
   }
 
   void _showNotificationsOverlay(
@@ -68,12 +67,12 @@ class _TopAppBarState extends State<TopAppBar> {
     );
   }
 
-Future<void> _onNotificationButtonPressed(BuildContext context) async {
-  List<RemoteMessage> notifications =
-      await NotificationService().getNotifications();
-  _showNotificationsOverlay(context, notifications);
-  await NotificationService().resetCount();
-}
+  Future<void> _onNotificationButtonPressed(BuildContext context) async {
+    List<RemoteMessage> notifications =
+        await NotificationService().getNotifications();
+    _showNotificationsOverlay(context, notifications);
+    await NotificationService().resetCount();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -125,8 +124,7 @@ Future<void> _onNotificationButtonPressed(BuildContext context) async {
                       if (snapshot.connectionState == ConnectionState.waiting) {
                         return CircularProgressIndicator();
                       } else if (snapshot.hasError) {
-                        return Text(
-                            'Erreur: ${snapshot.error}');
+                        return Text('Erreur: ${snapshot.error}');
                       } else {
                         return Badge.count(
                           count: snapshot.data ?? 0,

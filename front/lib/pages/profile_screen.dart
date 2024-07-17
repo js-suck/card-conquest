@@ -60,7 +60,7 @@ class _ProfilePageState extends State<ProfilePage> {
       userData = {
         'username': user.username,
         'email': user.email,
-"guilds" : user.guilds
+        "guilds": user.guilds
       };
       _isLoading = false;
     });
@@ -218,43 +218,47 @@ class _ProfilePageState extends State<ProfilePage> {
                                 fontWeight: FontWeight.bold),
                           ),
                         ),
-                      const SizedBox(height: 20),
-                if (userData['guilds'] != null && (userData['guilds'] as List).isNotEmpty)
-  Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      const Text(
-        'Your Guilds',
-        style: TextStyle(
-            fontSize: 24, fontWeight: FontWeight.bold),
-      ),
-      const SizedBox(height: 10),
-      ...(userData['guilds'] as List<Guild>).map((guild) {
-        return GestureDetector(
-          onTap: () {
-            Navigator.pushNamed(
-                context, '/guild/${guild.id}');
-          },
-          child: Center(
-            child: Column(
-              children: [
-                if (guild.media != null)
-                  CircleAvatar(
-                    backgroundImage: CachedNetworkImageProvider(
-                      '${dotenv.env['MEDIA_URL']}${guild.media!.fileName}',
-                    ),
-                    radius: 50,
-                  ),
-                const SizedBox(height: 10),
-                Text('Guild: ${guild.name}'),
-                const SizedBox(height: 20),
-              ],
-            ),
-          ),
-        );
-      }).toList(),
-    ],
-  ),],
+                        const SizedBox(height: 20),
+                        if (userData['guilds'] != null &&
+                            (userData['guilds'] as List).isNotEmpty)
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Your Guilds',
+                                style: TextStyle(
+                                    fontSize: 24, fontWeight: FontWeight.bold),
+                              ),
+                              const SizedBox(height: 10),
+                              ...(userData['guilds'] as List<Guild>)
+                                  .map((guild) {
+                                return GestureDetector(
+                                  onTap: () {
+                                    Navigator.pushNamed(
+                                        context, '/guild/${guild.id}');
+                                  },
+                                  child: Center(
+                                    child: Column(
+                                      children: [
+                                        if (guild.media != null)
+                                          CircleAvatar(
+                                            backgroundImage:
+                                                CachedNetworkImageProvider(
+                                              '${dotenv.env['MEDIA_URL']}${guild.media!.fileName}',
+                                            ),
+                                            radius: 50,
+                                          ),
+                                        const SizedBox(height: 10),
+                                        Text('Guild: ${guild.name}'),
+                                        const SizedBox(height: 20),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              }).toList(),
+                            ],
+                          ),
+                      ],
                     ),
                   ),
                 ),
