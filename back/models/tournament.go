@@ -42,6 +42,7 @@ type CreateTournamentPayload struct {
 type Tournament struct {
 	BaseModel
 	MediaModel
+	ID          uint             `json:"id"`
 	Name        string           `json:"name" validate:"required"`
 	Description string           `json:"description" validate:"required"`
 	Location    string           `json:"location"`
