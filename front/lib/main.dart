@@ -106,6 +106,13 @@ class _MyAppState extends State<MyApp> {
         locale: _locale,
         initialRoute: '/',
         onGenerateRoute: (settings) {
+          if (settings.name == '/orga/manage/tournament') {
+            final int tournamentId = settings.arguments as int;
+            return MaterialPageRoute(
+              builder: (context) =>
+                  OrganizerManagePage(tournamentId: tournamentId),
+            );
+          }
           final Uri uri = Uri.parse(settings.name!);
           if (uri.pathSegments.length == 2 &&
               uri.pathSegments.first == 'chat') {
@@ -134,16 +141,6 @@ class _MyAppState extends State<MyApp> {
           }
         },
         routes: routes,
-        onGenerateRoute: (settings) {
-          if (settings.name == '/orga/manage/tournament') {
-            final int tournamentId = settings.arguments as int;
-            return MaterialPageRoute(
-              builder: (context) =>
-                  OrganizerManagePage(tournamentId: tournamentId),
-            );
-          }
-          return null; // Return null if the route name is not handled
-        },
         theme: notifier.getTheme(),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,

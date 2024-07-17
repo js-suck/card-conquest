@@ -129,14 +129,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.8"
-  dotted_border:
-    dependency: "direct main"
-    description:
-      name: dotted_border
-      sha256: "108837e11848ca776c53b30bc870086f84b62ed6e01c503ed976e8f8c7df9c04"
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.1.0"
   dbus:
     dependency: transitive
     description:
@@ -145,6 +137,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.7.10"
+  dotted_border:
+    dependency: "direct main"
+    description:
+      name: dotted_border
+      sha256: "108837e11848ca776c53b30bc870086f84b62ed6e01c503ed976e8f8c7df9c04"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.1.0"
   fake_async:
     dependency: transitive
     description:
@@ -469,6 +469,14 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  google_api_headers:
+    dependency: transitive
+    description:
+      name: google_api_headers
+      sha256: b27a55935d5c51cedda8a925f5df8388cc327c94a47fef5a4335e8707e089878
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.6.0"
   google_maps:
     dependency: transitive
     description:
@@ -517,6 +525,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.5.8"
+  google_maps_webservice:
+    dependency: "direct main"
+    description:
+      name: google_maps_webservice
+      sha256: d0ae4e4508afd74a3f051565261a3cdbae59db29448f9b6e6beb5674545e1eb7
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.20-nullsafety.5"
   google_sign_in:
     dependency: "direct main"
     description:
@@ -557,22 +573,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.10.2+1"
-  google_api_headers:
-    dependency: transitive
-    description:
-      name: google_api_headers
-      sha256: b27a55935d5c51cedda8a925f5df8388cc327c94a47fef5a4335e8707e089878
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.6.0"
-  google_maps_webservice:
-    dependency: "direct main"
-    description:
-      name: google_maps_webservice
-      sha256: d0ae4e4508afd74a3f051565261a3cdbae59db29448f9b6e6beb5674545e1eb7
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.0.20-nullsafety.5"
   googleapis_auth:
     dependency: transitive
     description:
@@ -625,10 +625,10 @@ packages:
     dependency: "direct main"
     description:
       name: image_picker
-      sha256: "021834d9c0c3de46bf0fe40341fa07168407f694d9b2bb18d532dc1261867f7a"
+      sha256: b6951e25b795d053a6ba03af5f710069c99349de9341af95155d52665cb4607c
       url: "https://pub.dev"
     source: hosted
-    version: "1.1.2"
+    version: "0.8.9"
   image_picker_android:
     dependency: transitive
     description:
@@ -701,14 +701,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.6.7"
-  json_annotation:
-    dependency: transitive
-    description:
-      name: json_annotation
-      sha256: "1ce844379ca14835a50d2f019a3099f419082cfdd231cd86a142af94dd5c6bb1"
-      url: "https://pub.dev"
-    source: hosted
-    version: "4.9.0"
   js_wrapping:
     dependency: transitive
     description:
@@ -717,6 +709,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.7.4"
+  json_annotation:
+    dependency: transitive
+    description:
+      name: json_annotation
+      sha256: "1ce844379ca14835a50d2f019a3099f419082cfdd231cd86a142af94dd5c6bb1"
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.9.0"
   jwt_decoder:
     dependency: "direct main"
     description:
