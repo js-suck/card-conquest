@@ -17,3 +17,7 @@ func (m Media) GetTableName() string {
 func (m Media) IsOwner(userID uint) bool {
 	return true
 }
+
+func (m Media) New() IModel {
+	return Media{}
+}

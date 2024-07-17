@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"authentication-api/services"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
@@ -27,11 +28,12 @@ func NewUploadHandler(f *services.FileService) *UploadHandler {
 func (u *UploadHandler) UploadImage(c *gin.Context) {
 	file, err := c.FormFile("image")
 
-	_, filePath, errUpload := u.FileService.UploadMedia(file)
+	mediaModel, filePath, errUpload := u.FileService.UploadMedia(file)
 	if err != nil {
 		c.JSON(errUpload.Code(), errUpload.Error())
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Image uploaded successfully!", "path": filePath})
+	fmt.Println(filePath)
+	c.JSON(http.StatusCreated, gin.H{"message": "Image uploaded successfully!", "media": mediaModel})
 }

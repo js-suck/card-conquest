@@ -5,3 +5,4 @@
 /main
 test.db
 /uploads/
+/firebase/privateKey.json

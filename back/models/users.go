@@ -9,6 +9,7 @@ type IModel interface {
 	GetID() uint
 	GetTableName() string
 	IsOwner(userID uint) bool
+	New() IModel
 }
 
 type ForeignKeyChecker interface {
@@ -30,21 +31,26 @@ type MediaModel struct {
 type User struct {
 	BaseModel
 	MediaModel
-	Username          string        `gorm:"unique;not null;type:varchar(100);default:null" json:"username"`
-	Password          string        `gorm:"not null;type:varchar(100);default:null" json:"password" validate:"required,min=6"`
-	Address           string        `gorm:"type:varchar(255);default:null" json:"address"`
-	Phone             string        `gorm:"type:varchar(30);default:null" json:"phone"`
-	Email             string        `gorm:"unique;not null;type:varchar(255);default:null" json:"email"`
-	Role              string        `gorm:"type:varchar(100);default:user" json:"role"`
-	Country           string        `gorm:"type:varchar(255);default:null" json:"country"`
-	GlobalScore       int           `gorm:"default:0" json:"global_score"`
-	VerificationToken string        `gorm:"type:varchar(255);default:null" json:"-"`
-	IsVerified        bool          `gorm:"default:false" json:"is_verified"`
-	Tournaments       []*Tournament `gorm:"many2many:user_tournaments;constraint:OnDelete:CASCADE;"`
-	Matches           []Match       `gorm:"foreignKey:PlayerOneID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
-	GamesScores       []GameScore   `gorm:"foreignKey:UserID;references:ID"`
-	Guilds            []Guild       `gorm:"many2many:guild_players;"`
-	FCMToken          string        `gorm:"type:varchar(255);default:null" json:"fcm_token"; default:null`
+	Username             string        `gorm:"unique;not null;type:varchar(100);default:null" json:"username"`
+	Password             string        `gorm:"not null;type:varchar(100);default:null" json:"password" validate:"required,min=6"`
+	Address              string        `gorm:"type:varchar(255);default:null" json:"address"`
+	Phone                string        `gorm:"type:varchar(30);default:null" json:"phone"`
+	Email                string        `gorm:"unique;not null;type:varchar(255);default:null" json:"email"`
+	Role                 string        `gorm:"type:varchar(100);default:user" json:"role"`
+	Country              string        `gorm:"type:varchar(255);default:null" json:"country"`
+	GlobalScore          int           `gorm:"default:0" json:"global_score"`
+	VerificationToken    string        `gorm:"type:varchar(255);default:null" json:"-"`
+	IsVerified           bool          `gorm:"default:false" json:"is_verified"`
+	Tournaments          []*Tournament `gorm:"many2many:user_tournaments;constraint:OnDelete:CASCADE;"`
+	Matches              []Match       `gorm:"foreignKey:PlayerOneID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+	GamesScores          []GameScore   `gorm:"foreignKey:UserID;references:ID"`
+	Guilds               []Guild       `gorm:"many2many:guild_players;constraint:OnDelete:CASCADE;"`
+	FCMToken             string        `gorm:"type:varchar(255);default:null" json:"fcm_token"; default:null`
+	SuscribedTournaments []Tournament  `gorm:"many2many:user_suscribed_tournaments;constraint:OnDelete:CASCADE;"`
+}
+
+func (u *User) New() IModel {
+	return &User{}
 }
 
 type NewUserGoogle struct {
