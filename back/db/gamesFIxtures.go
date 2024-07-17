@@ -31,8 +31,8 @@ var GamesFixtures = []models.Game{
 		BaseModel: models.BaseModel{},
 		MediaModel: models.MediaModel{
 			Media: &models.Media{
-				FileName:      "hearthstone.avif",
-				FileExtension: "avif",
+				FileName:      "heartsone.jpeg",
+				FileExtension: "jpeg",
 			},
 		},
 		Name: "Hearthstone",
@@ -86,6 +86,15 @@ var GamesFixtures = []models.Game{
 			},
 		},
 		Name: "Shadowverse",
+	}, {
+		BaseModel: models.BaseModel{},
+		MediaModel: models.MediaModel{
+			Media: &models.Media{
+				FileName:      "one_piece.jpg",
+				FileExtension: "jpg",
+			},
+		},
+		Name: "One Piece Card Game",
 	},
 }
 

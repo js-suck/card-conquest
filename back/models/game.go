@@ -7,10 +7,14 @@ type Game struct {
 	Tournaments []Tournament `json:"-" gorm:"foreignKey:GameID"`
 }
 
+func (g Game) New() IModel {
+	return &Game{}
+}
+
 type GameRead struct {
 	ID    uint   `json:"id"`
 	Name  string `json:"name"`
-	Media *Media `json:"media, omitempty"`
+	Media *Media `json:"media,omitempty"`
 }
 
 func (g Game) GetTableName() string {
