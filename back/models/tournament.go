@@ -46,17 +46,17 @@ type Tournament struct {
 	Description string           `json:"description" validate:"required"`
 	Location    string           `json:"location"`
 	UserID      uint             `json:"organizer_id" `
-	User        *User            `gorm:"foreignKey:UserID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
+	User        *User            `gorm:"foreignKey:UserID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 	GameID      uint             `json:"game_id" validate:"required"`
-	Game        Game             `gorm:"foreignKey:GameID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
+	Game        Game             `gorm:"foreignKey:GameID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 	StartDate   string           `json:"start_date" validate:"required"`
 	EndDate     string           `json:"end_date" validate:"required"`
 	Status      string           `json:"status" gorm:"default:opened"`
-	Users       []*User          `gorm:"many2many:user_tournaments;"`
+	Users       []*User          `gorm:"many2many:user_tournaments;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 	Tags        []*Tag           `json:"tags" gorm:"many2many:tag_tournaments;"`
 	Rounds      int              `json:"rounds" validate:"required"`
 	MaxPlayers  int              `json:"maxPlayers" validate:"required" example:"32"`
-	Steps       []TournamentStep `json:"tournament_steps" gorm:"foreignKey:TournamentID"`
+	Steps       []TournamentStep `json:"tournament_steps" gorm:"foreignKey:TournamentID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 	Longitude   float64          `json:"longitude"`
 	Latitude    float64          `json:"latitude"`
 	Subscribers []User           `gorm:"many2many:tournament_subscribers;"`
@@ -73,8 +73,8 @@ type TournamentRead struct {
 	Location          string               `json:"location"`
 	Organizer         UserReadTournament   `json:",omitempty"`
 	Game              GameReadTournament   `json:"game"`
-	StartDate         time.Time               `json:"start_date"`
-	EndDate           time.Time               `json:"end_date"`
+	StartDate         time.Time            `json:"start_date"`
+	EndDate           time.Time            `json:"end_date"`
 	Media             *Media               `json:"media, omitempty"`
 	Rounds            int                  `json:"rounds"`
 	MaxPlayers        int                  `json:"max_players"`
