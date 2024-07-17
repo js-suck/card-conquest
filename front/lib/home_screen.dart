@@ -34,6 +34,17 @@ class HomePage extends StatelessWidget {
       elevation: 5,
     );
 
+    final ButtonStyle guestButtonStyle = ElevatedButton.styleFrom(
+      foregroundColor: context.themeColors.accentColor,
+      backgroundColor: context.themeColors.accentColor.withOpacity(0.5),
+      minimumSize: const Size(230, 50),
+      textStyle: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+      ),
+      elevation: 5,
+    );
+
     return Scaffold(
       body: Container(
         decoration: BoxDecoration(
@@ -53,13 +64,6 @@ class HomePage extends StatelessWidget {
             children: <Widget>[
               Image.asset('assets/images/logo.png', width: 200),
               const SizedBox(height: 20),
-              Text(
-                t.welcome,
-                style: const TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
               const SizedBox(height: 40),
               if (!kIsWeb)
                 ElevatedButton(
@@ -70,7 +74,7 @@ class HomePage extends StatelessWidget {
                         builder: (context) =>
                             SignUpPage()), // Navigate to SignUpPage
                   ),
-                  child: Text(t.signup),
+                  child: Text(t.signup, style: const TextStyle(color: Colors.white)),
                 ),
               const SizedBox(height: 20),
               ElevatedButton(
@@ -81,12 +85,12 @@ class HomePage extends StatelessWidget {
                       builder: (context) =>
                           const LoginPage()), // Navigate to LoginPage
                 ),
-                child: Text(t.login),
+                child: Text(t.login, style: const TextStyle(color: Colors.white)),
               ),
               const SizedBox(height: 20),
               if (!kIsWeb)
                 ElevatedButton(
-                  style: buttonStyle,
+                  style: guestButtonStyle,
                   onPressed: () {
                     //add jwt token
                     const storage = FlutterSecureStorage();
@@ -97,7 +101,7 @@ class HomePage extends StatelessWidget {
                     // Navigate to the main page
                     Navigator.pushNamed(context, '/main');
                   },
-                  child: Text(t.guest),
+                  child: Text(t.guest, style: const TextStyle(color: Colors.white)),
                 ),
               const SizedBox(height: 20),
               if (kIsWeb)

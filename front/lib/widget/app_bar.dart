@@ -9,6 +9,7 @@ import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:provider/provider.dart';
 
 import '../generated/chat.pb.dart';
+import '../providers/notification_provider.dart';
 import '../providers/user_provider.dart';
 import '../service/notification_service.dart';
 import '../service/user_service.dart';
@@ -67,8 +68,8 @@ class _TopAppBarState extends State<TopAppBar> {
     });
   }
 
-  void _showNotificationsOverlay(
-      BuildContext context, List<RemoteMessage> notifications) {
+  void _showNotificationsOverlay(BuildContext context,
+      List<RemoteMessage> notifications) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -80,7 +81,7 @@ class _TopAppBarState extends State<TopAppBar> {
     List<RemoteMessage> notifications =
         await NotificationService().getNotifications();
     _showNotificationsOverlay(context, notifications);
-    await NotificationService().resetCount();
+
   }
 
   @override
@@ -133,17 +134,15 @@ class _TopAppBarState extends State<TopAppBar> {
                       if (snapshot.connectionState == ConnectionState.waiting) {
                         return CircularProgressIndicator();
                       } else if (snapshot.hasError) {
-                        return Text('Erreur: ${snapshot.error}');
+                        return Text(
+                            'Erreur: ${snapshot.error}');
                       } else {
-                        return Badge.count(
-                          count: snapshot.data ?? 0,
-                          child: IconButton(
-                            icon: const Icon(Icons.notifications),
-                            color: Colors.black,
-                            onPressed: () {
-                              _onNotificationButtonPressed(context);
-                            },
-                          ),
+                        return IconButton(
+                          icon: const Icon(Icons.notifications),
+                          color: Colors.black,
+                          onPressed: () {
+                            _onNotificationButtonPressed(context);
+                          },
                         );
                       }
                     },
@@ -173,7 +172,7 @@ class _TopAppBarState extends State<TopAppBar> {
                     children: [
                       Padding(
                         padding:
-                            const EdgeInsets.only(left: 4, top: 4, bottom: 4),
+                        const EdgeInsets.only(left: 4, top: 4, bottom: 4),
                         child: GestureDetector(
                           onTap: () {
                             Navigator.of(context).pushNamed('/profile');
@@ -186,16 +185,17 @@ class _TopAppBarState extends State<TopAppBar> {
                                 height: 54,
                                 child: user.media?.fileName != null
                                     ? CachedNetworkImage(
-                                        imageUrl:
-                                            '${dotenv.env['MEDIA_URL']}${user.media!.fileName}',
-                                        placeholder: (context, url) =>
-                                            const CircularProgressIndicator(),
-                                        fit: BoxFit.cover,
-                                      )
+                                  imageUrl:
+                                  '${dotenv.env['MEDIA_URL']}${user.media!
+                                      .fileName}',
+                                  placeholder: (context, url) =>
+                                  const CircularProgressIndicator(),
+                                  fit: BoxFit.cover,
+                                )
                                     : Image.asset(
-                                        'assets/images/avatar.png',
-                                        fit: BoxFit.cover,
-                                      ),
+                                  'assets/images/avatar.png',
+                                  fit: BoxFit.cover,
+                                ),
                               ),
                             ),
                           ),

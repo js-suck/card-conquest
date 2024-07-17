@@ -33,7 +33,7 @@ Future<void> login(
     body: jsonEncode(<String, String>{
       'username': username,
       'password': password,
-      'fcm_token': fcmToken ?? 'test',
+      'fcm_token': fcmToken ?? '',
     }),
   );
   String userRole = '';
@@ -60,7 +60,7 @@ Future<void> login(
     }
     // Store the token in secure storage
 
-
+    await storage.write(key: 'jwt_token', value: token);
 
     var tokenData = jsonDecode(
         ascii.decode(base64.decode(base64.normalize(token.split(".")[1]))));
@@ -141,7 +141,7 @@ class _LoginPageState extends State<LoginPage> {
         'email': user.email!,
         'displayName': user.displayName ?? '',
         'photoURL': user.photoURL ?? '',
-        'fcm_token': fcmToken ?? 'test',
+        'fcm_token': fcmToken ?? '',
       }),
     );
 

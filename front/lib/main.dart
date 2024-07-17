@@ -12,6 +12,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:front/pages/chat_screen.dart';
 import 'package:front/pages/guild_screen.dart';
 import 'package:front/providers/feature_flag_provider.dart';
+import 'package:front/providers/notification_provider.dart';
 import 'package:front/providers/prodviders.dart';
 import 'package:front/providers/user_provider.dart';
 import 'package:front/routes/routes.dart';
@@ -39,10 +40,14 @@ Future<void> main() async {
     log("FCMToken $fcmToken");
     const storage = FlutterSecureStorage();
     storage.write(key: 'fcm_token', value: fcmToken);
+
+    // Create an instance of NotificationProvider
+    final notificationProvider = NotificationProvider();
+    // Pass the instance to the NotificationService constructor
     await NotificationService().init();
   }
 
-  await dotenv.load(fileName: "lib/env");
+  await dotenv.load(fileName: "lib/.env");
 
   final prefs = await SharedPreferences.getInstance();
   final providers = await getProviders();
