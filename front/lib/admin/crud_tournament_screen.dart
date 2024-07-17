@@ -4,7 +4,6 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:front/models/game.dart';
 import 'package:front/models/match/tournament.dart';
 import 'package:front/models/match/user.dart';
 import 'package:front/services/api_service.dart';
@@ -12,8 +11,7 @@ import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart' as path;
-import '../models/match/tournament.dart';
-import '../models/organizer.dart';
+import 'package:front/models/match/game_match.dart';
 
 class CrudTournamentScreen extends StatefulWidget {
   const CrudTournamentScreen({Key? key}) : super(key: key);
@@ -78,7 +76,7 @@ class _CrudTournamentScreenState extends State<CrudTournamentScreen> {
         ..fields['game_id'] = tournament.game.id.toString()
         ..fields['rounds'] =
             (log(tournament.maxPlayers) / log(2)).ceil().toString()
-        ..fields['tagsIDs[]'] = tournament.tags.join(',')
+        ..fields['tagsIDs[]'] = tournament.tags!.join(',')
         ..fields['location'] = tournament.location!
         ..fields['max_players'] = tournament.maxPlayers.toString();
 
@@ -244,13 +242,17 @@ class _CrudTournamentScreenState extends State<CrudTournamentScreen> {
                       // Placeholder for media
                       maxPlayers: int.parse(_maxPlayersController.text),
                       organizer: Organizer(
-                          id: 1,
-                          username: 'Organizer Name',
-                          email: 'organizer@example.com'),
+                        id: 1,
+                        username: 'Organizer Name',
+                        email: 'organizer@example.com',
+                      ),
                       // Placeholder for organizer
-                      game: Game(id: 1, name: 'Test'),
+                      game: GameMatch(
+                        id: int.parse(_gameIdController.text),
+                        name: 'Game Name',
+                      ),
                       // Placeholder for game
-                      tags: ['1'],
+                      tags: null,
                       status: 'opened',
                       playersRegistered: 0, // Default status
                     ),

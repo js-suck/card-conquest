@@ -39,13 +39,11 @@ class Tag {
     );
   }
 
-
-
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'created_at': createdAt,
-      'updated_at': updatedAt,
+      'created_at': createdAt?.toIso8601String(),
+      'updated_at': updatedAt?.toIso8601String(),
       'label': label,
       'tournaments': tournaments?.map((e) => e.toJson()).toList(),
       'games': games?.map((e) => e.toJson()).toList(),

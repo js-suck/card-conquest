@@ -1,16 +1,11 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:front/extension/theme_extension.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:http/http.dart' as http;
-import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
-
 import 'auth/login_screen.dart';
 import 'auth/signup_screen.dart';
-
 
 class HomePage extends StatelessWidget {
   final bool showVerificationDialog;
@@ -30,7 +25,8 @@ class HomePage extends StatelessWidget {
       foregroundColor: context.themeColors.secondaryBackgroundAccentColor,
       backgroundColor: context.themeColors.accentColor,
       minimumSize: const Size(230, 50),
-      textStyle: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+      textStyle:
+          const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(10),
       ),
@@ -42,7 +38,8 @@ class HomePage extends StatelessWidget {
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              context.themeColors.secondaryBackgroundAccentActiveColor.withOpacity(0.8),
+              context.themeColors.secondaryBackgroundAccentActiveColor
+                  .withOpacity(0.8),
               context.themeColors.accentColor.withOpacity(0.3),
             ],
             begin: Alignment.topLeft,
@@ -63,82 +60,54 @@ class HomePage extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 40),
-              ElevatedButton(
-                style: buttonStyle,
-                onPressed: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => SignUpPage()), // Navigate to SignUpPage
+              if (!kIsWeb)
+                ElevatedButton(
+                  style: buttonStyle,
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) =>
+                            SignUpPage()), // Navigate to SignUpPage
+                  ),
+                  child: Text(t.signup),
                 ),
-                child: Text(t.signup),
-              ),
               const SizedBox(height: 20),
               ElevatedButton(
                 style: buttonStyle,
                 onPressed: () => Navigator.push(
                   context,
                   MaterialPageRoute(
-                      builder: (context) => const LoginPage()), // Navigate to LoginPage
+                      builder: (context) =>
+                          const LoginPage()), // Navigate to LoginPage
                 ),
                 child: Text(t.login),
               ),
               const SizedBox(height: 20),
-              ElevatedButton(
-                style: buttonStyle,
-                onPressed: () {
-                  //add jwt token
-                  const storage = FlutterSecureStorage();
-                  const token = "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiaW52aXRlIiwibmFtZSI6Ikludml0w6kifQ.1TMIPCEDolEVv1TMX77Y7-RA6AW4zCG2JrcjFT4hM90";
-                  storage.write(key: 'jwt_token', value: token);
+              if (!kIsWeb)
+                ElevatedButton(
+                  style: buttonStyle,
+                  onPressed: () {
+                    //add jwt token
+                    const storage = FlutterSecureStorage();
+                    const token =
+                        "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiaW52aXRlIiwibmFtZSI6Ikludml0w6kifQ.1TMIPCEDolEVv1TMX77Y7-RA6AW4zCG2JrcjFT4hM90";
+                    storage.write(key: 'jwt_token', value: token);
 
-                  // Navigate to the main page
-                  Navigator.pushNamed(context, '/main');
-                },
-                child: Text(t.guest),
-              ),
+                    // Navigate to the main page
+                    Navigator.pushNamed(context, '/main');
+                  },
+                  child: Text(t.guest),
+                ),
+              const SizedBox(height: 20),
+              if (kIsWeb)
+                ElevatedButton(
+                  onPressed: () {
+                    _loginAsAdmin(context);
+                  },
+                  child: const Text('Dashboard Admin'),
+                ),
             ],
           ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Image.asset('assets/images/logo.png', width: 200),
-            const SizedBox(height: 10),
-            const Text('Bienvenue sur notre application'),
-            const SizedBox(height: 20),
-            if (!kIsWeb)
-              ElevatedButton(
-                onPressed: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => SignUpPage()),
-                ),
-                child: const Text('Inscription'),
-              ),
-            const SizedBox(height: 10),
-            ElevatedButton(
-              onPressed: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => LoginPage()),
-              ),
-              child: const Text('Connexion'),
-            ),
-            const SizedBox(height: 10),
-            if (!kIsWeb)
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.pushNamed(context, '/main');
-                },
-                child: const Text('Continuer en tant qu\'Invité'),
-              ),
-            const SizedBox(height: 10),
-            if (kIsWeb)
-              ElevatedButton(
-                onPressed: () {
-                  _loginAsAdmin(context);
-                },
-                child: const Text('Dashboard Admin'),
-              ),
-          ],
         ),
       ),
     );
@@ -163,14 +132,13 @@ class HomePage extends StatelessWidget {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text(t.verifyEmail),
-          content: const Text(
-              t.verifyEmailMessage),
+          title: Text(t.verifyEmail),
+          content: Text(t.verifyEmailMessage),
           actions: <Widget>[
             TextButton(
-              child:  const Text(t.ok),
+              child: Text(t.ok),
               onPressed: () {
-                Navigator.of(context).pop();
+                Navigator.of(context).pop(); // Close the dialog
               },
             ),
           ],

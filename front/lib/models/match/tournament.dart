@@ -1,7 +1,7 @@
 import 'package:front/models/match/user.dart';
 import 'package:front/models/media.dart';
 
-import '../game.dart';
+import 'game_match.dart';
 
 class Tournament {
   final int id;
@@ -9,14 +9,14 @@ class Tournament {
   final String? description;
   final String? location;
   final Organizer organizer;
-  final Game game;
+  final GameMatch game;
   final DateTime startDate;
   final DateTime endDate;
   final Media? media;
   final int maxPlayers;
   final int playersRegistered;
   final String status;
-  final List<String> tags;
+  final List<String>? tags;
   final double? latitude;
   final double? longitude;
 
@@ -33,7 +33,7 @@ class Tournament {
     required this.maxPlayers,
     required this.playersRegistered,
     required this.status,
-    required this.tags,
+    this.tags,
     this.latitude,
     this.longitude,
   });
@@ -45,7 +45,7 @@ class Tournament {
       description: json['description'] ?? '',
       location: json['location'] ?? '',
       organizer: Organizer.fromJson(json['Organizer'] ?? {}),
-      game: Game.fromJson(json['game']),
+      game: GameMatch.fromJson(json['game']),
       startDate: DateTime.parse(json['start_date']),
       endDate: DateTime.parse(json['end_date']),
       media: json['media'] != null ? Media.fromJson(json['media']) : null,
@@ -68,7 +68,7 @@ class Tournament {
       'name': name,
       'description': description,
       'location': location,
-      'Organizer': organizer.toJson(),
+      'organizer': organizer.toJson(),
       'game': game.toJson(),
       'start_date': startDate.toIso8601String(),
       'end_date': endDate.toIso8601String(),

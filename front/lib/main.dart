@@ -18,6 +18,10 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:front/widget/bottom_bar.dart';
 
+import 'home_screen.dart';
+import 'notifier/locale_notifier.dart';
+import 'notifier/theme_notifier.dart';
+
 Future main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -92,6 +96,8 @@ class _MyAppState extends State<MyApp> {
           initialRoute: '/login',
           routes: routes,
           theme: notifier.getTheme(),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
         );
       }
       return MaterialApp(
@@ -100,8 +106,6 @@ class _MyAppState extends State<MyApp> {
         initialRoute: '/',
         onGenerateRoute: (settings) {
           final Uri uri = Uri.parse(settings.name!);
-          print(uri);
-          print("pathSegments ${uri.path}");
           if (uri.pathSegments.length == 2 &&
               uri.pathSegments.first == 'chat') {
             final String guildID = uri.pathSegments[1];
@@ -121,7 +125,6 @@ class _MyAppState extends State<MyApp> {
               builder: (context) => GuildView(),
             );
           }
-          print("pathSegments ${routes.containsKey("/tournamentUpdatesDemo")}");
 
           if (routes.containsKey(uri.path)) {
             return MaterialPageRoute(builder: routes[uri.path]!);
