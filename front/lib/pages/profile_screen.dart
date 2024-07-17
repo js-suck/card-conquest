@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
@@ -10,6 +11,8 @@ import 'package:front/widget/app_bar.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
+
+import '../models/guild.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -52,9 +55,12 @@ class _ProfilePageState extends State<ProfilePage> {
     await getUserId();
     final user = await userService.fetchUser(userId, forceRefresh: true);
     setState(() {
+      print("User data fetched and initialized." + user.toString());
+      print(user.guilds?[0].name);
       userData = {
         'username': user.username,
         'email': user.email,
+"guilds" : user.guilds
       };
       _isLoading = false;
     });
@@ -82,6 +88,8 @@ class _ProfilePageState extends State<ProfilePage> {
       ));
 
     var response = await request.send();
+    print(response.statusCode);
+    print("Image uploaded successfully.");
     if (response.statusCode == 200) {
       _showSuccess('Image uploaded successfully.');
     } else {
@@ -210,7 +218,43 @@ class _ProfilePageState extends State<ProfilePage> {
                                 fontWeight: FontWeight.bold),
                           ),
                         ),
-                      ],
+                      const SizedBox(height: 20),
+                if (userData['guilds'] != null && (userData['guilds'] as List).isNotEmpty)
+  Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      const Text(
+        'Your Guilds',
+        style: TextStyle(
+            fontSize: 24, fontWeight: FontWeight.bold),
+      ),
+      const SizedBox(height: 10),
+      ...(userData['guilds'] as List<Guild>).map((guild) {
+        return GestureDetector(
+          onTap: () {
+            Navigator.pushNamed(
+                context, '/guild/${guild.id}');
+          },
+          child: Center(
+            child: Column(
+              children: [
+                if (guild.media != null)
+                  CircleAvatar(
+                    backgroundImage: CachedNetworkImageProvider(
+                      '${dotenv.env['MEDIA_URL']}${guild.media!.fileName}',
+                    ),
+                    radius: 50,
+                  ),
+                const SizedBox(height: 10),
+                Text('Guild: ${guild.name}'),
+                const SizedBox(height: 20),
+              ],
+            ),
+          ),
+        );
+      }).toList(),
+    ],
+  ),],
                     ),
                   ),
                 ),

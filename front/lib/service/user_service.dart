@@ -16,6 +16,10 @@ class UserService {
 
   Future<User> fetchUser(int userId, {bool forceRefresh = false}) async {
     try {
+
+      print("fetchUseeeer");
+      print(forceRefresh ? "forceRefresh" : "no forceRefresh");
+
       if (!forceRefresh) {
         final String? jsonData = await mySharedPreferences.getDataIfNotExpired();
         if (jsonData != null) {
@@ -32,6 +36,7 @@ class UserService {
           'Authorization': '$token',
         },
       );
+      print(response.statusCode != 200 ? "Failed to load user" : "User loaded");
       if (response.statusCode != 200) {
         return User.fromJson({
           "username": "Invité",

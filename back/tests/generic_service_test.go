@@ -1,33 +1,20 @@
-package handlers_test
+package test
 
 import (
+	"authentication-api/db"
 	"authentication-api/models"
 	service "authentication-api/services"
 	"fmt"
 	"github.com/stretchr/testify/assert"
-	"gorm.io/driver/sqlite"
-	"gorm.io/gorm"
 	"testing"
 )
 
 var initialUser = models.User{}
 
-func initDB() *gorm.DB {
-	db, err := gorm.Open(sqlite.Open("test2.db"), &gorm.Config{})
-	if err != nil {
-		panic("failed to connect database")
-	}
-
-	db.AutoMigrate(&models.User{})
-
-	return db
-}
-
 func TestCreateModel(t *testing.T) {
-	user := models.User{Username: "user", Password: "password"}
-	db := initDB()
+	user := models.User{Username: "user202", Password: "password", Role: "user", Email: "user202@gmail.com"}
 
-	service := service.NewGenericService(db, models.User{})
+	service := service.NewGenericService(db.DB, &models.User{})
 	err := service.Create(&user)
 
 	if err != nil {
@@ -38,10 +25,9 @@ func TestCreateModel(t *testing.T) {
 }
 
 func TestCreateUserModel(t *testing.T) {
-	user := models.User{Username: "user", Password: "password"}
-	db := initDB()
+	user := models.User{Username: "TestCreateUserModel", Password: "password", Email: fmt.Sprintf("TestCreateUserModel@gmail.com")}
 
-	service := service.NewUserService(db)
+	service := service.NewUserService(db.DB)
 	err := service.Create(&user)
 
 	if err != nil {
@@ -52,15 +38,11 @@ func TestCreateUserModel(t *testing.T) {
 }
 
 func TestShouldNotCreateModelWithExistingModel(t *testing.T) {
-	user := models.User{Username: "existingUser", Password: "password"}
-	db := initDB()
+	user := models.User{Username: "user", Password: "password"}
 
-	genericService := service.NewGenericService(db, models.User{})
+	genericService := service.NewGenericService(db.DB, &models.User{})
 	err := genericService.Create(&user)
 
-	assert.Nil(t, err)
-
-	err = genericService.Create(&user)
 	assert.NotNil(t, err)
 }
 
@@ -83,13 +65,3 @@ func TestShouldNotCreateModelWithExistingModel(t *testing.T) {
 //	assert.Equal(t, wantDb["Username"], updatedUser.Username)
 //
 //}
-
-func Test(t *testing.T) {
-	db := initDB()
-
-	newUser := models.User{Username: "zzz", Password: "test"}
-
-	userService := service.NewUserService(db)
-	userService.Create(newUser)
-
-}

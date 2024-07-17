@@ -1,13 +1,16 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:front/extension/theme_extension.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:jwt_decoder/jwt_decoder.dart';
 import 'auth/login_screen.dart';
 import 'auth/signup_screen.dart';
 
 class HomePage extends StatelessWidget {
   final bool showVerificationDialog;
+  final storage = const FlutterSecureStorage();
 
   const HomePage({Key? key, this.showVerificationDialog = false})
       : super(key: key);
@@ -58,7 +61,7 @@ class HomePage extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 40),
-              ElevatedButton(
+              if (!kIsWeb)ElevatedButton(
                 style: buttonStyle,
                 onPressed: () => Navigator.push(
                   context,
@@ -80,7 +83,7 @@ class HomePage extends StatelessWidget {
                 child: Text(t.login),
               ),
               const SizedBox(height: 20),
-              ElevatedButton(
+              if (!kIsWeb)ElevatedButton(
                 style: buttonStyle,
                 onPressed: () {
                   //add jwt token
@@ -89,16 +92,37 @@ class HomePage extends StatelessWidget {
                       "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiaW52aXRlIiwibmFtZSI6Ikludml0w6kifQ.1TMIPCEDolEVv1TMX77Y7-RA6AW4zCG2JrcjFT4hM90";
                   storage.write(key: 'jwt_token', value: token);
 
-                  // Navigate to the main page
-                  Navigator.pushNamed(context, '/main');
-                },
-                child: Text(t.guest),
-              ),
+                    // Navigate to the main page
+                    Navigator.pushNamed(context, '/main');
+                  },
+                  child: Text(t.guest),
+                ),
+              const SizedBox(height: 20),
+              if (kIsWeb)
+                ElevatedButton(
+                  onPressed: () {
+                    _loginAsAdmin(context);
+                  },
+                  child: const Text('Dashboard Admin'),
+                ),
             ],
           ),
         ),
       ),
     );
+  }
+
+  Future<void> _loginAsAdmin(BuildContext context) async {
+    // get token if exist
+    String? token = await storage.read(key: 'jwt_token');
+    if (token != null) {
+      Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
+      if (decodedToken['role'] == 'admin') {
+        Navigator.pushNamed(context, '/admin');
+      }
+    } else {
+      Navigator.pushNamed(context, '/login');
+    }
   }
 
   void _showVerificationDialog(BuildContext context) {
@@ -111,7 +135,7 @@ class HomePage extends StatelessWidget {
           content: Text(t.verifyEmailMessage),
           actions: <Widget>[
             TextButton(
-              child: const Text('OK'),
+              child: Text(t.ok),
               onPressed: () {
                 Navigator.of(context).pop(); // Close the dialog
               },

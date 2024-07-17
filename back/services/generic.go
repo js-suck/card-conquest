@@ -53,7 +53,7 @@ func (s *GenericService) Create(m models.IModel) errors.IError {
 
 	result := s.Db.Create(m)
 	if result.Error != nil {
-		return errors.NewErrorResponse(500, result.Error.Error())
+		return errors.NewErrorResponse(400, result.Error.Error())
 	}
 	return nil
 }

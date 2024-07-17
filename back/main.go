@@ -17,6 +17,7 @@ import (
 	"log"
 	"net"
 	"os"
+	"path/filepath"
 )
 
 import _ "github.com/swaggo/gin-swagger" // gin-swagger middleware
@@ -44,37 +45,37 @@ import _ "github.com/swaggo/files"       // swagger embed files
 // @externalDocs.url          https://swagger.io/resources/open-api/
 func main() {
 	// Initialize logging
-	logrus.SetFormatter(&logrus.JSONFormatter{})
+	logDir := "./var/log"
+	logFilePath := filepath.Join(logDir, "myapp.log")
 
-	//firebaseClient, errF := firebase.NewFirebaseClient("./firebase/privateKey.json")
-	//if errF != nil {
-	//	log.Fatalf("Failed to initialize Firebase: %v", errF)
-	//}
-	//
-	//// Example: Send a notification
-	//token := "cxv_VendS7-FtM7jfzpeYi:APA91bGvkbXDDnPHb6jzSpFz6aArQhAzSJYW0F1cX4e1MMgKwX01sOvXdHS9TeiAOeV0L2RowrmEMtIPnFs0p4aVH4gRneq7WTTafBNuVzhyMStuMjmA3HDHGrYm-284aCNP8UxQe8mL"
-	//title := "Test Notification"
-	//body := "This is a test notification"
-	//response, err := firebaseClient.SendNotification(token, title, body)
-	//if err != nil {
-	//	log.Fatalf("Failed to send notification: %v", err)
-	//}
-	//fmt.Printf("Successfully sent notification: %s\n", response)
+	// Check if the log directory exists, if not, create it
+	if _, err := os.Stat(logDir); os.IsNotExist(err) {
+		fmt.Println("Creating log directory")
+		err := os.MkdirAll(logDir, os.ModePerm)
+		if err != nil {
+			fmt.Println("Failed to create log directory")
+			logrus.Fatalf("Failed to create log directory: %v", err)
+		}
+	}
 
-	logFile, err := os.OpenFile("/var/log/myapp.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	logFile, err := os.OpenFile(logFilePath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err != nil {
-		logrus.Error("Failed to open log file: ", err)
+		logrus.Fatalf("Failed to open or create log file: %v", err)
 	} else {
+		fmt.Println("Logging to file: ", logFilePath)
 		defer logFile.Close()
 		logrus.SetOutput(logFile)
 	}
+
+	// Your application logic here
+	logrus.Info("Application started")
 
 	err = godotenv.Load(".env")
 	if err != nil {
 		logrus.Fatalf("Erreur lors du chargement du fichier .env: %v", err)
 	}
 
-	DB, err := dbService.InitDB()
+	DB, err := dbService.InitDB(false)
 	if err != nil {
 		logrus.Fatalf("Failed to initialize database: %v", err)
 	}

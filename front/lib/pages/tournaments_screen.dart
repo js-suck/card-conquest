@@ -39,6 +39,7 @@ class _TournamentsPageState extends State<TournamentsPage> {
   }
 
   Future<void> _onTournamentTapped(int tournamentId, String status) async {
+    print('Tournament tapped: $tournamentId, status: $status');
     Widget page;
     switch (status) {
       case 'opened':
@@ -79,7 +80,20 @@ class _TournamentsPageState extends State<TournamentsPage> {
   Widget build(BuildContext context) {
     var t = AppLocalizations.of(context)!;
     return Scaffold(
-      appBar: TopAppBar(title: t.tournamentTitle),
+        appBar: TopAppBar(
+      title: t.tournamentTitle,
+      actions: <Widget>[
+        IconButton(
+          icon: Icon(
+            Icons.map,
+            color: Colors.white,
+          ),
+          onPressed: () {
+            Navigator.pushNamed(context, '/tournaments/map');
+          },
+        ),
+      ],
+    ),
       body: SingleChildScrollView(
         child: Column(
           children: [

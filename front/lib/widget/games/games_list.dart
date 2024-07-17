@@ -5,10 +5,13 @@ import 'package:front/models/game.dart';
 
 class GamesList extends StatelessWidget {
   final List<Game> games;
+  final Future<void> Function(int) onGameTapped;
+
 
   const GamesList({
     super.key,
     required this.games,
+    required this.onGameTapped,
   });
 
   @override
@@ -22,8 +25,10 @@ class GamesList extends StatelessWidget {
               itemCount: games.length,
               itemBuilder: (context, index) {
                 var item = games[index];
-                return Padding(
-                  padding: const EdgeInsets.all(8.0),
+                return GestureDetector(
+                  onTap: () => onGameTapped(item.id),
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
                   child: Container(
                     width: 280,
                     decoration: BoxDecoration(
@@ -58,6 +63,7 @@ class GamesList extends StatelessWidget {
                       ],
                     ),
                   ),
+                ),
                 );
               },
             ),

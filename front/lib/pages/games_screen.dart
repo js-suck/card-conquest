@@ -84,7 +84,7 @@ class _GamesPageState extends State<GamesPage> {
             CustomFutureBuilder(
                 future: gameService.fetchTrendyGames(),
                 onLoaded: (List<Game> games) {
-                  return GamesList(games: games);
+                  return GamesList(games: games, onGameTapped: _onGameTapped);
                 }),
             Padding(
               padding: const EdgeInsets.all(8.0),

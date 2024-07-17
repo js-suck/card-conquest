@@ -281,6 +281,14 @@ func (s MatchService) GetTournamentMatches(u uint) ([]models.Match, errors.IErro
 	return matches, nil
 }
 
+func (s MatchService) GetMatchPlayers(u uint) (*models.User, *models.User, errors.IError) {
+	match := models.Match{}
+	if err := s.Db.Preload("PlayerOne").Preload("PlayerTwo").First(&match, u).Error; err != nil {
+		return nil, nil, errors.NewInternalServerError("Failed to get match", err)
+	}
+	return &match.PlayerOne, &match.PlayerTwo, nil
+}
+
 func (s *MatchService) GetAll(models interface{}, filterParams FilterParams, preloads ...string) errors.IError {
 	query := s.Db
 

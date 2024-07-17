@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:front/extension/theme_extension.dart';
 import 'package:front/pages/bracket_screen.dart';
 import 'package:front/pages/games_screen.dart';
 import 'package:front/pages/tournaments_registration_screen.dart';
@@ -14,6 +15,7 @@ import 'package:front/widget/games/games_list.dart';
 import 'package:front/widget/tournaments/all_tournaments_list.dart';
 import 'package:front/widget/tournaments/recent_tournaments_list.dart';
 import 'package:provider/provider.dart';
+import 'package:front/pages/game_detail_screen.dart';
 
 class HomeUserPage extends StatefulWidget {
   const HomeUserPage({Key? key}) : super(key: key);
@@ -78,10 +80,27 @@ class _HomePageState extends State<HomeUserPage> {
     selectedPageModel.changePage(const GamesPage(), 3);
   }
 
+  Future<void> _onGameTapped(int id) async {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => GameDetailPage(gameId: id),
+      ),
+    );
+  }
+
+
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context)!;
     return Scaffold(
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.pushNamed(context, '/guild');
+        },
+        child: Icon(Icons.diversity_3),
+        backgroundColor: context.themeColors.accentColor,
+      ),
       appBar: TopAppBar(title: t.homeTitle, isAvatar: true, isPage: false),
       body: SingleChildScrollView(
         child: Column(
@@ -113,7 +132,7 @@ class _HomePageState extends State<HomeUserPage> {
             CustomFutureBuilder(
                 future: gameService.fetchGames(),
                 onLoaded: (games) {
-                  return GamesList(games: games.take(4).toList());
+                  return GamesList(games: games.take(4).toList(), onGameTapped: _onGameTapped);
                 }),
           ],
         ),
