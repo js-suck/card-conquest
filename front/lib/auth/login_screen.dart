@@ -1,7 +1,5 @@
-import 'dart:convert';
-
 import 'package:firebase_auth/firebase_auth.dart' as auth;
-import 'package:flutter/foundation.dart';
+import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
@@ -10,19 +8,22 @@ import 'package:front/extension/theme_extension.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-
 import '../generated/chat.pb.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'dart:convert';
+import 'package:flutter/foundation.dart';
+import 'package:provider/provider.dart';
+import '../providers/feature_flag_provider.dart';
 
 import '../generated/chat.pb.dart';
 
 Future<void> login(
     BuildContext context, String username, String password) async {
-  final storage =
-      new FlutterSecureStorage(); // Create instance of secure storage
+  const storage = FlutterSecureStorage();
   String? fcmToken = await storage.read(key: 'fcm_token');
   final response = await http.post(
     Uri.parse('${dotenv.env['API_URL']}login'),
@@ -58,7 +59,17 @@ Future<void> login(
       return;
     }
     // Store the token in secure storage
-    await storage.write(key: 'jwt_token', value: token);
+
+
+
+    var tokenData = jsonDecode(
+        ascii.decode(base64.decode(base64.normalize(token.split(".")[1]))));
+    int userId = tokenData['user_id'];
+
+    await storage.delete(key: 'jwt_token');
+
+    await storage.write(key: 'user_id', value: userId.toString());
+
     if (token != null) {
       Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
       userRole = decodedToken['role'];
@@ -66,13 +77,14 @@ Future<void> login(
     if (userRole == 'organizer') {
       Navigator.pushReplacementNamed(context, '/orga/home');
     } else {
-      Navigator.pushReplacementNamed(context, '/main');
+      Navigator.of(context).pushReplacementNamed('/main');
     }
   } else {
-    // Handle error in login
+    final t = AppLocalizations.of(context)!;
+
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Erreur de connexion'),
+      SnackBar(
+        content: Text(t.loginError),
         duration: Duration(seconds: 1),
       ),
     );
@@ -91,6 +103,17 @@ class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
+  late bool isGoogleSignInEnabled = false;
+
+  @override
+  void initState() {
+    super.initState();
+
+    final featureNotifier = Provider.of<FeatureNotifier>(context, listen: false);
+    isGoogleSignInEnabled = featureNotifier.isFeatureEnabled('googleSignIn');
+  }
+
+
 
   void _login() {
     if (_formKey.currentState?.validate() == true) {
@@ -181,8 +204,7 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.white,
+      appBar: AppBar(backgroundColor: Colors.white,
       ),
       body: SingleChildScrollView(
         child: Center(
@@ -294,7 +316,7 @@ class _LoginPageState extends State<LoginPage> {
                           ],
                         ),
                       const SizedBox(height: 10),
-                      if (!kIsWeb)
+                      if (!kIsWeb && isGoogleSignInEnabled)
                         ElevatedButton(
                           onPressed: _googleSignIn,
                           style: ElevatedButton.styleFrom(

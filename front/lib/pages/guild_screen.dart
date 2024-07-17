@@ -5,22 +5,24 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:front/models/user.dart';
+import 'package:front/pages/guild_list_screen.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 
-import '../generated/chat.pb.dart' as chatpb;
 import '../models/guild.dart' as guild;
 import '../models/user.dart' as userModel;
-import '../notifier/theme_notifier.dart';
+import '../providers/user_provider.dart';
 import '../service/guild_service.dart';
 import '../service/user_service.dart';
 import 'chat_screen.dart';
+import 'guild_update_screen.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
-import 'guild_update_screen.dart';
-
 class GuildView extends StatefulWidget {
-  const GuildView({super.key});
+  final int? guildId;
+
+  const GuildView({Key? key, this.guildId}) : super(key: key);
 
   @override
   _GuildViewState createState() => _GuildViewState();
@@ -53,21 +55,17 @@ class _GuildViewState extends State<GuildView> {
         userConnected = user;
         isLoadingUser = false;
       });
+
+      if (widget.guildId != null) {
+        futureUserGuild = guildService.fetchGuild(widget.guildId!);
+      } else {
+        futureUserGuild = _fetchAndFetchFullUserGuild(userId);
+      }
     } catch (e) {
       print('Error fetching user: $e');
       Navigator.pushReplacementNamed(context, '/login');
       return;
     }
-
-    _fetchAndFetchFullUserGuild(userId).then((guild) {
-      if (guild == null) {
-        Navigator.pushReplacementNamed(context, '/guilds');
-      } else {
-        setState(() {
-          futureUserGuild = Future.value(guild);
-        });
-      }
-    });
 
     futureGuilds = guildService.fetchGuilds();
   }
@@ -97,15 +95,15 @@ class _GuildViewState extends State<GuildView> {
 
     if (token != null && userID != null) {
       final response = await http.post(
-        Uri.parse('${dotenv.env['API_URL']}/guilds/$guildId/users/$userID'),
+        Uri.parse('${dotenv.env['API_URL']}guilds/$guildId/users/$userID'),
         headers: {
-          HttpHeaders.authorizationHeader: 'Bearer $token',
+          HttpHeaders.authorizationHeader: '$token',
         },
       );
 
       if (response.statusCode == 200) {
         setState(() {
-          futureUserGuild = _fetchAndFetchFullUserGuild(userConnected.id ?? 0);
+          futureUserGuild = _fetchAndFetchFullUserGuild(userConnected.id);
         });
       } else {
         throw Exception('Failed to join');
@@ -115,13 +113,13 @@ class _GuildViewState extends State<GuildView> {
     }
   }
 
-  isUserAdmin(guild.Guild userGuild) {
+  bool isUserAdmin(guild.Guild userGuild) {
     return userGuild.admins != null &&
         userGuild.admins!.any(
             (admin) => admin['ID'].toString() == userConnected.id.toString());
   }
 
-  isMemberAdmin(guild.Guild userGuild, int userId) {
+  bool isMemberAdmin(guild.Guild userGuild, int userId) {
     return userGuild.admins != null &&
         userGuild.admins!.any((admin) => admin['ID'] == userId);
   }
@@ -129,14 +127,9 @@ class _GuildViewState extends State<GuildView> {
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context)!;
-    final themeNotifier = Provider.of<ThemeNotifier>(context, listen: false);
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          t.guildUserGuild,
-          style: TextStyle(color: Colors.white),
-        ),
         actions: <Widget>[
           IconButton(
             icon: const Icon(
@@ -159,6 +152,15 @@ class _GuildViewState extends State<GuildView> {
                     return const Center(child: CircularProgressIndicator());
                   } else if (snapshot.hasError) {
                     return Center(child: Text('Error: ${snapshot.error}'));
+                  } else if (!snapshot.hasData && snapshot.data == null) {
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const GuildListScreen()),
+                      );
+                    });
+                    return Container();
                   } else if (snapshot.hasData && snapshot.data != null) {
                     var userGuild = snapshot.data!;
                     var players = userGuild.players != null
@@ -169,6 +171,8 @@ class _GuildViewState extends State<GuildView> {
 
                     bool isMember = players.any((player) =>
                         player['ID'].toString() == userConnected.id.toString());
+
+                    User? user = Provider.of<UserProvider>(context).user;
 
                     return Column(
                       children: [
@@ -206,7 +210,7 @@ class _GuildViewState extends State<GuildView> {
                                       Icons.edit,
                                     ),
                                     onPressed: () {
-                                      Navigator.push(
+                                      Navigator.pushReplacement(
                                         context,
                                         MaterialPageRoute(
                                           builder: (context) =>
@@ -218,17 +222,21 @@ class _GuildViewState extends State<GuildView> {
                                   ),
                                 Padding(
                                   padding: const EdgeInsets.all(16.0),
-                                  child: ElevatedButton(
-                                    onPressed: isMember
-                                        ? null
-                                        : () {
-                                            join(context,
-                                                userGuild.id.toString());
-                                          },
-                                    child: Text(isMember
-                                        ? t.guildMember
-                                        : t.guildUserJoindGuild),
-                                  ),
+                                  child: user?.guilds != null && !isMember
+                                      ? null
+                                      : ElevatedButton(
+                                          onPressed: isMember
+                                              ? null
+                                              : () {
+                                                  join(context,
+                                                      userGuild.id.toString());
+                                                },
+                                          child: Text(
+                                            isMember
+                                                ? t.guildMember
+                                                : t.guildJoin,
+                                          ),
+                                        ),
                                 ),
                                 if (isMember)
                                   ElevatedButton(
@@ -243,7 +251,7 @@ class _GuildViewState extends State<GuildView> {
                                               ChatClientScreen(
                                             guildId: userGuild.id ?? 0,
                                             username: userConnected.username,
-                                            userId: userConnected.id ?? 0,
+                                            userId: userConnected.id,
                                             mediaUrl:
                                                 userConnected.media?.fileName ??
                                                     '',
@@ -265,7 +273,6 @@ class _GuildViewState extends State<GuildView> {
                               var player = players[index];
                               bool isAdmin =
                                   isMemberAdmin(userGuild, player['ID']);
-                              print('isAdmin: $isAdmin');
                               return Material(
                                 child: ListTile(
                                   leading: CircleAvatar(
@@ -321,8 +328,7 @@ class _GuildViewState extends State<GuildView> {
                                                             futureUserGuild =
                                                                 _fetchAndFetchFullUserGuild(
                                                                     userConnected
-                                                                            .id ??
-                                                                        0);
+                                                                        .id);
                                                           });
                                                         });
                                                         Navigator.of(context)
@@ -357,25 +363,27 @@ class _GuildViewState extends State<GuildView> {
                                       TextButton(
                                         child: Text(t.cancel),
                                         onPressed: () {
-                                          Navigator.push(context,
-                                              MaterialPageRoute(
-                                                  builder: (context) {
-                                            return GuildView();
-                                          }));
+                                          Navigator.of(context).pop();
                                         },
                                       ),
                                       TextButton(
                                         child: Text(t.confirm),
-                                        onPressed: () {
-                                          guildService
-                                              .leaveGuild(
-                                                  userGuild.id.toString(),
-                                                  userConnected.id.toString())
-                                              .then((value) {
-                                            Navigator.pushReplacementNamed(
-                                                context, '/guilds');
-                                          });
-                                          Navigator.of(context).pop();
+                                        onPressed: () async {
+                                          await guildService.leaveGuild(
+                                            userGuild.id.toString(),
+                                            userConnected.id.toString(),
+                                          );
+
+                                          if (mounted) {
+                                            Navigator.of(context).pop();
+                                            Navigator.pushReplacement(
+                                              context,
+                                              MaterialPageRoute(
+                                                  builder: (context) {
+                                                return const GuildView();
+                                              }),
+                                            );
+                                          }
                                         },
                                       ),
                                     ],
