@@ -296,6 +296,10 @@ func (s *MatchService) GetAll(models interface{}, filterParams FilterParams, pre
 		query = query.Where("player_one_id = ? OR player_two_id = ?", userID, userID)
 	}
 
+	if tournamentID, ok := filterParams.Fields["TournamentID"]; ok {
+		query = query.Where("tournament_id = ?", tournamentID)
+	}
+
 	if status, ok := filterParams.Fields["Status"]; ok {
 		query = query.Where("status = ?", status)
 	}
