@@ -42,6 +42,10 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
+# Flutter generated
+/linux/flutter/
+/macos/Flutter/
+
 #
 /lib/.env
 /android/app/google-services.json
