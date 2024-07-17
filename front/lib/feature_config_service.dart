@@ -3,10 +3,9 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 
 class FeatureService {
-  final String baseUrl;
   final Map<String, bool> _cache = {};
 
-  FeatureService(this.baseUrl);
+  FeatureService();
 
   Future<bool> isFeatureEnabled(String feature) async {
     if (_cache.containsKey(feature)) {
@@ -14,7 +13,8 @@ class FeatureService {
     }
 
     try {
-      final response = await http.get(Uri.parse('${dotenv.env['API_URL']}feature/$feature'));
+      final response =
+          await http.get(Uri.parse('${dotenv.env['API_URL']}feature/$feature'));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -38,7 +38,7 @@ class FeatureService {
       final response = await http.post(
         Uri.parse('${dotenv.env['API_URL']}feature/$feature'),
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'enabled': enabled}),
+        body: enabled.toString(),
       );
 
       if (response.statusCode == 204) {
@@ -51,25 +51,25 @@ class FeatureService {
     }
   }
 
+  Future<Map<String, bool>> getAllFeatures() async {
+    try {
+      final response =
+          await http.get(Uri.parse('${dotenv.env['API_URL']}feature'));
 
-Future<Map<String, bool>> getAllFeatures() async {
-  try {
-    final response = await http.get(Uri.parse('${dotenv.env['API_URL']}feature'));
-
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body) as List<dynamic>;
-      final features = data.fold<Map<String, bool>>({}, (acc, feature) {
-        acc[feature['name']] = feature['enabled'];
-        return acc;
-      });
-      _cache.addAll(features);
-      return features;
-    } else {
-      throw Exception('Failed to load features');
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body) as List<dynamic>;
+        final features = data.fold<Map<String, bool>>({}, (acc, feature) {
+          acc[feature['name']] = feature['enabled'];
+          return acc;
+        });
+        _cache.addAll(features);
+        return features;
+      } else {
+        throw Exception('Failed to load features');
+      }
+    } catch (e) {
+      print('Error fetching features: $e');
+      return {}; // Return an empty map if an error occurs
     }
-  } catch (e) {
-    print('Error fetching features: $e');
-    return {}; // Return an empty map if an error occurs
   }
-}
 }

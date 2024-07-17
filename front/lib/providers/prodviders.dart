@@ -13,20 +13,17 @@ import '../service/user_service.dart';
 import '../widget/bottom_bar.dart';
 import 'feature_flag_provider.dart';
 
-
-
 Future<List<SingleChildWidget>> getProviders() async {
   final prefs = await SharedPreferences.getInstance();
   final localeCode = prefs.getString('locale') ?? 'en';
   final isDarkMode = prefs.getBool('isDarkMode') ?? false;
-  final FeatureService featureService = FeatureService(dotenv.env['API_URL']!);
+  final FeatureService featureService = FeatureService();
   final Map<String, bool> allFeatures = await featureService.getAllFeatures();
-
-
 
   return [
     Provider(create: (_) => UserService()),
-    ChangeNotifierProvider(create: (_) => FeatureNotifier(featureService, allFeatures)),
+    ChangeNotifierProvider(
+        create: (_) => FeatureNotifier(featureService, allFeatures)),
     ChangeNotifierProvider(create: (_) => UserProvider()),
     ChangeNotifierProvider(create: (_) => TournamentNotifier()),
     ChangeNotifierProvider(create: (_) => SelectedPageModel()),
