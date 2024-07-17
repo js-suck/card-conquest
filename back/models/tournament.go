@@ -59,11 +59,6 @@ type Tournament struct {
 	Steps       []TournamentStep `json:"tournament_steps" gorm:"foreignKey:TournamentID"`
 	Longitude   float64          `json:"longitude"`
 	Latitude    float64          `json:"latitude"`
-	Subscribers []User           `gorm:"many2many:tournament_subscribers;"`
-}
-
-func (t Tournament) New() IModel {
-	return &Tournament{}
 }
 
 type TournamentRead struct {
@@ -73,8 +68,8 @@ type TournamentRead struct {
 	Location          string               `json:"location"`
 	Organizer         UserReadTournament   `json:",omitempty"`
 	Game              GameReadTournament   `json:"game"`
-	StartDate         string               `json:"start_date"`
-	EndDate           string               `json:"end_date"`
+	StartDate         time.Time            `json:"start_date"`
+	EndDate           time.Time            `json:"end_date"`
 	Media             *Media               `json:"media, omitempty"`
 	Rounds            int                  `json:"rounds"`
 	MaxPlayers        int                  `json:"max_players"`
@@ -169,8 +164,25 @@ func (t Tournament) ToRead() TournamentRead {
 
 }
 
-func (t Tournament) IsOwner(userID uint) bool {
-	return t.UserID == userID
+func (m Tournament) IsOwner(userID uint) bool {
+	return true
+}
+
+type UpdateTournamentPayload struct {
+	Name        string  `json:"name" example:"Tournament 1" form:"name"`
+	Description string  `json:"description" example:"Tournament 1 description" form:"description"`
+	Location    string  `json:"location" example:"New York" form:"location"`
+	UserID      uint    `json:"organizer_id" example:"1" form:"organizer_id"`
+	GameID      uint    `json:"game_id" example:"1" form:"game_id"`
+	StartDate   string  `json:"start_date" json:"start_date" form:"start_date"`
+	EndDate     string  `json:"end_date" json:"end_date" form:"end_date"`
+	Status      string  `json:"status" form:"status"`
+	Rounds      int     `json:"rounds" example:"3" form:"rounds"`
+	TagsIDs     []uint  `json:"tags_idss" form:"tags_ids"`
+	MaxPlayers  int     `json:"max_players" example:"32" form:"max_players"`
+	Longitude   float64 `json:"longitude" form:"longitude"`
+	Latitude    float64 `json:"latitude" form:"latitude"`
+	Image       []byte  `gorm:"type:longblob" json:"-"`
 }
 
 type UpdateTournamentPayload struct {
