@@ -7,20 +7,13 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-import '../generated/chat.pb.dart';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import '../providers/feature_flag_provider.dart';
 
-
-import '../generated/chat.pb.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-
-Future<void> login(
-    BuildContext context, String username, String password) async {
-  final storage =
-  new FlutterSecureStorage(); // Create instance of secure storage
+Future<void> login(BuildContext context, String username, String password, Function(bool) setLoading) async {
+  final storage = new FlutterSecureStorage(); // Create instance of secure storage
   String? fcmToken = await storage.read(key: 'fcm_token');
   final response = await http.post(
     Uri.parse('${dotenv.env['API_URL']}login'),
@@ -48,11 +41,13 @@ Future<void> login(
             duration: Duration(seconds: 1),
           ),
         );
+        setLoading(false);
         return;
       }
       // Store the token in secure storage
       await storage.write(key: 'jwt_token', value: token);
       Navigator.pushReplacementNamed(context, '/admin');
+      setLoading(false);
       return;
     }
     // Store the token in secure storage
@@ -66,11 +61,11 @@ Future<void> login(
     await storage.write(key: 'user_id', value: userId.toString());
     await storage.write(key: 'jwt_token', value: token);
 
-
     if (token != null) {
       Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
       userRole = decodedToken['role'];
     }
+    setLoading(false);
     if (userRole == 'organizer') {
       Navigator.pushReplacementNamed(context, '/orga/home');
     } else {
@@ -78,7 +73,7 @@ Future<void> login(
     }
   } else {
     final t = AppLocalizations.of(context)!;
-
+    setLoading(false);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(t.loginError),
@@ -101,6 +96,7 @@ class _LoginPageState extends State<LoginPage> {
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
   late bool isGoogleSignInEnabled = false;
+  bool _isLoading = false; // State for loading
 
   @override
   void initState() {
@@ -110,13 +106,19 @@ class _LoginPageState extends State<LoginPage> {
     isGoogleSignInEnabled = featureNotifier.isFeatureEnabled('googleSignIn');
   }
 
-
+  void setLoading(bool loading) {
+    setState(() {
+      _isLoading = loading;
+    });
+  }
 
   void _login() {
     if (_formKey.currentState?.validate() == true) {
+      setLoading(true); // Set loading to true before login
       try {
-        login(context, _usernameController.text, _passwordController.text);
+        login(context, _usernameController.text, _passwordController.text, setLoading);
       } catch (e) {
+        setLoading(false); // Set loading to false if there's an error
         if (kDebugMode) {
           print('Erreur de connexion: $e');
         }
@@ -166,6 +168,7 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Future<void> _googleSignIn() async {
+    setLoading(true); // Set loading to true before Google sign in
     try {
       final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
       final GoogleSignInAuthentication? googleAuth =
@@ -187,14 +190,17 @@ class _LoginPageState extends State<LoginPage> {
           SnackBar(content: Text('Welcome, ${user.displayName}')),
         );
       }
+      setLoading(false); // Set loading to false after successful login
     } catch (e) {
       final t = AppLocalizations.of(context)!;
+      setLoading(false); // Set loading to false if there's an error
       print('Error during Google sign in: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(t.loginErrorGoogle)),
       );
       return;
     }
+    setLoading(false); // Set loading to false after login
     Navigator.of(context).pushReplacementNamed('/main');
   }
 
@@ -204,7 +210,9 @@ class _LoginPageState extends State<LoginPage> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
       ),
-      body: SingleChildScrollView(
+      body: _isLoading
+          ? Center(child: CircularProgressIndicator()) // Show loading indicator if loading
+          : SingleChildScrollView(
         child: Center(
           child: Column(
             children: <Widget>[
