@@ -1,14 +1,8 @@
 import 'package:firebase_auth/firebase_auth.dart' as auth;
-import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:front/extension/theme_extension.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:google_sign_in/google_sign_in.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
 import 'package:jwt_decoder/jwt_decoder.dart';
@@ -19,7 +13,6 @@ import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import '../providers/feature_flag_provider.dart';
 
-import '../generated/chat.pb.dart';
 
 Future<void> login(
     BuildContext context, String username, String password) async {
@@ -66,9 +59,9 @@ Future<void> login(
         ascii.decode(base64.decode(base64.normalize(token.split(".")[1]))));
     int userId = tokenData['user_id'];
 
-    await storage.delete(key: 'jwt_token');
-
     await storage.write(key: 'user_id', value: userId.toString());
+    await storage.write(key: 'jwt_token', value: token);
+
 
     if (token != null) {
       Map<String, dynamic> decodedToken = JwtDecoder.decode(token);

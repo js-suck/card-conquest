@@ -56,17 +56,6 @@ class _RegistrationPageState extends State<RegistrationPage> {
     return payloadMap;
   }
 
-  Map<String, dynamic> _decodeToken(String token) {
-    final parts = token.split('.');
-    if (parts.length != 3) {
-      throw Exception('Invalid token');
-    }
-    final payload = base64Url.normalize(parts[1]);
-    final payloadString = utf8.decode(base64Url.decode(payload));
-    final payloadMap = json.decode(payloadString) as Map<String, dynamic>;
-    return payloadMap;
-  }
-
   Future<void> _registerForTournament() async {
     var t = AppLocalizations.of(context)!;
     String? token = await storage.read(key: 'jwt_token');
