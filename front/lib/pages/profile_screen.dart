@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
@@ -179,12 +180,14 @@ class _ProfilePageState extends State<ProfilePage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(t.loginNoAccount, style: TextStyle(fontSize: 18),
+            Text(
+              t.loginNoAccount,
+              style: TextStyle(fontSize: 18),
             ),
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: _navigateToLogin,
-              child: Text(t.loginTitle)
+              child: Text(t.loginTitle),
             ),
           ],
         ),
@@ -200,15 +203,37 @@ class _ProfilePageState extends State<ProfilePage> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if (_image != null) Image.file(File(_image!.path)),
-                  ElevatedButton(
-                    onPressed: _pickImage,
-                    child: Text(t.profileChangeProfilePicture),
-                  ),
                   Text(
                     t.profileUpdateProfileTitle,
                     style: const TextStyle(
                         fontSize: 24, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 20),
+                  const Text(
+                    'Image',
+                    style: TextStyle(fontSize: 18.0),
+                  ),
+                  const SizedBox(height: 10),
+                  GestureDetector(
+                    onTap: _pickImage,
+                    child: _image != null
+                        ? Image.file(File(_image!.path))
+                        : DottedBorder(
+                      color: Colors.black,
+                      strokeWidth: 1,
+                      padding: const EdgeInsets.all(20),
+                      child: const Center(
+                        child: SizedBox(
+                          width: 150,
+                          height: 150,
+                          child: Icon(
+                            Icons.image, // Utiliser l'icône image
+                            size: 100, // Taille de l'icône
+                            color: Colors.grey, // Couleur de l'icône
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
                   const SizedBox(height: 20),
                   TextFormField(
@@ -225,8 +250,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         borderSide: BorderSide.none,
                       ),
                     ),
-                    onSaved: (value) =>
-                    userData['username'] = value!,
+                    onSaved: (value) => userData['username'] = value!,
                   ),
                   const SizedBox(height: 20),
                   TextFormField(
