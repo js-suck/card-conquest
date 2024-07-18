@@ -462,6 +462,10 @@ func (s *TournamentService) GetAll(models interface{}, filterParams FilterParams
 			Where("user_tournaments.user_id = ?", filterParams.Fields["UserID"])
 	}
 
+	if _, ok := filterParams.Fields["OrganizerID"]; ok {
+		query = query.Where("tournaments.user_id = ?", filterParams.Fields["OrganizerID"])
+	}
+
 	if _, ok := filterParams.Fields["GameID"]; ok {
 		query = query.Where("tournaments.game_id = ?", filterParams.Fields["GameID"])
 	}
@@ -486,7 +490,7 @@ func (s *TournamentService) GetAll(models interface{}, filterParams FilterParams
 }
 
 func (s *TournamentService) SendTournamentIsSoon() (string, errors.IError) {
-	firebaseClient, errF := firebase.NewFirebaseClient("./firebase/privateKey.json")
+	firebaseClient, errF := firebase.NewFirebaseClient("./firebase/privateKey.json", s.Db)
 
 	if errF != nil {
 		return "", errors.NewInternalServerError("Failed to initialize Firebase", errF)
@@ -518,7 +522,7 @@ func (s *TournamentService) SendTournamentIsSoon() (string, errors.IError) {
 }
 
 func (s *TournamentService) SendTournamentIsStarted(tournamentID uint) errors.IError {
-	firebaseClient, errF := firebase.NewFirebaseClient("./firebase/privateKey.json")
+	firebaseClient, errF := firebase.NewFirebaseClient("./firebase/privateKey.json", s.Db)
 
 	if errF != nil {
 		return errors.NewInternalServerError("Failed to initialize Firebase", errF)
@@ -547,7 +551,7 @@ func (s *TournamentService) SendTournamentIsStarted(tournamentID uint) errors.IE
 }
 
 func (s *TournamentService) SendTournamentIsEnded(tournamentID uint, winnerID uint) errors.IError {
-	firebaseClient, errF := firebase.NewFirebaseClient("./firebase/privateKey.json")
+	firebaseClient, errF := firebase.NewFirebaseClient("./firebase/privateKey.json", s.Db)
 
 	if errF != nil {
 		return errors.NewInternalServerError("Failed to initialize Firebase", errF)

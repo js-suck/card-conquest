@@ -24,6 +24,7 @@ func NewTournamentHandler(tournamentService *services.TournamentService, fileSer
 func (h *TournamentHandler) parseFilterParams(c *gin.Context) services.FilterParams {
 	TournamentID := c.Query("TournamentID")
 	UserID := c.Query("UserID")
+	OrganizerID := c.Query("OrganizerID")
 	GameID := c.Query("GameID")
 	Sort := c.Query("Sort")
 	Name := c.Query("Name")
@@ -41,6 +42,10 @@ func (h *TournamentHandler) parseFilterParams(c *gin.Context) services.FilterPar
 	if UserID != "" {
 		filterParams.Fields["UserID"] = UserID
 
+	}
+
+	if OrganizerID != "" {
+		filterParams.Fields["OrganizerID"] = OrganizerID
 	}
 
 	if GameID != "" {
@@ -94,13 +99,15 @@ func (h *TournamentHandler) CreateTournament(c *gin.Context) {
 	tagsIDsStr := c.PostFormArray("tagsIDs[]")
 	var tagsIDs []uint
 
-	for _, idStr := range tagsIDsStr {
-		id, err := strconv.ParseUint(idStr, 10, 32)
-		if err != nil {
-			c.JSON(http.StatusBadRequest, errors.NewBadRequestError("Invalid tag ID", err).ToGinH())
-			return
+	if len(tagsIDsStr) > 0 {
+		for _, idStr := range tagsIDsStr {
+			id, err := strconv.ParseUint(idStr, 10, 32)
+			if err != nil {
+				c.JSON(http.StatusBadRequest, errors.NewBadRequestError("Invalid tag ID", err).ToGinH())
+				return
+			}
+			tagsIDs = append(tagsIDs, uint(id))
 		}
-		tagsIDs = append(tagsIDs, uint(id))
 	}
 
 	var payload models.CreateTournamentPayload
@@ -504,8 +511,6 @@ func (h *TournamentHandler) UpdateTournament(c *gin.Context) {
 		return
 	}
 
-	file, err := c.FormFile("image")
-
 	tagsIDsStr := c.PostFormArray("tagsIDs[]")
 	var tagsIDs []uint
 
@@ -526,9 +531,7 @@ func (h *TournamentHandler) UpdateTournament(c *gin.Context) {
 	}
 
 	tournament := models.Tournament{
-		BaseModel: models.BaseModel{
-			ID: uint(tournamentID),
-		},
+		ID:          uint(tournamentID),
 		Name:        payload.Name,
 		Description: payload.Description,
 		StartDate:   payload.StartDate,
@@ -541,6 +544,23 @@ func (h *TournamentHandler) UpdateTournament(c *gin.Context) {
 		Latitude:    payload.Latitude,
 		MaxPlayers:  payload.MaxPlayers,
 		Status:      payload.Status,
+	}
+
+	file, err := c.FormFile("image")
+	if file != nil {
+		if err != nil {
+			if !errors.IsFileNotFound(err) {
+				c.JSON(http.StatusBadRequest, errors.NewBadRequestError("Something went wrong with the file", err).ToGinH())
+				return
+			}
+		} else {
+			mediaModel, _, errUpload := h.FileService.UploadMedia(file)
+			if errUpload != nil {
+				c.JSON(http.StatusBadRequest, errors.NewBadRequestError("Invalid request", errUpload).ToGinH())
+				return
+			}
+			tournament.MediaModel.Media = mediaModel
+		}
 	}
 
 	tags, err := h.TournamentService.GetTagsByIDs(tagsIDs)
