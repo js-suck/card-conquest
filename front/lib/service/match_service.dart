@@ -124,7 +124,7 @@ class MatchService {
 
     final response = await http.get(
       Uri.parse(
-          '${dotenv.env['API_URL']}matchs?tournamentId=$tournamentId&Status=finished'),
+          '${dotenv.env['API_URL']}matchs?TournamentID=$tournamentId&Status=finished'),
       headers: {
         HttpHeaders.authorizationHeader: '$token',
       },
@@ -143,7 +143,7 @@ class MatchService {
 
     final response = await http.get(
       Uri.parse(
-          '${dotenv.env['API_URL']}matchs?tournamentId=$tournamentId&Unfinished=true'),
+          '${dotenv.env['API_URL']}matchs?TournamentID=$tournamentId&Unfinished=true'),
       headers: {
         HttpHeaders.authorizationHeader: '$token',
       },

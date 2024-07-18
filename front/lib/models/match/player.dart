@@ -1,13 +1,13 @@
 import 'package:front/models/media.dart';
 
 class Player {
-  final int id;
+  final int? id;
   final String username;
   final String? email;
   final Media? media;
 
   Player({
-    required this.id,
+    this.id,
     required this.username,
     this.email,
     this.media,
