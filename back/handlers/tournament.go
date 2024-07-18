@@ -6,6 +6,7 @@ import (
 	"authentication-api/models"
 	"authentication-api/services"
 	"github.com/gin-gonic/gin"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -476,8 +477,6 @@ func (h *TournamentHandler) GetTournamentRankings(c *gin.Context) {
 	c.JSON(http.StatusOK, ranking)
 }
 
-// ... other code ...
-
 // UpdateTournament godoc
 // @Summary Update a tournament
 // @Description Update a tournament
@@ -496,8 +495,8 @@ func (h *TournamentHandler) GetTournamentRankings(c *gin.Context) {
 // @Param image formData file false "Image file" Example(<path_to_image_file>)
 // @Param location formData string false "Location" Example("New York")
 // @Param max_players formData int false "Maximum number of players" Example(32)
-// @Param longitude formData float64 false "Longitude" Example(40.7128)
-// @Param latitude formData float64 false "Latitude" Example(74.0060)
+// @Param longitude formData string false "Longitude" Example(40.7128)
+// @Param latitude formData string false "Latitude" Example(74.0060)
 // @Success 200 {object} string
 // @Failure 400 {object} errors.ErrorResponse
 // @Failure 500 {object} errors.ErrorResponse
@@ -523,27 +522,85 @@ func (h *TournamentHandler) UpdateTournament(c *gin.Context) {
 		tagsIDs = append(tagsIDs, uint(id))
 	}
 
-	var payload models.UpdateTournamentPayload
+	type UpdateTournamentPayloadTemp struct {
+		Name        string `form:"name"`
+		Description string `form:"description"`
+		StartDate   string `form:"start_date"`
+		EndDate     string `form:"end_date"`
+		Location    string `form:"location"`
+		UserID      uint   `form:"organizer_id"`
+		GameID      uint   `form:"game_id"`
+		Rounds      int    `form:"rounds"`
+		Longitude   string `form:"longitude"`
+		Latitude    string `form:"latitude"`
+		MaxPlayers  int    `form:"max_players"`
+		Status      string `form:"status"`
+	}
 
-	if err := c.ShouldBind(&payload); err != nil {
+	var payloadTemp UpdateTournamentPayloadTemp
+	if err := c.ShouldBind(&payloadTemp); err != nil {
 		c.JSON(http.StatusBadRequest, errors.NewBadRequestError("Invalid request", err).ToGinH())
 		return
 	}
 
-	tournament := models.Tournament{
-		ID:          uint(tournamentID),
-		Name:        payload.Name,
-		Description: payload.Description,
-		StartDate:   payload.StartDate,
-		EndDate:     payload.EndDate,
-		Location:    payload.Location,
-		UserID:      payload.UserID,
-		GameID:      payload.GameID,
-		Rounds:      payload.Rounds,
-		Longitude:   payload.Longitude,
-		Latitude:    payload.Latitude,
-		MaxPlayers:  payload.MaxPlayers,
-		Status:      payload.Status,
+	// Conversion des valeurs de latitude et de longitude
+	latitude, err := strconv.ParseFloat(payloadTemp.Latitude, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, errors.NewBadRequestError("Invalid latitude value", err).ToGinH())
+		return
+	}
+
+	longitude, err := strconv.ParseFloat(payloadTemp.Longitude, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, errors.NewBadRequestError("Invalid longitude value", err).ToGinH())
+		return
+	}
+
+	// Log the payload for debugging
+	log.Printf("Updating tournament ID %d with payload: %+v", tournamentID, payloadTemp)
+
+	// Retrieve existing tournament to update
+	var existingTournament models.Tournament
+	if err := h.TournamentService.Get(&existingTournament, uint(tournamentID)); err != nil {
+		c.JSON(http.StatusNotFound, errors.NewErrorResponse(http.StatusNotFound, "Tournament not found").ToGinH())
+		return
+	}
+
+	if payloadTemp.Name != "" {
+		existingTournament.Name = payloadTemp.Name
+	}
+	if payloadTemp.Description != "" {
+		existingTournament.Description = payloadTemp.Description
+	}
+	if payloadTemp.StartDate != "" {
+		existingTournament.StartDate = payloadTemp.StartDate
+	}
+	if payloadTemp.EndDate != "" {
+		existingTournament.EndDate = payloadTemp.EndDate
+	}
+	if payloadTemp.Location != "" {
+		existingTournament.Location = payloadTemp.Location
+	}
+	if payloadTemp.UserID != 0 {
+		existingTournament.UserID = payloadTemp.UserID
+	}
+	if payloadTemp.GameID != 0 {
+		existingTournament.GameID = payloadTemp.GameID
+	}
+	if payloadTemp.Rounds != 0 {
+		existingTournament.Rounds = payloadTemp.Rounds
+	}
+	if payloadTemp.Latitude != "" {
+		existingTournament.Latitude = latitude
+	}
+	if payloadTemp.Longitude != "" {
+		existingTournament.Longitude = longitude
+	}
+	if payloadTemp.MaxPlayers != 0 {
+		existingTournament.MaxPlayers = payloadTemp.MaxPlayers
+	}
+	if payloadTemp.Status != "" {
+		existingTournament.Status = payloadTemp.Status
 	}
 
 	file, err := c.FormFile("image")
@@ -559,7 +616,7 @@ func (h *TournamentHandler) UpdateTournament(c *gin.Context) {
 				c.JSON(http.StatusBadRequest, errors.NewBadRequestError("Invalid request", errUpload).ToGinH())
 				return
 			}
-			tournament.MediaModel.Media = mediaModel
+			existingTournament.MediaModel.Media = mediaModel
 		}
 	}
 
@@ -568,18 +625,9 @@ func (h *TournamentHandler) UpdateTournament(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, errors.NewErrorResponse(500, err.Error()).ToGinH())
 		return
 	}
-	tournament.Tags = tags
+	existingTournament.Tags = tags
 
-	if file != nil {
-		mediaModel, _, errUpload := h.FileService.UploadMedia(file)
-		if errUpload != nil {
-			c.JSON(http.StatusBadRequest, errors.NewBadRequestError("Invalid request", errUpload).ToGinH())
-			return
-		}
-		tournament.MediaModel.Media = mediaModel
-	}
-
-	errorUpdated := h.TournamentService.Update(&tournament)
+	errorUpdated := h.TournamentService.Update(&existingTournament)
 	if errorUpdated != nil {
 		c.JSON(errorUpdated.Code(), errorUpdated.Error())
 		return

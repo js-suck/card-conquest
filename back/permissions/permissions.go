@@ -88,6 +88,10 @@ var OrganizerPermissions = []Permission{
 		CanAccess: true,
 	},
 	{
+		Key:       PermissionUpdateTournament,
+		CanAccess: true,
+	},
+	{
 		Key:       PermissionReadTags,
 		CanAccess: true,
 	},
