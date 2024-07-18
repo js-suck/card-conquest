@@ -13,6 +13,7 @@ import 'package:provider/provider.dart';
 import '../providers/feature_flag_provider.dart';
 
 Future<void> login(BuildContext context, String username, String password, Function(bool) setLoading) async {
+  final t = AppLocalizations.of(context)!;
   final storage = new FlutterSecureStorage(); // Create instance of secure storage
   String? fcmToken = await storage.read(key: 'fcm_token');
   final response = await http.post(
@@ -37,8 +38,8 @@ Future<void> login(BuildContext context, String username, String password, Funct
       print(decodedToken['role']);
       if (decodedToken['role'] != 'admin') {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Vous n\'êtes pas autorisé à accéder à cette page'),
+           SnackBar(
+            content: Text(t.noAccessPage),
             duration: Duration(seconds: 1),
           ),
         );
@@ -72,6 +73,25 @@ Future<void> login(BuildContext context, String username, String password, Funct
     } else {
       Navigator.of(context).pushReplacementNamed('/main');
     }
+  } else if (response.statusCode == 403) {
+    setLoading(false);
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(t.noVerifyAccount),
+          content: Text(t.noVerifyAccountMessage),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
   } else {
     final t = AppLocalizations.of(context)!;
     setLoading(false);
@@ -169,6 +189,7 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Future<void> _googleSignIn() async {
+    final t = AppLocalizations.of(context)!;
     setLoading(true); // Set loading to true before Google sign in
     try {
       final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();

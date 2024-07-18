@@ -68,6 +68,8 @@
   "signupSignup": "Sign Up",
   "signupAlternative": "Or sign up with",
   "signupHaveAccount": "Already have an account?",
+  "noVerifyAccount": "No verify account",
+  "noVerifyAccountMessage": "You must verify your account to continue.",
   "signupLogin": "Login",
   "modalClose": "Close",
   "error": "Error",
@@ -174,5 +176,6 @@
   "update": "Update",
   "errorLoadingUser": "Error loading user",
   "tournamentAlreadyRegistered": "You are already registered in this tournament",
-  "guildCreateTitle": "Create Guild"
+  "guildCreateTitle": "Create Guild",
+  "noAccessPage": "You don't have access to this page"
 }

@@ -68,6 +68,8 @@
   "signupSignup": "S'inscrire",
   "signupAlternative": "Ou inscrivez-vous avec",
   "signupHaveAccount": "Vous avez déjà un compte ?",
+  "noVerifyAccount": "Compte non vérifié",
+  "noVerifyAccountMessage": "Veuillez vérifier votre compte pour continuer.",
   "signupLogin": "Connectez-vous",
   "modalClose": "Fermer",
   "error": "Erreur",
@@ -172,5 +174,6 @@
   "update": "Mettre à jour",
   "errorLoadingUser": "Erreur lors du chargement de l'utilisateur",
   "tournamentAlreadyRegistered": "Déjà inscrit",
-  "guildCreateTitle": "Créer une guilde"
+  "guildCreateTitle": "Créer une guilde",
+  "noAccessPage": "Vous n'êtes pas autorisé à accéder à cette page"
 }
