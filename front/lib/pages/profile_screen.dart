@@ -11,6 +11,7 @@ import 'package:front/widget/app_bar.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
+import 'package:front/extension/theme_extension.dart';
 
 import '../models/guild.dart';
 
@@ -60,7 +61,7 @@ class _ProfilePageState extends State<ProfilePage> {
       userData = {
         'username': user.username,
         'email': user.email,
-"guilds" : user.guilds
+        "guilds" : user.guilds
       };
       _isLoading = false;
     });
@@ -172,7 +173,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     initialValue: userData['username'],
                     decoration: InputDecoration(
                       labelText: t.username,
-                      fillColor: Colors.grey[100],
+                      fillColor: context.themeColors.secondaryBackgroundAccentColor,
                       filled: true,
                       contentPadding: const EdgeInsets.symmetric(
                           vertical: 10.0, horizontal: 10.0),
@@ -188,7 +189,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     initialValue: userData['email'],
                     decoration: InputDecoration(
                       labelText: t.email,
-                      fillColor: Colors.grey[100],
+                      fillColor: context.themeColors.secondaryBackgroundAccentColor,
                       filled: true,
                       contentPadding: const EdgeInsets.symmetric(
                           vertical: 10.0, horizontal: 10.0),

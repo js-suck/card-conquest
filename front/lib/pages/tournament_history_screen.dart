@@ -10,6 +10,8 @@ import 'package:front/widget/app_bar.dart';
 import 'package:front/widget/tournaments/all_tournaments_list.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 
+import '../models/match/tournament.dart';
+
 class TournamentHistoryPage extends StatefulWidget {
   const TournamentHistoryPage({super.key});
 
@@ -35,6 +37,8 @@ class _TournamentHistoryPageState extends State<TournamentHistoryPage>
     if (token != null) {
       Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
       return decodedToken['user_id'];
+    } else {
+      throw Exception('Failed to load user id');
     }
     return 0;
   }
@@ -72,61 +76,123 @@ class _TournamentHistoryPageState extends State<TournamentHistoryPage>
   Widget build(BuildContext context) {
     var t = AppLocalizations.of(context)!;
     return DefaultTabController(
-        initialIndex: 0,
-        length: 2,
-        child: FutureBuilder<int>(
+      initialIndex: 0,
+      length: 2,
+      child: FutureBuilder<int>(
         future: userIdFuture,
         builder: (context, snapshot) {
-      if (snapshot.connectionState == ConnectionState.waiting) {
-        return CircularProgressIndicator();
-      }
-      int userId = snapshot.data!;
-      return Scaffold(
-        appBar: AppBar(
-          title: TopAppBar(title: t.tournamentHistoryTitle),
-          automaticallyImplyLeading: false,
-          bottom: TabBar(
-            isScrollable: true,
-            labelColor: context.themeColors.accentColor,
-            indicatorColor: context.themeColors.accentColor,
-            unselectedLabelColor: Colors.white,
-            tabs: [
-              Tab(text: t.tournamentHistoryUpcoming),
-              Tab(text: t.tournamentHistoryPast),
-            ],
-          ),
-        ),
-        body: TabBarView(
-          children: [
-            SingleChildScrollView(
-              child: CustomFutureBuilder(
-                future: tournamentService.fetchUpcomingTournamentsOfUser(userId),
-                onLoaded: (upcomingTournaments) {
-                  return AllTournamentsList(
-                    allTournaments: upcomingTournaments,
-                    onTournamentTapped: _onTournamentTapped,
-                    emptyMessage: t.noUpcomingTournaments,
-                  );
-                },
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+          if (!snapshot.hasData || snapshot.hasError) {
+            return Scaffold(
+              appBar: AppBar(
+                title: TopAppBar(title: t.tournamentHistoryTitle),
+              ),
+              body: Center(
+                child: Text(
+                  t.errorLoadingUser,
+                  style: TextStyle(fontSize: 20),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            );
+          }
+          int userId = snapshot.data!;
+          return Scaffold(
+            appBar: AppBar(
+              title: TopAppBar(title: t.tournamentHistoryTitle),
+              automaticallyImplyLeading: false,
+              bottom: TabBar(
+                isScrollable: true,
+                labelColor: context.themeColors.accentColor,
+                indicatorColor: context.themeColors.accentColor,
+                unselectedLabelColor: Colors.white,
+                tabs: [
+                  Tab(text: t.tournamentHistoryUpcoming),
+                  Tab(text: t.tournamentHistoryPast),
+                ],
               ),
             ),
-            SingleChildScrollView(
-              child: CustomFutureBuilder(
-                future: tournamentService.fetchPastTournamentsOfUser(userId),
-                onLoaded: (pastTournaments) {
-                  return AllTournamentsList(
-                    allTournaments: pastTournaments,
-                    onTournamentTapped: _onTournamentTapped,
-                    emptyMessage: t.noPastTournaments,
-                  );
-                },
-              ),
+            body: TabBarView(
+              children: [
+                SingleChildScrollView(
+                  child: CustomFutureBuilder<List<Tournament>>(
+                    future: tournamentService.fetchUpcomingTournamentsOfUser(userId),
+                    onLoaded: (upcomingTournaments) {
+                      if (upcomingTournaments.isEmpty) {
+                        return Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Center(
+                              child: Text(
+                                t.noUpcomingTournaments,
+                                style: TextStyle(fontSize: 20),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          ],
+                        );
+                      }
+                      return AllTournamentsList(
+                        allTournaments: upcomingTournaments,
+                        onTournamentTapped: _onTournamentTapped,
+                        emptyMessage: t.noUpcomingTournaments,
+                      );
+                    },
+                    onError: (error) => Center(
+                      child: Text(
+                        error,
+                        style: TextStyle(fontSize: 20),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    onLoading: () => Center(child: CircularProgressIndicator()),
+                  ),
+                ),
+                SingleChildScrollView(
+                  child: CustomFutureBuilder<List<Tournament>>(
+                    future: tournamentService.fetchPastTournamentsOfUser(userId),
+                    onLoaded: (pastTournaments) {
+                      if (pastTournaments.isEmpty) {
+                        return Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Center(
+                              child: Text(
+                                t.noPastTournaments,
+                                style: TextStyle(fontSize: 20),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          ],
+                        );
+                      }
+                      return AllTournamentsList(
+                        allTournaments: pastTournaments,
+                        onTournamentTapped: _onTournamentTapped,
+                        emptyMessage: t.noPastTournaments,
+                      );
+                    },
+                    onError: (error) => Center(
+                      child: Text(
+                        error,
+                        style: TextStyle(fontSize: 20),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    onLoading: () => Center(child: CircularProgressIndicator()),
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
-      );
+          );
         },
-        ),
+      ),
     );
   }
 }

@@ -5,6 +5,7 @@ import 'package:front/admin/crud_game_screen.dart';
 import 'package:front/admin/crud_tag_screen.dart';
 import 'package:front/admin/crud_tournament_screen.dart';
 import 'package:front/admin/crud_user_screen.dart';
+import 'package:front/admin/crud_flag_screen.dart';
 
 class AdminHomeScreen extends StatefulWidget {
   const AdminHomeScreen({super.key});
@@ -22,6 +23,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
     const CrudTournamentScreen(),
     const CrudGameScreen(),
     const CrudTagScreen(),
+    const CrudFlagScreen(),
   ];
 
   void _onItemTapped(int index) {

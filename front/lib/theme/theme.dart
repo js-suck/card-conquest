@@ -27,7 +27,7 @@ final ThemeData theme = ThemeData(
   ),
   tabBarTheme: const TabBarTheme(
     labelColor: accentColor,
-    unselectedLabelColor: fontColor,
+    unselectedLabelColor: accentColor,
     indicatorColor: accentColor,
   ),
   buttonTheme: const ButtonThemeData(

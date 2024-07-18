@@ -1,6 +1,6 @@
+import 'package:front/models/match/player.dart';
 import 'package:front/models/match/user.dart';
 import 'package:front/models/media.dart';
-
 import 'game_match.dart';
 
 class Tournament {
@@ -19,6 +19,7 @@ class Tournament {
   final List<String>? tags;
   final double? latitude;
   final double? longitude;
+  final List<Player> players;
 
   Tournament({
     required this.id,
@@ -36,6 +37,7 @@ class Tournament {
     this.tags,
     this.latitude,
     this.longitude,
+    required this.players,
   });
 
   factory Tournament.fromJson(Map<String, dynamic> json) {
@@ -59,10 +61,13 @@ class Tournament {
       longitude: json['longitude'] != null
           ? double.parse(json['longitude'].toString())
           : null,
+      players: json['players'] != null
+          ? List<Player>.from(json['players'].map((x) => Player.fromJson(x)))
+          : [],
     );
   }
 
-  toJson() {
+  Map<String, dynamic> toJson() {
     return {
       'id': id,
       'name': name,
@@ -79,6 +84,7 @@ class Tournament {
       'tags': tags,
       'latitude': latitude,
       'longitude': longitude,
+      'players': players.map((x) => x.toJson()).toList(),
     };
   }
 }

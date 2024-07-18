@@ -23,8 +23,6 @@ class MatchTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    debugPrint(
-        'player name: ${match.playerOne.username} ${match.playerOne.media?.fileName}');
     String? playerOneUsername = match.playerOne.username.split(' ')[0] ?? '';
     String? playerTwoUsername = match.playerTwo.username.split(' ')[0] ?? '';
     Color playerOneColor = context.themeColors.fontColor;

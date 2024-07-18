@@ -43,6 +43,11 @@ class AdminSidebar extends StatelessWidget {
           selectedIcon: Icon(Icons.tag),
           label: Text('Tags'),
         ),
+        const NavigationRailDestination(
+          icon: Icon(Icons.flag),
+          selectedIcon: Icon(Icons.flag),
+          label: Text('Flags'),
+        ),
       ],
     );
   }

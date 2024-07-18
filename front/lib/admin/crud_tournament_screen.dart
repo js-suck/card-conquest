@@ -67,25 +67,23 @@ class _CrudTournamentScreenState extends State<CrudTournamentScreen> {
         'POST',
         Uri.parse('${apiService.baseUrl}tournaments'),
       )
-        ..headers['Authorization'] = '${apiService.token}'
+        ..headers['Authorization'] = 'Bearer ${apiService.token}'
         ..fields['name'] = tournament.name
-        ..fields['description'] = tournament.description!
+        ..fields['description'] = tournament.description ?? ''
         ..fields['start_date'] = tournament.startDate.toIso8601String()
         ..fields['end_date'] = tournament.endDate.toIso8601String()
         ..fields['organizer_id'] = tournament.organizer.id.toString()
         ..fields['game_id'] = tournament.game.id.toString()
-        ..fields['rounds'] =
-            (log(tournament.maxPlayers) / log(2)).ceil().toString()
-        ..fields['tagsIDs[]'] = tournament.tags!.join(',')
-        ..fields['location'] = tournament.location!
+        ..fields['rounds'] = (log(tournament.maxPlayers) / log(2)).ceil().toString()
+        ..fields['tagsIDs[]'] = tournament.tags?.join(',') ?? ''
+        ..fields['location'] = tournament.location ?? ''
         ..fields['max_players'] = tournament.maxPlayers.toString();
 
       if (_imageFile != null) {
         request.files.add(await http.MultipartFile.fromPath(
           'image',
           _imageFile!.path,
-          contentType:
-              MediaType('image', path.extension(_imageFile!.path).substring(1)),
+          contentType: MediaType('image', path.extension(_imageFile!.path).substring(1)),
         ));
       }
 
@@ -94,8 +92,7 @@ class _CrudTournamentScreenState extends State<CrudTournamentScreen> {
       if (response.statusCode == 200) {
         await _fetchTournaments();
       } else {
-        print(
-            'Failed to create tournament. Status code: ${response.statusCode}');
+        print('Failed to create tournament. Status code: ${response.statusCode}');
       }
     } catch (e) {
       print('Error: $e');
@@ -107,30 +104,30 @@ class _CrudTournamentScreenState extends State<CrudTournamentScreen> {
       final Map<String, dynamic> tournamentData = {
         'id': tournament.id,
         'name': tournament.name,
-        'description': tournament.description,
-        'location': tournament.location,
+        'description': tournament.description ?? '',
+        'location': tournament.location ?? '',
         'start_date': tournament.startDate.toIso8601String(),
         'end_date': tournament.endDate.toIso8601String(),
         'media': tournament.media?.toJson(),
         'max_players': tournament.maxPlayers,
         'rounds': (log(tournament.maxPlayers) / log(2)).ceil(),
         'organizer_id': tournament.organizer.id,
-        'game_id': tournament.game,
-        'tags': tournament.tags,
+        'game_id': tournament.game.id,
+        'tags': tournament.tags ?? [],
         'status': tournament.status,
       };
-      final response =
-          await apiService.put('tournaments/${tournament.id}', tournamentData);
+      final response = await apiService.put('tournaments/${tournament.id}', tournamentData);
       if (response.statusCode == 200) {
         await _fetchTournaments();
       } else {
-        print(
-            'Failed to update tournament. Status code: ${response.statusCode}');
+        print('Failed to update tournament. Status code: ${response.statusCode}');
       }
     } catch (e) {
       print('Error: $e');
     }
   }
+
+
 
   Future<void> _deleteTournament(int id) async {
     try {
@@ -159,24 +156,33 @@ class _CrudTournamentScreenState extends State<CrudTournamentScreen> {
   void _showTournamentDialog(Tournament? tournament) {
     final _nameController = TextEditingController(text: tournament?.name ?? '');
     final _descriptionController =
-        TextEditingController(text: tournament?.description ?? '');
+    TextEditingController(text: tournament?.description ?? '');
     final _locationController =
-        TextEditingController(text: tournament?.location ?? '');
-    final _startDateController = TextEditingController(
-        text: tournament?.startDate.toIso8601String() ?? '');
-    final _endDateController = TextEditingController(
-        text: tournament?.endDate.toIso8601String() ?? '');
+    TextEditingController(text: tournament?.location ?? '');
+    DateTime? _startDate = tournament?.startDate;
+    DateTime? _endDate = tournament?.endDate;
     final _maxPlayersController =
-        TextEditingController(text: tournament?.maxPlayers.toString() ?? '0');
+    TextEditingController(text: tournament?.maxPlayers.toString() ?? '0');
     final _gameIdController =
-        TextEditingController(text: tournament?.game.id.toString() ?? '0');
+    TextEditingController(text: tournament?.game.id.toString() ?? '0');
+
+    Future<void> _selectDate(BuildContext context, DateTime? initialDate, Function(DateTime) onSelected) async {
+      final DateTime? picked = await showDatePicker(
+        context: context,
+        initialDate: initialDate ?? DateTime.now(),
+        firstDate: DateTime(2000),
+        lastDate: DateTime(2101),
+      );
+      if (picked != null && picked != initialDate) {
+        onSelected(picked);
+      }
+    }
 
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text(
-              tournament == null ? 'Create Tournament' : 'Update Tournament'),
+          title: Text(tournament == null ? 'Create Tournament' : 'Update Tournament'),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -193,15 +199,29 @@ class _CrudTournamentScreenState extends State<CrudTournamentScreen> {
                   controller: _locationController,
                   decoration: const InputDecoration(labelText: 'Location'),
                 ),
-                TextField(
-                  controller: _startDateController,
-                  decoration: const InputDecoration(
-                      labelText: 'Start Date', hintText: 'YYYY-MM-DD'),
+                Row(
+                  children: [
+                    TextButton(
+                      onPressed: () => _selectDate(context, _startDate, (date) {
+                        setState(() {
+                          _startDate = date;
+                        });
+                      }),
+                      child: Text(_startDate == null ? 'Select Start Date' : _startDate!.toIso8601String()),
+                    ),
+                  ],
                 ),
-                TextField(
-                  controller: _endDateController,
-                  decoration: const InputDecoration(
-                      labelText: 'End Date', hintText: 'YYYY-MM-DD'),
+                Row(
+                  children: [
+                    TextButton(
+                      onPressed: () => _selectDate(context, _endDate, (date) {
+                        setState(() {
+                          _endDate = date;
+                        });
+                      }),
+                      child: Text(_endDate == null ? 'Select End Date' : _endDate!.toIso8601String()),
+                    ),
+                  ],
                 ),
                 TextField(
                   controller: _maxPlayersController,
@@ -229,6 +249,10 @@ class _CrudTournamentScreenState extends State<CrudTournamentScreen> {
             ),
             ElevatedButton(
               onPressed: () {
+                if (_startDate == null || _endDate == null) {
+                  // Handle date not selected error
+                  return;
+                }
                 if (tournament == null) {
                   _createTournament(
                     Tournament(
@@ -236,43 +260,43 @@ class _CrudTournamentScreenState extends State<CrudTournamentScreen> {
                       name: _nameController.text,
                       description: _descriptionController.text,
                       location: _locationController.text,
-                      startDate: DateTime.parse(_startDateController.text),
-                      endDate: DateTime.parse(_endDateController.text),
-                      media: null,
-                      // Placeholder for media
+                      startDate: _startDate!,
+                      endDate: _endDate!,
+                      media: null, // Placeholder for media
                       maxPlayers: int.parse(_maxPlayersController.text),
                       organizer: Organizer(
                         id: 1,
                         username: 'Organizer Name',
                         email: 'organizer@example.com',
-                      ),
-                      // Placeholder for organizer
+                      ), // Placeholder for organizer
                       game: GameMatch(
                         id: int.parse(_gameIdController.text),
                         name: 'Game Name',
-                      ),
-                      // Placeholder for game
-                      tags: null,
+                      ), // Placeholder for game
+                      tags: [],
                       status: 'opened',
-                      playersRegistered: 0, // Default status
+                      playersRegistered: 0,
+                      players: [], // Default status
                     ),
                   );
                 } else {
                   _updateTournament(
                     Tournament(
-                        id: tournament.id,
-                        name: _nameController.text,
-                        description: _descriptionController.text,
-                        location: _locationController.text,
-                        startDate: DateTime.parse(_startDateController.text),
-                        endDate: DateTime.parse(_endDateController.text),
-                        media: tournament.media,
-                        maxPlayers: int.parse(_maxPlayersController.text),
-                        organizer: tournament.organizer,
-                        game: tournament.game,
-                        tags: tournament.tags,
-                        status: tournament.status,
-                        playersRegistered: tournament.playersRegistered),
+                      id: tournament.id,
+                      name: _nameController.text,
+                      description: _descriptionController.text,
+                      location: _locationController.text,
+                      startDate: _startDate!,
+                      endDate: _endDate!,
+                      media: tournament.media,
+                      maxPlayers: int.parse(_maxPlayersController.text),
+                      organizer: tournament.organizer,
+                      game: tournament.game,
+                      tags: tournament.tags,
+                      status: tournament.status,
+                      playersRegistered: tournament.playersRegistered,
+                      players: tournament.players,
+                    ),
                   );
                 }
                 Navigator.of(context).pop();
@@ -285,48 +309,67 @@ class _CrudTournamentScreenState extends State<CrudTournamentScreen> {
     );
   }
 
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-          title: const Text('CRUD Tournament'),
-          centerTitle: true,
-          automaticallyImplyLeading: false),
+        title: const Text('CRUD Tournament', style: TextStyle(color: Colors.white, fontSize: 24.0)),
+        centerTitle: true,
+        automaticallyImplyLeading: false,
+      ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : ListView.builder(
-              itemCount: tournaments.length,
-              itemBuilder: (context, index) {
-                final tournament = tournaments[index];
-                return ListTile(
-                  title: Text(tournament.name),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Status: ${tournament.status}'),
-                      Text('Start Date: ${tournament.startDate}'),
-                      Text('End Date: ${tournament.endDate}'),
-                      Text('Location: ${tournament.location}'),
-                      Text('Max Players: ${tournament.maxPlayers}'),
-                      Text('Organizer: ${tournament.organizer.username}'),
-                    ],
-                  ),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.edit),
-                        onPressed: () => _showTournamentDialog(tournament),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.delete),
-                        onPressed: () => _deleteTournament(tournament.id),
-                      ),
-                    ],
-                  ),
-                );
-              },
+        itemCount: tournaments.length,
+        itemBuilder: (context, index) {
+          final tournament = tournaments[index];
+          return Container(
+            margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+            padding: const EdgeInsets.all(8.0),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              border: Border.all(color: Colors.grey),
+              borderRadius: BorderRadius.circular(8.0),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black12,
+                  blurRadius: 6.0,
+                  offset: Offset(0, 2),
+                ),
+              ],
             ),
+            child: ListTile(
+              title: Text(tournament.name),
+              subtitle: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Status: ${tournament.status}'),
+                  Text('Start Date: ${tournament.startDate}'),
+                  Text('End Date: ${tournament.endDate}'),
+                  Text('Location: ${tournament.location}'),
+                  Text('Max Players: ${tournament.maxPlayers}'),
+                  Text('Organizer: ${tournament.organizer.username}'),
+                ],
+              ),
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.edit),
+                    onPressed: () => _showTournamentDialog(tournament),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.delete),
+                    onPressed: () => _deleteTournament(tournament.id),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showTournamentDialog(null),
         child: const Icon(Icons.add),

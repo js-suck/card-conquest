@@ -1,14 +1,18 @@
-import 'dart:convert';
-
 import 'package:firebase_auth/firebase_auth.dart' as auth;
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:front/extension/theme_extension.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import '../generated/chat.pb.dart';
+import 'dart:convert';
+import 'package:flutter/foundation.dart';
+import 'package:provider/provider.dart';
+import '../providers/feature_flag_provider.dart';
+
 
 import '../generated/chat.pb.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
@@ -26,9 +30,10 @@ Future<void> login(
     body: jsonEncode(<String, String>{
       'username': username,
       'password': password,
-      'fcm_token': fcmToken ?? 'test',
+      'fcm_token': fcmToken ?? '',
     }),
   );
+  String userRole = '';
 
   if (response.statusCode == 200) {
     var responseData = jsonDecode(response.body);
@@ -51,14 +56,32 @@ Future<void> login(
       return;
     }
     // Store the token in secure storage
+
     await storage.write(key: 'jwt_token', value: token);
-    Navigator.pushReplacementNamed(context, '/main');
-    return;
+
+    var tokenData = jsonDecode(
+        ascii.decode(base64.decode(base64.normalize(token.split(".")[1]))));
+    int userId = tokenData['user_id'];
+
+    await storage.write(key: 'user_id', value: userId.toString());
+    await storage.write(key: 'jwt_token', value: token);
+
+
+    if (token != null) {
+      Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
+      userRole = decodedToken['role'];
+    }
+    if (userRole == 'organizer') {
+      Navigator.pushReplacementNamed(context, '/orga/home');
+    } else {
+      Navigator.of(context).pushReplacementNamed('/main');
+    }
   } else {
-    // Handle error in login
+    final t = AppLocalizations.of(context)!;
+
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Erreur de connexion'),
+      SnackBar(
+        content: Text(t.loginError),
         duration: Duration(seconds: 1),
       ),
     );
@@ -77,6 +100,17 @@ class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
+  late bool isGoogleSignInEnabled = false;
+
+  @override
+  void initState() {
+    super.initState();
+
+    final featureNotifier = Provider.of<FeatureNotifier>(context, listen: false);
+    isGoogleSignInEnabled = featureNotifier.isFeatureEnabled('googleSignIn');
+  }
+
+
 
   void _login() {
     if (_formKey.currentState?.validate() == true) {
@@ -104,7 +138,7 @@ class _LoginPageState extends State<LoginPage> {
         'email': user.email!,
         'displayName': user.displayName ?? '',
         'photoURL': user.photoURL ?? '',
-        'fcm_token': fcmToken ?? 'test',
+        'fcm_token': fcmToken ?? '',
       }),
     );
 
@@ -168,7 +202,7 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.transparent,
       ),
       body: SingleChildScrollView(
         child: Center(
@@ -280,7 +314,7 @@ class _LoginPageState extends State<LoginPage> {
                           ],
                         ),
                       const SizedBox(height: 10),
-                      if (!kIsWeb)
+                      if (!kIsWeb && isGoogleSignInEnabled)
                         ElevatedButton(
                           onPressed: _googleSignIn,
                           style: ElevatedButton.styleFrom(

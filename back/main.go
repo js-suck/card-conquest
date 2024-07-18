@@ -3,7 +3,6 @@ package main
 import (
 	dbService "authentication-api/db"
 	docs "authentication-api/docs"
-	feature_flag "authentication-api/feature-flag"
 	grpcServices "authentication-api/grpc"
 	"authentication-api/models"
 	authentication_api "authentication-api/pb/github.com/lailacha/authentication-api"
@@ -14,7 +13,6 @@ import (
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"google.golang.org/grpc"
-	"log"
 	"net"
 	"os"
 	"path/filepath"
@@ -54,13 +52,18 @@ func main() {
 		err := os.MkdirAll(logDir, os.ModePerm)
 		if err != nil {
 			fmt.Println("Failed to create log directory")
-			logrus.Fatalf("Failed to create log directory: %v", err)
+			logrus.Info("Failed to create log directory: %v", err)
 		}
 	}
 
 	logFile, err := os.OpenFile(logFilePath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err != nil {
-		logrus.Fatalf("Failed to open or create log file: %v", err)
+		logrus.Info("Failed to open or create log file: %v", err)
+		logrus.Info("Trying to log to /tmp/myapp.log")
+		logFile, _ = os.OpenFile("/tmp/myapp.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+		fmt.Println("Logging to file: ", "/tmp/myapp.log")
+		defer logFile.Close()
+		logrus.SetOutput(logFile)
 	} else {
 		fmt.Println("Logging to file: ", logFilePath)
 		defer logFile.Close()
@@ -80,7 +83,7 @@ func main() {
 		logrus.Fatalf("Failed to initialize database: %v", err)
 	}
 
-	err = DB.AutoMigrate(models.User{}, models.Tournament{}, models.Match{}, models.Score{}, models.TournamentStep{}, models.Media{}, models.TournamentStep{}, models.GameScore{}, models.Guild{}, models.ChatMessage{})
+	err = DB.AutoMigrate(models.User{}, models.Tournament{}, models.Match{}, models.Score{}, models.TournamentStep{}, models.Media{}, models.TournamentStep{}, models.GameScore{}, models.Guild{}, models.ChatMessage{}, models.FeatureFlag{})
 	if err != nil {
 		logrus.Fatalf("Failed to migrate database: %v", err)
 		return
@@ -111,13 +114,6 @@ func main() {
 	if err != nil {
 		logrus.Panic("failed to connect database")
 	}
-
-	flags, err := feature_flag.LoadConfig("configuration.yaml")
-	if err != nil {
-		log.Fatalf("Erreur lors du chargement des flags de fonctionnalité: %v", err)
-	}
-
-	fmt.Println("Feature Flags:", flags)
 
 	docs.SwaggerInfo.BasePath = "/api/v1"
 	go func() {
