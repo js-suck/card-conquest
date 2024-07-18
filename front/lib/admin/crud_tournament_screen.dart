@@ -67,7 +67,7 @@ class _CrudTournamentScreenState extends State<CrudTournamentScreen> {
         'POST',
         Uri.parse('${apiService.baseUrl}tournaments'),
       )
-        ..headers['Authorization'] = 'Bearer ${apiService.token}'
+        ..headers['Authorization'] = '${apiService.token}'
         ..fields['name'] = tournament.name
         ..fields['description'] = tournament.description ?? ''
         ..fields['start_date'] = tournament.startDate.toIso8601String()
@@ -75,7 +75,6 @@ class _CrudTournamentScreenState extends State<CrudTournamentScreen> {
         ..fields['organizer_id'] = tournament.organizer.id.toString()
         ..fields['game_id'] = tournament.game.id.toString()
         ..fields['rounds'] = (log(tournament.maxPlayers) / log(2)).ceil().toString()
-        ..fields['tagsIDs[]'] = tournament.tags?.join(',') ?? ''
         ..fields['location'] = tournament.location ?? ''
         ..fields['max_players'] = tournament.maxPlayers.toString();
 
@@ -108,7 +107,6 @@ class _CrudTournamentScreenState extends State<CrudTournamentScreen> {
         'location': tournament.location ?? '',
         'start_date': tournament.startDate.toIso8601String(),
         'end_date': tournament.endDate.toIso8601String(),
-        'media': tournament.media?.toJson(),
         'max_players': tournament.maxPlayers,
         'rounds': (log(tournament.maxPlayers) / log(2)).ceil(),
         'organizer_id': tournament.organizer.id,

@@ -38,7 +38,7 @@ class Tournament {
       location: json['location'],
       startDate: json['start_date'],
       endDate: json['end_date'],
-      imageFilename: json['media']['file_name'],
+      imageFilename: json['media']['file_name'] ?? 'default.jpg',
       maxPlayers: json['max_players'],
     );
   }
@@ -271,7 +271,7 @@ class _OrganizerHomePageState extends State<OrganizerHomePage> {
                               borderRadius: BorderRadius.circular(10),
                               image: DecorationImage(
                                 image: NetworkImage(
-                                    'http://192.168.252.44:8080/api/v1/images/${tournament.imageFilename}'),
+                                    '${dotenv.env['MEDIA_URL']}${tournament.imageFilename}'),
                                 fit: BoxFit.cover,
                               ),
                             ),

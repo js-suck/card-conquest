@@ -31,6 +31,7 @@ Future<void> login(BuildContext context, String username, String password, Funct
   if (response.statusCode == 200) {
     var responseData = jsonDecode(response.body);
     String token = responseData['token'];
+    await storage.write(key: 'jwt_token', value: token);
     Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
     if (kIsWeb) {
       print(decodedToken['role']);

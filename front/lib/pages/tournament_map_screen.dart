@@ -134,7 +134,8 @@ class _TournamentMapState extends State<TournamentMap> {
                 ),
                 ElevatedButton(
                   onPressed: () {
-                  Navigator.push(
+                    Navigator.pop(context);
+                    Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) =>  RegistrationPage(tournamentId: tournament.id)),
                   );
