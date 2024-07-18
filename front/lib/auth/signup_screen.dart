@@ -166,6 +166,7 @@ class _SignUpPageState extends State<SignUpPage> {
                               fontSize: 14, fontWeight: FontWeight.bold)),
                       const SizedBox(height: 10),
                       TextFormField(
+                        style: const TextStyle(color: Colors.black),
                         controller: _usernameController,
                         decoration: InputDecoration(
                           hintText: t.username.toLowerCase(),
@@ -193,6 +194,7 @@ class _SignUpPageState extends State<SignUpPage> {
                               fontSize: 14, fontWeight: FontWeight.bold)),
                       const SizedBox(height: 10),
                       TextFormField(
+                        style: const TextStyle(color: Colors.black),
                         controller: _emailController,
                         decoration: InputDecoration(
                           hintText: t.emailHint,
@@ -222,6 +224,7 @@ class _SignUpPageState extends State<SignUpPage> {
                               fontSize: 14, fontWeight: FontWeight.bold)),
                       const SizedBox(height: 10),
                       TextFormField(
+                        style: const TextStyle(color: Colors.black),
                         controller: _passwordController,
                         decoration: InputDecoration(
                           hintText: '*******',
@@ -252,6 +255,7 @@ class _SignUpPageState extends State<SignUpPage> {
                               fontSize: 14, fontWeight: FontWeight.bold)),
                       const SizedBox(height: 10),
                       TextFormField(
+                        style: const TextStyle(color: Colors.black),
                         controller: _confirmPasswordController,
                         decoration: InputDecoration(
                           hintText: '*******',
