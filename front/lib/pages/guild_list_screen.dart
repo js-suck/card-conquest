@@ -152,15 +152,13 @@ class _GuildListScreenState extends State<GuildListScreen> {
         ),
       ),
       floatingActionButton:
-          user != null && (user.IsAdmin() || user.IsOrganizer())
-              ? FloatingActionButton(
-                  onPressed: () {
-                    Navigator.pushNamed(context, '/guild/create');
-                  },
-                  child: Icon(Icons.add),
-                  tooltip: t.guildCreateMine,
-                )
-              : null,
+      FloatingActionButton(
+          onPressed: () {
+            Navigator.pushNamed(context, '/guild/create');
+          },
+          child: Icon(Icons.add),
+          tooltip: t.guildCreateMine,
+        )
     );
   }
 }

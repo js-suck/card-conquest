@@ -171,5 +171,6 @@
   "guildDescriptionRequired": "La description de la guilde est requise",
   "update": "Mettre à jour",
   "errorLoadingUser": "Erreur lors du chargement de l'utilisateur",
-  "tournamentAlreadyRegistered": "Déjà inscrit"
+  "tournamentAlreadyRegistered": "Déjà inscrit",
+  "guildCreateTitle": "Créer une guilde"
 }

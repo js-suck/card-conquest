@@ -1,13 +1,15 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-import 'package:front/models/media.dart';
-import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:front/models/media.dart';
 import 'package:front/service/media_service.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:http/http.dart' as http;
+import 'package:front/extension/theme_extension.dart';
+import 'package:dotted_border/dotted_border.dart';
 
 class CreateGuildPage extends StatefulWidget {
   const CreateGuildPage({super.key});
@@ -42,11 +44,11 @@ class _CreateGuildPageState extends State<CreateGuildPage> {
       try {
         Media media = await mediaService.uploadImage(_imageFile!);
 
-         var data = {
-        'Name': _guildName,
-        'Description': _guildDescription,
-        'media_id': media.id,
-      };
+        var data = {
+          'Name': _guildName,
+          'Description': _guildDescription,
+          'media_id': media.id,
+        };
         const storage = FlutterSecureStorage();
         String? token = await storage.read(key: 'jwt_token');
         var response = await http.post(
@@ -98,18 +100,53 @@ class _CreateGuildPageState extends State<CreateGuildPage> {
     final t = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Create Guild', style: TextStyle(color: Colors.white)),
+        title: Text(t.guildCreateTitle, style: const TextStyle(color: Colors.white)),
       ),
       body: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(32.0),
           child: Form(
             key: _formKey,
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                if (_imageFile != null)
+                  Center(child: Image.file(_imageFile!))
+                else
+                  GestureDetector(
+                    onTap: _pickImage,
+                    child: DottedBorder(
+                      color: Colors.black,
+                      strokeWidth: 1,
+                      padding: const EdgeInsets.all(20),
+                      child: const Center(
+                        child: SizedBox(
+                          width: 150,
+                          height: 150,
+                          child: Icon(
+                            Icons.image,
+                            size: 100,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                const SizedBox(height: 20),
+                Text(
+                  t.guildName,
+                  style: const TextStyle(fontSize: 18.0),
+                ),
+                const SizedBox(height: 8.0),
                 TextFormField(
-                  decoration:  InputDecoration(
-                    labelText: t.guildName,
+                  decoration: InputDecoration(
+                    fillColor: context.themeColors.secondaryBackgroundAccentColor,
+                    filled: true,
+                    contentPadding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 10.0),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10.0),
+                      borderSide: BorderSide.none,
+                    ),
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
@@ -121,9 +158,21 @@ class _CreateGuildPageState extends State<CreateGuildPage> {
                     _guildName = value!;
                   },
                 ),
+                const SizedBox(height: 20),
+                Text(
+                  t.guildDescription,
+                  style: const TextStyle(fontSize: 18.0),
+                ),
+                const SizedBox(height: 8.0),
                 TextFormField(
-                  decoration:  InputDecoration(
-                    labelText: t.guildDescription,
+                  decoration: InputDecoration(
+                    fillColor: context.themeColors.secondaryBackgroundAccentColor,
+                    filled: true,
+                    contentPadding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 10.0),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10.0),
+                      borderSide: BorderSide.none,
+                    ),
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
@@ -135,16 +184,24 @@ class _CreateGuildPageState extends State<CreateGuildPage> {
                     _guildDescription = value!;
                   },
                 ),
-                ElevatedButton(
-                  onPressed: _pickImage,
-                  child:  Text(t.imagePick),
-                ),
-                if (_imageFile != null)
-                  Image.file(_imageFile!),
                 const SizedBox(height: 20),
                 ElevatedButton(
                   onPressed: _submitForm,
-                  child: Text(t.guildCreate)
+                  style: ElevatedButton.styleFrom(
+                    foregroundColor: Colors.white,
+                    backgroundColor: const Color(0xFFFF933D),
+                    minimumSize: const Size(double.infinity, 45),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  child: Text(
+                    t.guildCreate,
+                    style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold),
+                  ),
                 ),
               ],
             ),

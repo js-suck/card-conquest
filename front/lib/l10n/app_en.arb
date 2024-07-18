@@ -173,5 +173,6 @@
   "guildDescriptionRequired": "Guild description is required",
   "update": "Update",
   "errorLoadingUser": "Error loading user",
-  "tournamentAlreadyRegistered": "You are already registered in this tournament"
+  "tournamentAlreadyRegistered": "You are already registered in this tournament",
+  "guildCreateTitle": "Create Guild"
 }
