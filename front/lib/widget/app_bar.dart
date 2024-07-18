@@ -191,8 +191,11 @@ class _TopAppBarState extends State<TopAppBar> {
                           child: SizedBox(
                             width: 54,
                             height: 54,
-                            child: Image.asset(
-                              'assets/images/avatar.png',
+                            child: CachedNetworkImage(
+                              imageUrl:
+                              'https://avatar.iran.liara.run/public/1',
+                              placeholder: (context, url) =>
+                              const CircularProgressIndicator(),
                               fit: BoxFit.cover,
                             ),
                           ),
@@ -250,10 +253,13 @@ class _TopAppBarState extends State<TopAppBar> {
                                     const CircularProgressIndicator(),
                                     fit: BoxFit.cover,
                                   )
-                                      : Image.asset(
-                                    'assets/images/avatar.png',
+                                      : CachedNetworkImage(
+                                    imageUrl:
+                                    'https://avatar.iran.liara.run/public/${user.id}',
+                                    placeholder: (context, url) =>
+                                    const CircularProgressIndicator(),
                                     fit: BoxFit.cover,
-                                  ),
+                                  )
                                 ),
                               ),
                             ),
