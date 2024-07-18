@@ -31,6 +31,7 @@ class _ProfilePageState extends State<ProfilePage> {
   final ImagePicker _picker = ImagePicker();
   late UserService userService;
   bool _isLoading = true;
+  bool _isInvite = false;
 
   @override
   void initState() {
@@ -43,6 +44,13 @@ class _ProfilePageState extends State<ProfilePage> {
     String? token = await storage.read(key: 'jwt_token');
     if (token != null) {
       Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
+      if (decodedToken['role'] == 'invite') {
+        setState(() {
+          _isInvite = true;
+          _isLoading = false;
+        });
+        return;
+      }
       setState(() {
         userId = decodedToken['user_id'];
       });
@@ -54,18 +62,26 @@ class _ProfilePageState extends State<ProfilePage> {
       _isLoading = true;
     });
     await getUserId();
-    final user = await userService.fetchUser(userId, forceRefresh: true);
-    setState(() {
-      print("User data fetched and initialized." + user.toString());
-      print(user.guilds?[0].name);
-      userData = {
-        'username': user.username,
-        'email': user.email,
-        "guilds" : user.guilds
-      };
-      _isLoading = false;
-    });
-    print('User data fetched and initialized.');
+    if (_isInvite) {
+      return;
+    }
+
+    try {
+      final user = await userService.fetchUser(userId, forceRefresh: true);
+      setState(() {
+        print("User data fetched and initialized." + user.toString());
+        print(user.guilds?[0].name);
+        userData = {
+          'username': user.username,
+          'email': user.email,
+          "guilds": user.guilds
+        };
+        _isLoading = false;
+      });
+      print('User data fetched and initialized.');
+    } catch (e) {
+      _handleError('Failed to fetch user data.');
+    }
   }
 
   Future<void> _pickImage() async {
@@ -118,6 +134,13 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
+  void _handleError(String message) {
+    setState(() {
+      _isLoading = false;
+    });
+    _showError(message);
+  }
+
   void _showError(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -136,6 +159,10 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
+  void _navigateToLogin() {
+    Navigator.pushReplacementNamed(context, '/login');
+  }
+
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context)!;
@@ -147,6 +174,21 @@ class _ProfilePageState extends State<ProfilePage> {
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
+          : _isInvite
+          ? Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(t.loginNoAccount, style: TextStyle(fontSize: 18),
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: _navigateToLogin,
+              child: Text(t.loginTitle)
+            ),
+          ],
+        ),
+      )
           : SingleChildScrollView(
         child: Center(
           child: Container(
@@ -173,7 +215,8 @@ class _ProfilePageState extends State<ProfilePage> {
                     initialValue: userData['username'],
                     decoration: InputDecoration(
                       labelText: t.username,
-                      fillColor: context.themeColors.secondaryBackgroundAccentColor,
+                      fillColor: context.themeColors
+                          .secondaryBackgroundAccentColor,
                       filled: true,
                       contentPadding: const EdgeInsets.symmetric(
                           vertical: 10.0, horizontal: 10.0),
@@ -182,14 +225,16 @@ class _ProfilePageState extends State<ProfilePage> {
                         borderSide: BorderSide.none,
                       ),
                     ),
-                    onSaved: (value) => userData['username'] = value!,
+                    onSaved: (value) =>
+                    userData['username'] = value!,
                   ),
                   const SizedBox(height: 20),
                   TextFormField(
                     initialValue: userData['email'],
                     decoration: InputDecoration(
                       labelText: t.email,
-                      fillColor: context.themeColors.secondaryBackgroundAccentColor,
+                      fillColor: context.themeColors
+                          .secondaryBackgroundAccentColor,
                       filled: true,
                       contentPadding: const EdgeInsets.symmetric(
                           vertical: 10.0, horizontal: 10.0),
@@ -220,42 +265,46 @@ class _ProfilePageState extends State<ProfilePage> {
                     ),
                   ),
                   const SizedBox(height: 20),
-                if (userData['guilds'] != null && (userData['guilds'] as List).isNotEmpty)
-  Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      const Text(
-        'Your Guilds',
-        style: TextStyle(
-            fontSize: 24, fontWeight: FontWeight.bold),
-      ),
-      const SizedBox(height: 10),
-      ...(userData['guilds'] as List<Guild>).map((guild) {
-        return GestureDetector(
-          onTap: () {
-            Navigator.pushNamed(
-                context, '/guild/${guild.id}');
-          },
-          child: Center(
-            child: Column(
-              children: [
-                if (guild.media != null)
-                  CircleAvatar(
-                    backgroundImage: CachedNetworkImageProvider(
-                      '${dotenv.env['MEDIA_URL']}${guild.media!.fileName}',
+                  if (userData['guilds'] != null &&
+                      (userData['guilds'] as List).isNotEmpty)
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Your Guilds',
+                          style: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 10),
+                        ...(userData['guilds'] as List<Guild>)
+                            .map((guild) {
+                          return GestureDetector(
+                            onTap: () {
+                              Navigator.pushNamed(
+                                  context, '/guild/${guild.id}');
+                            },
+                            child: Center(
+                              child: Column(
+                                children: [
+                                  if (guild.media != null)
+                                    CircleAvatar(
+                                      backgroundImage:
+                                      CachedNetworkImageProvider(
+                                        '${dotenv.env['MEDIA_URL']}${guild.media!.fileName}',
+                                      ),
+                                      radius: 50,
+                                    ),
+                                  const SizedBox(height: 10),
+                                  Text('Guild: ${guild.name}'),
+                                  const SizedBox(height: 20),
+                                ],
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ],
                     ),
-                    radius: 50,
-                  ),
-                const SizedBox(height: 10),
-                Text('Guild: ${guild.name}'),
-                const SizedBox(height: 20),
-              ],
-            ),
-          ),
-        );
-      }).toList(),
-    ],
-  ),
                 ],
               ),
             ),
