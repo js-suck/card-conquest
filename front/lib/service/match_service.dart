@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:front/models/match/match.dart' as match;
@@ -154,5 +155,39 @@ class MatchService {
     }
     final List<dynamic> responseJson = jsonDecode(response.body);
     return responseJson.map((json) => match.Match.fromJson(json)).toList();
+  }
+
+  Future<void> updateMatchInfo(
+      BuildContext context, int matchId, String location) async {
+    final token = await storage.read(key: 'jwt_token');
+
+    var data = {
+      'location': location,
+    };
+    var response = await http.put(
+      Uri.parse('${dotenv.env['API_URL']}bracket/matchs/$matchId'),
+      headers: {
+        HttpHeaders.authorizationHeader: '$token',
+        HttpHeaders.contentTypeHeader: 'application/json',
+      },
+      body: jsonEncode(data),
+    );
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      print('Location updated successfully');
+      print(response.statusCode);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Location updated successfully'),
+        ),
+      );
+    } else {
+      print('Failed to update location');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Failed to update location'),
+        ),
+      );
+    }
   }
 }

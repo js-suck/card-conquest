@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:front/extension/theme_extension.dart';
@@ -31,9 +34,12 @@ class _MatchPageState extends State<MatchPage> {
   late int matchId;
   final bool isBracket = true;
   bool isEditing = false;
+  bool isOrganizer = false;
+  DateTime selectedDateTime = DateTime.now();
+
   TextEditingController playerOneScoreController = TextEditingController();
   TextEditingController playerTwoScoreController = TextEditingController();
-
+  TextEditingController dateController = TextEditingController();
   final storage = FlutterSecureStorage();
 
   @override
@@ -41,6 +47,7 @@ class _MatchPageState extends State<MatchPage> {
     super.initState();
     matchClient = MatchClient();
     matchService = MatchService();
+    _checkIfOrganizer();
   }
 
   @override
@@ -51,15 +58,24 @@ class _MatchPageState extends State<MatchPage> {
     matchService.fetchMatch(matchId);
   }
 
+  void _checkIfOrganizer() async {
+    final token = await storage.read(key: 'jwt_token');
+    if (token != null) {
+      Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
+      setState(() {
+        isOrganizer = decodedToken['role'] == 'organizer';
+      });
+    }
+  }
+
   bool isAdmin(Map<String, dynamic> decodedToken) {
     // Fonction pour vérifier si l'utilisateur est administrateur
     return decodedToken['role'] == 'organizer';
   }
 
   Future<void> _updateScore(int userId, int score) async {
-    final url = '${dotenv.env['API_URL']}matches/update/score';
+    final url = '${dotenv.env['API_URL']}matchs/update/score';
     final token = await storage.read(key: 'jwt_token');
-
     var request = http.MultipartRequest('POST', Uri.parse(url))
       ..headers['Authorization'] = '$token'
       ..fields['matchId'] = matchId.toString()
@@ -98,6 +114,76 @@ class _MatchPageState extends State<MatchPage> {
     setState(() {
       isEditing = !isEditing;
     });
+  }
+
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? pickedDate = await showDatePicker(
+      context: context,
+      initialDate: selectedDateTime,
+      firstDate: DateTime.now(),
+      lastDate: DateTime(2101),
+    );
+    if (pickedDate != null) {
+      _selectTime(context, pickedDate);
+    }
+  }
+
+  Future<void> _selectTime(BuildContext context, DateTime pickedDate) async {
+    final TimeOfDay? pickedTime = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(selectedDateTime),
+    );
+    if (pickedTime != null) {
+      final DateTime pickedDateTime = DateTime(
+        pickedDate.year,
+        pickedDate.month,
+        pickedDate.day,
+        pickedTime.hour,
+        pickedTime.minute,
+      );
+      setState(() {
+        selectedDateTime = pickedDateTime;
+      });
+      _updateTime(pickedDateTime);
+    }
+  }
+
+  Future<void> _updateTime(DateTime dateTime) async {
+    // Votre logique pour mettre à jour la date et l'heure du match
+    print("Nouvelle date et heure sélectionnées : $dateTime");
+    final token = await storage.read(key: 'jwt_token');
+
+    String formattedDateTime = dateTime.toIso8601String();
+    formattedDateTime = formattedDateTime.replaceFirst('.000', '.00Z');
+
+    var data = {
+      'startTime': formattedDateTime,
+    };
+
+    var response = await http.put(
+      Uri.parse('${dotenv.env['API_URL']}bracket/matchs/$matchId'),
+      headers: {
+        HttpHeaders.authorizationHeader: '$token',
+        HttpHeaders.contentTypeHeader: 'application/json',
+      },
+      body: jsonEncode(data),
+    );
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      print('Start time updated successfully');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Start time updated successfully'),
+        ),
+      );
+    } else {
+      print('Failed to update start time');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Failed to update start time'),
+        ),
+      );
+    }
   }
 
   Future<void> _startMatch(MatchResponse match) async {
@@ -190,6 +276,7 @@ class _MatchPageState extends State<MatchPage> {
             // Initialisez les contrôleurs avec les scores actuels
             playerOneScoreController.text = match.playerOne.score.toString();
             playerTwoScoreController.text = match.playerTwo.score.toString();
+            dateController.text = match.startDate.toString();
             return Scaffold(
               appBar: TopAppBar(
                 title: t.matchTitle,
@@ -266,11 +353,18 @@ class _MatchPageState extends State<MatchPage> {
                         padding: const EdgeInsets.only(top: 8.0),
                         child: Column(
                           children: [
-                            Text(
-                              '${matchInfo.startTime.day.toString().padLeft(2, '0')}/${matchInfo.startTime.month.toString().padLeft(2, '0')}/${matchInfo.startTime.year} ${matchInfo.startTime.hour.toString().padLeft(2, '0')}:${matchInfo.startTime.minute.toString().padLeft(2, '0')}',
-                              style: const TextStyle(
-                                fontSize: 16,
-                                color: Colors.grey,
+                            GestureDetector(
+                              onTap: () {
+                                if (isOrganizer) {
+                                  _selectDate(context);
+                                }
+                              },
+                              child: Text(
+                                '${matchInfo.startTime.day.toString().padLeft(2, '0')}/${matchInfo.startTime.month.toString().padLeft(2, '0')}/${matchInfo.startTime.year} ${matchInfo.startTime.hour.toString().padLeft(2, '0')}:${matchInfo.startTime.minute.toString().padLeft(2, '0')}',
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.grey,
+                                ),
                               ),
                             ),
                             Row(

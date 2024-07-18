@@ -168,5 +168,8 @@
   "guildNameRequired": "Le nom de la guilde est requis",
   "guildDescription": "Description de la guilde",
   "guildDescriptionRequired": "La description de la guilde est requise",
-  "update": "Mettre à jour"
+  "update": "Mettre à jour",
+  "matchDate": "Date",
+  "matchLocation": "Lieu",
+  "enterLocation": "Entrez un lieu"
 }

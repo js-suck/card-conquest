@@ -170,5 +170,8 @@
   "guildNameRequired": "Guild name is required",
   "guildDescription": "Guild Description",
   "guildDescriptionRequired": "Guild description is required",
-  "update": "Update"
+  "update": "Update",
+  "matchDate": "Date",
+  "matchLocation": "Location",
+  "enterLocation": "Enter location"
 }
