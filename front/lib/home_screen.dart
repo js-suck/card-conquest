@@ -96,6 +96,7 @@ class HomePage extends StatelessWidget {
                     const token =
                         "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiaW52aXRlIiwibmFtZSI6Ikludml0w6kifQ.1TMIPCEDolEVv1TMX77Y7-RA6AW4zCG2JrcjFT4hM90";
                     storage.write(key: 'jwt_token', value: token);
+                    storage.write(key: 'user_id', value: '0');
 
                     // Navigate to the main page
                     Navigator.pushNamed(context, '/main');

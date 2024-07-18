@@ -12,6 +12,7 @@ import 'package:front/widget/bracket/calendar.dart';
 import 'package:front/widget/bracket/results.dart';
 import 'package:front/widget/bracket/scoreboard.dart';
 import 'package:provider/provider.dart';
+import 'package:front/widget/bracket/my_matches.dart';
 
 class BracketPage extends StatefulWidget {
   final int tournamentID;
@@ -46,8 +47,8 @@ class _BracketPageState extends State<BracketPage> {
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context)!;
     return DefaultTabController(
-      initialIndex: 0,
-      length: 3,
+      initialIndex: 1,
+      length: 4,
       child: Scaffold(
         appBar: AppBar(
           iconTheme: const IconThemeData(
@@ -70,10 +71,12 @@ class _BracketPageState extends State<BracketPage> {
             )
           ],
           bottom: TabBar(
+            isScrollable: true,
             labelColor: context.themeColors.accentColor,
             indicatorColor: context.themeColors.accentColor,
             unselectedLabelColor: Colors.white,
             tabs: [
+              Tab(text: t.bracketMyMatches),
               isBracket
                   ? Tab(text: t.bracketTitle)
                   : Tab(text: t.bracketScoreboard),
@@ -95,6 +98,7 @@ class _BracketPageState extends State<BracketPage> {
                       Expanded(
                         child: TabBarView(
                           children: [
+                            MyMatches(tournamentId: widget.tournamentID),
                             isBracket
                                 ? Bracket(tournamentStream)
                                 : Scoreboard(),
