@@ -80,7 +80,7 @@ class _CrudUserScreenState extends State<CrudUserScreen> {
 
   void _showUserDialog(User? user) {
     final _usernameController =
-        TextEditingController(text: user?.username ?? '');
+    TextEditingController(text: user?.username ?? '');
     final _emailController = TextEditingController(text: user?.email ?? '');
     final _passwordController = TextEditingController();
     final _formKey = GlobalKey<FormState>();

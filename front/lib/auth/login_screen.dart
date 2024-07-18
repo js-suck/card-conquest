@@ -14,9 +14,13 @@ import 'package:provider/provider.dart';
 import '../providers/feature_flag_provider.dart';
 
 
+import '../generated/chat.pb.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+
 Future<void> login(
     BuildContext context, String username, String password) async {
-  const storage = FlutterSecureStorage();
+  final storage =
+  new FlutterSecureStorage(); // Create instance of secure storage
   String? fcmToken = await storage.read(key: 'fcm_token');
   final response = await http.post(
     Uri.parse('${dotenv.env['API_URL']}login'),
@@ -147,7 +151,7 @@ class _LoginPageState extends State<LoginPage> {
       try {
         String normalizedToken = base64.normalize(token.split(".")[1]);
         var tokenData =
-            jsonDecode(utf8.decode(base64Url.decode(normalizedToken)));
+        jsonDecode(utf8.decode(base64Url.decode(normalizedToken)));
         print('Token data: $tokenData');
 
         int userId = tokenData['user_id'];
@@ -165,7 +169,7 @@ class _LoginPageState extends State<LoginPage> {
     try {
       final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
       final GoogleSignInAuthentication? googleAuth =
-          await googleUser?.authentication;
+      await googleUser?.authentication;
 
       final auth.AuthCredential credential = auth.GoogleAuthProvider.credential(
         accessToken: googleAuth?.accessToken,
