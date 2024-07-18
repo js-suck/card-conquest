@@ -259,6 +259,8 @@ class _ProfilePageState extends State<ProfilePage> {
                     style: const TextStyle(color: Colors.black),
                     decoration: InputDecoration(
                       labelText: t.email,
+                      enabled: false,
+
                       hintStyle: TextStyle(color: const Color(0xFF888888).withOpacity(0.5)),
                       fillColor: Colors.grey[100],
                       filled: true,

@@ -14,7 +14,7 @@ import '../providers/feature_flag_provider.dart';
 
 Future<void> login(BuildContext context, String username, String password, Function(bool) setLoading) async {
   final t = AppLocalizations.of(context)!;
-  final storage = new FlutterSecureStorage(); // Create instance of secure storage
+  final storage = new FlutterSecureStorage();
   String? fcmToken = await storage.read(key: 'fcm_token');
   final response = await http.post(
     Uri.parse('${dotenv.env['API_URL']}login'),

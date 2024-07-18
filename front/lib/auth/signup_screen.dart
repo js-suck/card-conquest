@@ -44,7 +44,8 @@ void _showVerificationDialog(BuildContext context) {
           TextButton(
             child: Text(t.ok),
             onPressed: () {
-              Navigator.of(context).pop(); // Close the dialog
+              Navigator.of(context).pop();
+              Navigator.of(context).pushReplacementNamed('/login');
             },
           ),
         ],
@@ -288,8 +289,7 @@ class _SignUpPageState extends State<SignUpPage> {
                           Flexible(
                             child: GestureDetector(
                               onTap: () {
-                                // Ouvrir la page des terms & policy
-                                Navigator.pushNamed(context, '/terms');
+
                               },
                               child: Text(
                                 t.signupTermsAccept,

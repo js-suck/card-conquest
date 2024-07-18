@@ -177,5 +177,6 @@
   "errorLoadingUser": "Error loading user",
   "tournamentAlreadyRegistered": "You are already registered in this tournament",
   "guildCreateTitle": "Create Guild",
-  "noAccessPage": "You don't have access to this page"
+  "noAccessPage": "You don't have access to this page",
+  "tournamentsMap": "Tournaments Map"
 }

@@ -61,7 +61,8 @@ class _TopAppBarState extends State<TopAppBar> {
     if (token == null) return;
 
     // Check for expiration if the token has an 'exp' claim
-    if (JwtDecoder.decode(token).containsKey('exp') && JwtDecoder.isExpired(token)) {
+    if (JwtDecoder.decode(token).containsKey('exp') &&
+        JwtDecoder.isExpired(token)) {
       return;
     }
 
@@ -70,7 +71,8 @@ class _TopAppBarState extends State<TopAppBar> {
     username = decodedToken['name'];
 
     if (userRole != 'invite') {
-      userModel.User user = await userService.fetchUser(decodedToken['user_id']);
+      userModel.User user =
+          await userService.fetchUser(decodedToken['user_id']);
       Provider.of<UserProvider>(context, listen: false).setUser(user);
 
       setState(() {
@@ -83,7 +85,8 @@ class _TopAppBarState extends State<TopAppBar> {
     }
   }
 
-  void _showNotificationsOverlay(BuildContext context, List<RemoteMessage> notifications) {
+  void _showNotificationsOverlay(
+      BuildContext context, List<RemoteMessage> notifications) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -92,7 +95,8 @@ class _TopAppBarState extends State<TopAppBar> {
   }
 
   Future<void> _onNotificationButtonPressed(BuildContext context) async {
-    List<RemoteMessage> notifications = await NotificationService().getNotifications();
+    List<RemoteMessage> notifications =
+        await NotificationService().getNotifications();
     _showNotificationsOverlay(context, notifications);
   }
 
@@ -101,9 +105,9 @@ class _TopAppBarState extends State<TopAppBar> {
     return ClipRRect(
       borderRadius: widget.roundedCorners
           ? const BorderRadius.only(
-        bottomLeft: Radius.circular(30),
-        bottomRight: Radius.circular(30),
-      )
+              bottomLeft: Radius.circular(30),
+              bottomRight: Radius.circular(30),
+            )
           : BorderRadius.zero,
       child: AppBar(
         toolbarHeight: kToolbarHeight + 20,
@@ -193,9 +197,9 @@ class _TopAppBarState extends State<TopAppBar> {
                             height: 54,
                             child: CachedNetworkImage(
                               imageUrl:
-                              'https://avatar.iran.liara.run/public/1',
+                                  'https://avatar.iran.liara.run/public/1',
                               placeholder: (context, url) =>
-                              const CircularProgressIndicator(),
+                                  const CircularProgressIndicator(),
                               fit: BoxFit.cover,
                             ),
                           ),
@@ -234,7 +238,8 @@ class _TopAppBarState extends State<TopAppBar> {
                     return Row(
                       children: [
                         Padding(
-                          padding: const EdgeInsets.only(left: 4, top: 4, bottom: 4),
+                          padding:
+                              const EdgeInsets.only(left: 4, top: 4, bottom: 4),
                           child: GestureDetector(
                             onTap: () {
                               Navigator.of(context).pushNamed('/profile');
@@ -243,24 +248,26 @@ class _TopAppBarState extends State<TopAppBar> {
                               radius: 27,
                               child: ClipOval(
                                 child: SizedBox(
-                                  width: 54,
-                                  height: 54,
-                                  child: user.media?.fileName != null
-                                      ? CachedNetworkImage(
-                                    imageUrl:
-                                    '${dotenv.env['MEDIA_URL']}${user.media!.fileName}',
-                                    placeholder: (context, url) =>
-                                    const CircularProgressIndicator(),
-                                    fit: BoxFit.cover,
-                                  )
-                                      : CachedNetworkImage(
-                                    imageUrl:
-                                    'https://avatar.iran.liara.run/public/${user.id}',
-                                    placeholder: (context, url) =>
-                                    const CircularProgressIndicator(),
-                                    fit: BoxFit.cover,
-                                  )
-                                ),
+                                    width: 54,
+                                    height: 54,
+                                    child: user.media != null
+                                        ? CachedNetworkImage(
+                                            imageUrl:
+                                                '${dotenv.env['MEDIA_URL']}${user.media!.fileName}',
+                                            placeholder: (context, url) =>
+                                                const CircularProgressIndicator(),
+                                            errorWidget:
+                                                (context, url, error) =>
+                                                    const Icon(Icons.error),
+                                            fit: BoxFit.cover,
+                                          )
+                                        : CachedNetworkImage(
+                                      imageUrl:
+                                      'https://avatar.iran.liara.run/public/1',
+                                      placeholder: (context, url) =>
+                                      const CircularProgressIndicator(),
+                                      fit: BoxFit.cover,
+                                    )),
                               ),
                             ),
                           ),
