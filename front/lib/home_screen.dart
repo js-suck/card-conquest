@@ -18,9 +18,6 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context)!;
-    if (showVerificationDialog) {
-      Future.microtask(() => _showVerificationDialog(context));
-    }
 
     final ButtonStyle buttonStyle = ElevatedButton.styleFrom(
       foregroundColor: context.themeColors.secondaryBackgroundAccentColor,
@@ -38,7 +35,8 @@ class HomePage extends StatelessWidget {
       foregroundColor: context.themeColors.accentColor,
       backgroundColor: context.themeColors.accentColor.withOpacity(0.5),
       minimumSize: const Size(230, 50),
-      textStyle: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+      textStyle:
+          const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(10),
       ),
@@ -74,7 +72,8 @@ class HomePage extends StatelessWidget {
                         builder: (context) =>
                             SignUpPage()), // Navigate to SignUpPage
                   ),
-                  child: Text(t.signup, style: const TextStyle(color: Colors.white)),
+                  child: Text(t.signup,
+                      style: const TextStyle(color: Colors.white)),
                 ),
               const SizedBox(height: 20),
               ElevatedButton(
@@ -85,7 +84,8 @@ class HomePage extends StatelessWidget {
                       builder: (context) =>
                           const LoginPage()), // Navigate to LoginPage
                 ),
-                child: Text(t.login, style: const TextStyle(color: Colors.white)),
+                child:
+                    Text(t.login, style: const TextStyle(color: Colors.white)),
               ),
               const SizedBox(height: 20),
               if (!kIsWeb)
@@ -101,7 +101,8 @@ class HomePage extends StatelessWidget {
                     // Navigate to the main page
                     Navigator.pushNamed(context, '/main');
                   },
-                  child: Text(t.guest, style: const TextStyle(color: Colors.white)),
+                  child: Text(t.guest,
+                      style: const TextStyle(color: Colors.white)),
                 ),
               const SizedBox(height: 20),
               if (kIsWeb)
@@ -129,26 +130,5 @@ class HomePage extends StatelessWidget {
     } else {
       Navigator.pushNamed(context, '/login');
     }
-  }
-
-  void _showVerificationDialog(BuildContext context) {
-    final t = AppLocalizations.of(context)!;
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text(t.verifyEmail),
-          content: Text(t.verifyEmailMessage),
-          actions: <Widget>[
-            TextButton(
-              child:  Text(t.ok),
-              onPressed: () {
-                Navigator.of(context).pop(); // Close the dialog
-              },
-            ),
-          ],
-        );
-      },
-    );
   }
 }

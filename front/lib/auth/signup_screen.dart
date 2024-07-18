@@ -25,15 +25,32 @@ Future<void> signUp(BuildContext context, String username, String email,
 
   if (response.statusCode == 201) {
     // Handle successful registration
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-          builder: (context) => HomePage(showVerificationDialog: true)),
-    );
+    Future.microtask(() => _showVerificationDialog(context));
   } else {
     // Handle error in registration
     throw Exception(t.signupError);
   }
+}
+
+void _showVerificationDialog(BuildContext context) {
+  final t = AppLocalizations.of(context)!;
+  showDialog(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        title: Text(t.verifyEmail),
+        content: Text(t.verifyEmailMessage),
+        actions: <Widget>[
+          TextButton(
+            child: Text(t.ok),
+            onPressed: () {
+              Navigator.of(context).pop(); // Close the dialog
+            },
+          ),
+        ],
+      );
+    },
+  );
 }
 
 class SignUpPage extends StatefulWidget {
