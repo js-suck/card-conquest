@@ -47,7 +47,7 @@ Future<void> main() async {
     await NotificationService().init();
   }
 
-  await dotenv.load(fileName: "lib/.env");
+  await dotenv.load(fileName: "lib/env");
 
   final prefs = await SharedPreferences.getInstance();
   final providers = await getProviders();
