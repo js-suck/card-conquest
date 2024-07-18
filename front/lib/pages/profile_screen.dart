@@ -11,6 +11,7 @@ import 'package:front/widget/app_bar.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
+import 'package:front/extension/theme_extension.dart';
 
 import '../models/guild.dart';
 
@@ -60,7 +61,7 @@ class _ProfilePageState extends State<ProfilePage> {
       userData = {
         'username': user.username,
         'email': user.email,
-        "guilds": user.guilds
+        "guilds" : user.guilds
       };
       _isLoading = false;
     });
@@ -147,123 +148,120 @@ class _ProfilePageState extends State<ProfilePage> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
-              child: Center(
-                child: Container(
-                  width: 320,
-                  padding: const EdgeInsets.all(16.0),
-                  child: Form(
-                    key: _formKey,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        if (_image != null) Image.file(File(_image!.path)),
-                        ElevatedButton(
-                          onPressed: _pickImage,
-                          child: Text(t.profileChangeProfilePicture),
-                        ),
-                        Text(
-                          t.profileUpdateProfileTitle,
-                          style: const TextStyle(
-                              fontSize: 24, fontWeight: FontWeight.bold),
-                        ),
-                        const SizedBox(height: 20),
-                        TextFormField(
-                          initialValue: userData['username'],
-                          decoration: InputDecoration(
-                            labelText: t.username,
-                            fillColor: Colors.grey[100],
-                            filled: true,
-                            contentPadding: const EdgeInsets.symmetric(
-                                vertical: 10.0, horizontal: 10.0),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10.0),
-                              borderSide: BorderSide.none,
-                            ),
-                          ),
-                          onSaved: (value) => userData['username'] = value!,
-                        ),
-                        const SizedBox(height: 20),
-                        TextFormField(
-                          initialValue: userData['email'],
-                          decoration: InputDecoration(
-                            labelText: t.email,
-                            fillColor: Colors.grey[100],
-                            filled: true,
-                            contentPadding: const EdgeInsets.symmetric(
-                                vertical: 10.0, horizontal: 10.0),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10.0),
-                              borderSide: BorderSide.none,
-                            ),
-                          ),
-                          onSaved: (value) => userData['email'] = value!,
-                        ),
-                        const SizedBox(height: 20),
-                        ElevatedButton(
-                          onPressed: _updateUserData,
-                          style: ElevatedButton.styleFrom(
-                            foregroundColor: Colors.white,
-                            backgroundColor: const Color(0xFFFF933D),
-                            minimumSize: const Size(double.infinity, 45),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          ),
-                          child: Text(
-                            t.profileUpdateProfile,
-                            style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                        if (userData['guilds'] != null &&
-                            (userData['guilds'] as List).isNotEmpty)
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'Your Guilds',
-                                style: TextStyle(
-                                    fontSize: 24, fontWeight: FontWeight.bold),
-                              ),
-                              const SizedBox(height: 10),
-                              ...(userData['guilds'] as List<Guild>)
-                                  .map((guild) {
-                                return GestureDetector(
-                                  onTap: () {
-                                    Navigator.pushNamed(
-                                        context, '/guild/${guild.id}');
-                                  },
-                                  child: Center(
-                                    child: Column(
-                                      children: [
-                                        if (guild.media != null)
-                                          CircleAvatar(
-                                            backgroundImage:
-                                                CachedNetworkImageProvider(
-                                              '${dotenv.env['MEDIA_URL']}${guild.media!.fileName}',
-                                            ),
-                                            radius: 50,
-                                          ),
-                                        const SizedBox(height: 10),
-                                        Text('Guild: ${guild.name}'),
-                                        const SizedBox(height: 20),
-                                      ],
-                                    ),
-                                  ),
-                                );
-                              }).toList(),
-                            ],
-                          ),
-                      ],
+        child: Center(
+          child: Container(
+            width: 320,
+            padding: const EdgeInsets.all(16.0),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (_image != null) Image.file(File(_image!.path)),
+                  ElevatedButton(
+                    onPressed: _pickImage,
+                    child: Text(t.profileChangeProfilePicture),
+                  ),
+                  Text(
+                    t.profileUpdateProfileTitle,
+                    style: const TextStyle(
+                        fontSize: 24, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 20),
+                  TextFormField(
+                    initialValue: userData['username'],
+                    decoration: InputDecoration(
+                      labelText: t.username,
+                      fillColor: context.themeColors.secondaryBackgroundAccentColor,
+                      filled: true,
+                      contentPadding: const EdgeInsets.symmetric(
+                          vertical: 10.0, horizontal: 10.0),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10.0),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                    onSaved: (value) => userData['username'] = value!,
+                  ),
+                  const SizedBox(height: 20),
+                  TextFormField(
+                    initialValue: userData['email'],
+                    decoration: InputDecoration(
+                      labelText: t.email,
+                      fillColor: context.themeColors.secondaryBackgroundAccentColor,
+                      filled: true,
+                      contentPadding: const EdgeInsets.symmetric(
+                          vertical: 10.0, horizontal: 10.0),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10.0),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                    onSaved: (value) => userData['email'] = value!,
+                  ),
+                  const SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: _updateUserData,
+                    style: ElevatedButton.styleFrom(
+                      foregroundColor: Colors.white,
+                      backgroundColor: const Color(0xFFFF933D),
+                      minimumSize: const Size(double.infinity, 45),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    child: Text(
+                      t.profileUpdateProfile,
+                      style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold),
                     ),
                   ),
-                ),
+                  const SizedBox(height: 20),
+                if (userData['guilds'] != null && (userData['guilds'] as List).isNotEmpty)
+  Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      const Text(
+        'Your Guilds',
+        style: TextStyle(
+            fontSize: 24, fontWeight: FontWeight.bold),
+      ),
+      const SizedBox(height: 10),
+      ...(userData['guilds'] as List<Guild>).map((guild) {
+        return GestureDetector(
+          onTap: () {
+            Navigator.pushNamed(
+                context, '/guild/${guild.id}');
+          },
+          child: Center(
+            child: Column(
+              children: [
+                if (guild.media != null)
+                  CircleAvatar(
+                    backgroundImage: CachedNetworkImageProvider(
+                      '${dotenv.env['MEDIA_URL']}${guild.media!.fileName}',
+                    ),
+                    radius: 50,
+                  ),
+                const SizedBox(height: 10),
+                Text('Guild: ${guild.name}'),
+                const SizedBox(height: 20),
+              ],
+            ),
+          ),
+        );
+      }).toList(),
+    ],
+  ),
+                ],
               ),
             ),
+          ),
+        ),
+      ),
     );
   }
 }

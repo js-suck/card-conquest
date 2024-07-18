@@ -26,10 +26,10 @@ class AllTournamentsList extends StatelessWidget {
   double getChildAspectRatio(BuildContext context) {
     var screenWidth = MediaQuery.of(context).size.width;
     print(screenWidth);
-    if (screenWidth < 1200 && screenWidth > 600) {
+    if (screenWidth < 1200 && screenWidth > 400) {
       return 0.62;
-    } else if (screenWidth < 600) {
-      return 0.53;
+    } else if (screenWidth < 400) {
+      return 0.56;
     } else {
       return 0.55;
     }
@@ -46,12 +46,20 @@ class AllTournamentsList extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: allTournaments.isEmpty
-          ? Center(
-              child: Text(
-                emptyMessage,
-                style: TextStyle(
-                    fontSize: 18, color: context.themeColors.fontColor),
-              ),
+          ? Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Center(
+                 child:  Text(
+                    emptyMessage,
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                )
+              ],
             )
           : GridView.builder(
               shrinkWrap: true,
