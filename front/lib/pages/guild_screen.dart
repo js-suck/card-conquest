@@ -55,6 +55,9 @@ class _GuildViewState extends State<GuildView> {
         currentGuild = await guildService.fetchGuild(userGuilds.first.id);
       }
 
+      if(currentGuild == null) {
+        Navigator.pushReplacementNamed(context, '/guilds');
+      }
       setState(() {
         isLoadingUser = false;
       });
