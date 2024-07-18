@@ -17,6 +17,8 @@ import 'package:front/widget/tournaments/recent_tournaments_list.dart';
 import 'package:provider/provider.dart';
 import 'package:front/pages/game_detail_screen.dart';
 
+import '../providers/feature_flag_provider.dart';
+
 class HomeUserPage extends StatefulWidget {
   const HomeUserPage({Key? key}) : super(key: key);
 
@@ -28,6 +30,7 @@ class _HomePageState extends State<HomeUserPage> {
   final storage = const FlutterSecureStorage();
   late TournamentService tournamentService;
   late GameService gameService;
+  late bool isGuildEnabled;
 
   @override
   void initState() {
@@ -71,7 +74,11 @@ class _HomePageState extends State<HomeUserPage> {
   Future<void> _onTournamentPageTapped() async {
     final selectedPageModel =
         Provider.of<SelectedPageModel>(context, listen: false);
-    selectedPageModel.changePage(const TournamentsPage(searchQuery: null,), 1);
+    selectedPageModel.changePage(
+        const TournamentsPage(
+          searchQuery: null,
+        ),
+        1);
   }
 
   Future<void> _onGamePageTapped() async {
@@ -89,18 +96,22 @@ class _HomePageState extends State<HomeUserPage> {
     );
   }
 
-
   @override
   Widget build(BuildContext context) {
+    final featureNotifier =
+        Provider.of<FeatureNotifier>(context, listen: false);
+    isGuildEnabled = featureNotifier.isFeatureEnabled('guild');
     final t = AppLocalizations.of(context)!;
     return Scaffold(
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.pushNamed(context, '/guild');
-        },
-        child: Icon(Icons.diversity_3),
-        backgroundColor: context.themeColors.accentColor,
-      ),
+      floatingActionButton: isGuildEnabled
+          ? FloatingActionButton(
+              onPressed: () {
+                Navigator.pushNamed(context, '/guild');
+              },
+              backgroundColor: context.themeColors.accentColor,
+              child: Icon(Icons.diversity_3),
+            )
+          : null,
       appBar: TopAppBar(title: t.homeTitle, isAvatar: true, isPage: false),
       body: SingleChildScrollView(
         child: Column(
@@ -132,7 +143,9 @@ class _HomePageState extends State<HomeUserPage> {
             CustomFutureBuilder(
                 future: gameService.fetchGames(),
                 onLoaded: (games) {
-                  return GamesList(games: games.take(4).toList(), onGameTapped: _onGameTapped);
+                  return GamesList(
+                      games: games.take(4).toList(),
+                      onGameTapped: _onGameTapped);
                 }),
           ],
         ),

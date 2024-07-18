@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:front/providers/notification_provider.dart';
 import 'package:front/providers/user_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
@@ -26,6 +27,7 @@ Future<List<SingleChildWidget>> getProviders() async {
         create: (_) => FeatureNotifier(featureService, allFeatures)),
     ChangeNotifierProvider(create: (_) => UserProvider()),
     ChangeNotifierProvider(create: (_) => TournamentNotifier()),
+    ChangeNotifierProvider(create: (_) => NotificationProvider()),
     ChangeNotifierProvider(create: (_) => SelectedPageModel()),
     ChangeNotifierProvider(create: (_) => ThemeNotifier(isDarkMode)),
     ChangeNotifierProvider(create: (_) => LocaleNotifier(Locale(localeCode))),
