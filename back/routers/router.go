@@ -54,6 +54,7 @@ func SetupRouter(db *gorm.DB) *gin.Engine {
 	uploadFileHandler := handlers.NewUploadHandler(services.NewFileService(db))
 	matchHandler := handlers.NewMatchHandler(services.NewMatchService(db))
 	guildHandler := handlers.NewGuildHandler(services.NewGuildService(db))
+	featureFlagHandler := handlers.NewFeatureFlagHandler(db)
 
 	publicRoutes := r.Group("/api/v1")
 	protectedRoutes := r.Group("/api/v1")
@@ -93,6 +94,9 @@ func SetupRouter(db *gorm.DB) *gin.Engine {
 
 	protectedRoutes.Use(middlewares.AuthenticationMiddleware())
 	{
+		publicRoutes.GET("/feature/:name", featureFlagHandler.GetFeatureFlag)
+		publicRoutes.POST("/feature/:name", featureFlagHandler.SetFeatureFlag)
+		publicRoutes.GET("/feature", featureFlagHandler.GetFeatureFlags)
 		publicRoutes.POST("/images", uploadFileHandler.UploadImage)
 
 		protectedRoutes.POST("/users", permissions.PermissionMiddleware(permissions.PermissionCreateUser), userHandler.PostUser)

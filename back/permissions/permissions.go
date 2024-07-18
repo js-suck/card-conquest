@@ -64,6 +64,10 @@ var UserPermissions = []Permission{
 
 var OrganizerPermissions = []Permission{
 	{
+		Key:       PermissionJoinGuild,
+		CanAccess: true,
+	},
+	{
 		Key:       PermissionsOrganizer,
 		CanAccess: true,
 	},

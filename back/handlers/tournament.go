@@ -390,6 +390,14 @@ func (h *TournamentHandler) StartTournament(context *gin.Context) {
 		return
 	}
 
+	errSendNotification := h.TounamentService.SendTournamentIsStarted(uint(tournamentID))
+
+	if errSendNotification != nil {
+		context.JSON(errSendNotification.Code(), errSendNotification)
+		return
+
+	}
+
 	context.JSON(http.StatusOK, "Tournament started successfully")
 }
 

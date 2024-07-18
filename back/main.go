@@ -3,7 +3,6 @@ package main
 import (
 	dbService "authentication-api/db"
 	docs "authentication-api/docs"
-	feature_flag "authentication-api/feature-flag"
 	grpcServices "authentication-api/grpc"
 	"authentication-api/models"
 	authentication_api "authentication-api/pb/github.com/lailacha/authentication-api"
@@ -14,7 +13,6 @@ import (
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"google.golang.org/grpc"
-	"log"
 	"net"
 	"os"
 	"path/filepath"
@@ -85,7 +83,7 @@ func main() {
 		logrus.Fatalf("Failed to initialize database: %v", err)
 	}
 
-	err = DB.AutoMigrate(models.User{}, models.Tournament{}, models.Match{}, models.Score{}, models.TournamentStep{}, models.Media{}, models.TournamentStep{}, models.GameScore{}, models.Guild{}, models.ChatMessage{})
+	err = DB.AutoMigrate(models.User{}, models.Tournament{}, models.Match{}, models.Score{}, models.TournamentStep{}, models.Media{}, models.TournamentStep{}, models.GameScore{}, models.Guild{}, models.ChatMessage{}, models.FeatureFlag{})
 	if err != nil {
 		logrus.Fatalf("Failed to migrate database: %v", err)
 		return
@@ -116,13 +114,6 @@ func main() {
 	if err != nil {
 		logrus.Panic("failed to connect database")
 	}
-
-	flags, err := feature_flag.LoadConfig("configuration.yaml")
-	if err != nil {
-		log.Fatalf("Erreur lors du chargement des flags de fonctionnalité: %v", err)
-	}
-
-	fmt.Println("Feature Flags:", flags)
 
 	docs.SwaggerInfo.BasePath = "/api/v1"
 	go func() {

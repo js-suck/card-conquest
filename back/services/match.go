@@ -78,6 +78,8 @@ func (s MatchService) UpdateScore(matchId uint, score *models.Score, userId int)
 			go tournamentService.SendTournamentUpdatesForGRPC(match.TournamentID)
 			go s.SendMatchUpdatesForGRPC(match.ID)
 
+			tournamentService.SendTournamentIsEnded(match.TournamentID, score.PlayerID)
+
 			return nil
 		}
 
