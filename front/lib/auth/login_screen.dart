@@ -264,8 +264,7 @@ class _LoginPageState extends State<LoginPage> {
                         style: const TextStyle(color: Colors.black),
                         decoration: InputDecoration(
                           hintText: 'username',
-                          hintStyle: TextStyle(
-                              color: const Color(0xFF888888).withOpacity(0.5)),
+                          hintStyle: TextStyle(color: const Color(0xFF888888).withOpacity(0.5)),
                           fillColor: Colors.grey[100],
                           filled: true,
                           contentPadding: const EdgeInsets.symmetric(

@@ -139,8 +139,11 @@ class _CreateGuildPageState extends State<CreateGuildPage> {
                 ),
                 const SizedBox(height: 8.0),
                 TextFormField(
+                  style: const TextStyle(color: Colors.black),
                   decoration: InputDecoration(
-                    fillColor: context.themeColors.secondaryBackgroundAccentColor,
+                    hintText: t.guildName,
+                    hintStyle: TextStyle(color: const Color(0xFF888888).withOpacity(0.5)),
+                    fillColor: Colors.grey[100],
                     filled: true,
                     contentPadding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 10.0),
                     border: OutlineInputBorder(
@@ -165,8 +168,11 @@ class _CreateGuildPageState extends State<CreateGuildPage> {
                 ),
                 const SizedBox(height: 8.0),
                 TextFormField(
+                  style: const TextStyle(color: Colors.black),
                   decoration: InputDecoration(
-                    fillColor: context.themeColors.secondaryBackgroundAccentColor,
+                    hintText: t.guildDescription,
+                    hintStyle: TextStyle(color: const Color(0xFF888888).withOpacity(0.5)),
+                    fillColor: Colors.grey[100],
                     filled: true,
                     contentPadding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 10.0),
                     border: OutlineInputBorder(

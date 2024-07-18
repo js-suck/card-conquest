@@ -238,10 +238,11 @@ class _ProfilePageState extends State<ProfilePage> {
                   const SizedBox(height: 20),
                   TextFormField(
                     initialValue: userData['username'],
+                    style: const TextStyle(color: Colors.black),
                     decoration: InputDecoration(
                       labelText: t.username,
-                      fillColor: context.themeColors
-                          .secondaryBackgroundAccentColor,
+                      hintStyle: TextStyle(color: const Color(0xFF888888).withOpacity(0.5)),
+                      fillColor: Colors.grey[100],
                       filled: true,
                       contentPadding: const EdgeInsets.symmetric(
                           vertical: 10.0, horizontal: 10.0),
@@ -255,10 +256,11 @@ class _ProfilePageState extends State<ProfilePage> {
                   const SizedBox(height: 20),
                   TextFormField(
                     initialValue: userData['email'],
+                    style: const TextStyle(color: Colors.black),
                     decoration: InputDecoration(
                       labelText: t.email,
-                      fillColor: context.themeColors
-                          .secondaryBackgroundAccentColor,
+                      hintStyle: TextStyle(color: const Color(0xFF888888).withOpacity(0.5)),
+                      fillColor: Colors.grey[100],
                       filled: true,
                       contentPadding: const EdgeInsets.symmetric(
                           vertical: 10.0, horizontal: 10.0),
