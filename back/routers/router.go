@@ -119,6 +119,7 @@ func SetupRouter(db *gorm.DB) *gin.Engine {
 		protectedRoutes.POST("/matchs/update/score", permissions.PermissionMiddleware(permissions.PermissionUpdateMatch), matchHandler.UpdateScore)
 
 		protectedRoutes.PUT("/matchs/:id", permissions.PermissionMiddleware(permissions.PermissionUpdateMatch), matchHandler.UpdateMatch)
+		protectedRoutes.PUT("/bracket/matchs/:id", permissions.PermissionMiddleware(permissions.PermissionUpdateMatch), matchHandler.UpdateBracketMatch)
 		protectedRoutes.GET("/matchs/between-users", matchHandler.GetMatchesBetweenUsers)
 		protectedRoutes.GET(("/matchs"), matchHandler.GetAllMatchs)
 		protectedRoutes.GET(("/matchs/:id"), matchHandler.GetMatch)

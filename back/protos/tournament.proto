@@ -16,6 +16,8 @@ message Match {
   string status = 4;
   int32 winner_id = 5;
   int32 match_id = 6;
+  string location = 7;
+  string startTime = 8;
 }
 
 message TournamentStep {

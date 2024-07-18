@@ -127,6 +127,10 @@ var OrganizerPermissions = []Permission{
 		Key:       PermissionReadGuild,
 		CanAccess: true,
 	},
+	{
+		Key:       PermissionUpdateMatch,
+		CanAccess: true,
+	},
 }
 
 const (
