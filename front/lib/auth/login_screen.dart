@@ -46,13 +46,11 @@ Future<void> login(BuildContext context, String username, String password, Funct
         setLoading(false);
         return;
       }
-      // Store the token in secure storage
       await storage.write(key: 'jwt_token', value: token);
       Navigator.pushReplacementNamed(context, '/admin');
       setLoading(false);
       return;
     }
-    // Store the token in secure storage
 
     await storage.write(key: 'jwt_token', value: token);
 
