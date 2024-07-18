@@ -92,6 +92,11 @@ func NewUnauthorizedError(message string) *ErrorResponse {
 	return NewErrorResponse(http.StatusUnauthorized, message)
 }
 
+func NewForbiddenError(message string) *ErrorResponse {
+	logrus.Error(message)
+	return NewErrorResponse(http.StatusForbidden, message)
+}
+
 func IsFileNotFound(err error) bool {
 
 	return errors.Is(err, http.ErrMissingFile)

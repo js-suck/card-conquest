@@ -289,10 +289,11 @@ func usersMigration(db *gorm.DB) (*[]models.User, error) {
 	for i := 0; i < 10; i++ {
 
 		user := models.User{
-			Username: faker.FirstName(),
-			Email:    faker.Email(),
-			Password: "$2a$14$FEB9c6k0pEXUZB3txwOFCeurpu/j/wY5StHUykMXkZShMqdZi/Exm", // Replace with a secure password hashing mechanism
-			Role:     "user",
+			Username:   faker.FirstName(),
+			Email:      faker.Email(),
+			Password:   "$2a$14$FEB9c6k0pEXUZB3txwOFCeurpu/j/wY5StHUykMXkZShMqdZi/Exm", // Replace with a secure password hashing mechanism
+			Role:       "user",
+			IsVerified: true,
 		}
 
 		if err := db.Create(&user).Error; err != nil {
@@ -302,10 +303,11 @@ func usersMigration(db *gorm.DB) (*[]models.User, error) {
 	}
 
 	user := models.User{
-		Username: "user",
-		Email:    faker.Email(),
-		Password: "$2a$14$FEB9c6k0pEXUZB3txwOFCeurpu/j/wY5StHUykMXkZShMqdZi/Exm",
-		Role:     "user",
+		Username:   "user",
+		Email:      faker.Email(),
+		Password:   "$2a$14$FEB9c6k0pEXUZB3txwOFCeurpu/j/wY5StHUykMXkZShMqdZi/Exm",
+		Role:       "user",
+		IsVerified: true,
 	}
 
 	if err := db.Create(&user).Error; err != nil {
@@ -313,10 +315,11 @@ func usersMigration(db *gorm.DB) (*[]models.User, error) {
 	}
 
 	user2 := models.User{
-		Username: "user2",
-		Email:    faker.Email(),
-		Password: "$2a$14$FEB9c6k0pEXUZB3txwOFCeurpu/j/wY5StHUykMXkZShMqdZi/Exm",
-		Role:     "user",
+		Username:   "user2",
+		Email:      faker.Email(),
+		Password:   "$2a$14$FEB9c6k0pEXUZB3txwOFCeurpu/j/wY5StHUykMXkZShMqdZi/Exm",
+		Role:       "user",
+		IsVerified: true,
 	}
 
 	if err := db.Create(&user2).Error; err != nil {
@@ -325,10 +328,11 @@ func usersMigration(db *gorm.DB) (*[]models.User, error) {
 	}
 
 	organizer := models.User{
-		Username: "organizer",
-		Email:    faker.Email(),
-		Password: "$2a$14$FEB9c6k0pEXUZB3txwOFCeurpu/j/wY5StHUykMXkZShMqdZi/Exm",
-		Role:     "organizer",
+		Username:   "organizer",
+		Email:      faker.Email(),
+		Password:   "$2a$14$FEB9c6k0pEXUZB3txwOFCeurpu/j/wY5StHUykMXkZShMqdZi/Exm",
+		Role:       "organizer",
+		IsVerified: true,
 	}
 
 	if err := db.Create(&organizer).Error; err != nil {
@@ -337,10 +341,11 @@ func usersMigration(db *gorm.DB) (*[]models.User, error) {
 	}
 
 	organizer2 := models.User{
-		Username: "organizer2",
-		Email:    faker.Email(),
-		Password: "$2a$14$FEB9c6k0pEXUZB3txwOFCeurpu/j/wY5StHUykMXkZShMqdZi/Exm",
-		Role:     "organizer",
+		Username:   "organizer2",
+		Email:      faker.Email(),
+		Password:   "$2a$14$FEB9c6k0pEXUZB3txwOFCeurpu/j/wY5StHUykMXkZShMqdZi/Exm",
+		Role:       "organizer",
+		IsVerified: true,
 	}
 
 	if err := db.Create(&organizer2).Error; err != nil {
@@ -585,7 +590,7 @@ $$ LANGUAGE plpgsql;
 	var user models.User
 
 	if user.ID == 0 {
-		user = models.User{Username: "admin", Password: "$2a$14$FEB9c6k0pEXUZB3txwOFCeurpu/j/wY5StHUykMXkZShMqdZi/Exm", Email: "test@example.com", Role: "admin"}
+		user = models.User{Username: "admin", Password: "$2a$14$FEB9c6k0pEXUZB3txwOFCeurpu/j/wY5StHUykMXkZShMqdZi/Exm", IsVerified: true, Email: "test@example.com", Role: "admin"}
 		db.Create(&user)
 	}
 	users, errUsers := usersMigration(db)
