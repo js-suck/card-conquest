@@ -52,6 +52,16 @@ func (m Match) GetTableName() string {
 }
 
 func (m Match) ToRead() MatchRead {
+	startDate, err := time.Parse(m.Tournament.StartDate, m.Tournament.StartDate)
+	if err != nil {
+		startDate = time.Now()
+	}
+
+	endDate, err := time.Parse(m.Tournament.EndDate, m.Tournament.EndDate)
+	if err != nil {
+		endDate = time.Now()
+	}
+
 	scores := make([]ScoreRead, len(m.Scores))
 	for _, score := range m.Scores {
 		scores = append(scores, ScoreRead{
@@ -71,8 +81,8 @@ func (m Match) ToRead() MatchRead {
 				Name: m.Tournament.Name,
 			},
 			Media:     nil,
-			StartDate: m.Tournament.StartDate,
-			EndDate:   m.Tournament.EndDate,
+			StartDate: startDate,
+			EndDate:   endDate,
 		},
 		PlayerOne: m.PlayerOne.ToReadWithImage(),
 		PlayerTwo: m.PlayerTwo.ToReadWithImage(),

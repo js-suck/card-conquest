@@ -390,7 +390,7 @@ func (h *TournamentHandler) StartTournament(context *gin.Context) {
 		return
 	}
 
-	errSendNotification := h.TounamentService.SendTournamentIsStarted(uint(tournamentID))
+	errSendNotification := h.TournamentService.SendTournamentIsStarted(uint(tournamentID))
 
 	if errSendNotification != nil {
 		context.JSON(errSendNotification.Code(), errSendNotification)
