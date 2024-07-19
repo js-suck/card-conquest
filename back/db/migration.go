@@ -30,7 +30,7 @@ var tournamentsFixtures = []models.Tournament{
 				FileExtension: "jpeg",
 			},
 		},
-		UserID:     3,
+		UserID:     14,
 		GameID:     1,
 		Rounds:     3,
 		MaxPlayers: 32,
@@ -50,7 +50,7 @@ var tournamentsFixtures = []models.Tournament{
 		},
 		Name:       SecondTournamentName,
 		Location:   "Paris",
-		UserID:     4,
+		UserID:     15,
 		GameID:     2,
 		Rounds:     3,
 		MaxPlayers: 32,
@@ -70,7 +70,7 @@ var tournamentsFixtures = []models.Tournament{
 		},
 		Name:       ThirdTournamentName,
 		Location:   "London",
-		UserID:     5,
+		UserID:     14,
 		GameID:     3,
 		Rounds:     3,
 		MaxPlayers: 32,
@@ -214,7 +214,6 @@ func associateUsersWithTournament(db *gorm.DB, tournament models.Tournament, use
 		usersPtr[i] = &(*users)[i]
 	}
 	tournament.Users = usersPtr
-	tournament.UserID = (*users)[0].ID
 	db.Save(&tournament)
 }
 
