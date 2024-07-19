@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:front/extension/theme_extension.dart';
 import 'package:front/generated/tournament.pb.dart' as tournament;
 import 'package:front/widget/expandable_fab.dart';
+import 'package:front/service/match_service.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
@@ -10,6 +11,7 @@ import 'package:intl/intl.dart';
 import 'dart:io';
 import 'dart:convert';
 import 'package:flutter/services.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class BracketMatch extends StatefulWidget {
   const BracketMatch({super.key, required this.match});
@@ -21,6 +23,7 @@ class BracketMatch extends StatefulWidget {
 }
 
 class _BracketMatchState extends State<BracketMatch> {
+  late MatchService matchService;
   bool isEditing = false;
   late TextEditingController _timeController;
   final storage = const FlutterSecureStorage();
@@ -31,6 +34,7 @@ class _BracketMatchState extends State<BracketMatch> {
     super.initState();
     _timeController = TextEditingController();
     _timeController.text = _formatTime(widget.match.startTime);
+    matchService = MatchService();
     _loadToken();
   }
 
@@ -97,18 +101,18 @@ class _BracketMatchState extends State<BracketMatch> {
   }
 
   Future<void> _editHourBracketMatch(int matchId) async {
+    final t = AppLocalizations.of(context)!;
     if (isEditing) {
       final newTimeMatch = _timeController.text;
 
       if (newTimeMatch.isNotEmpty) {
         if (validateTime(newTimeMatch)) {
-          await _updateTimeMatch(widget.match.matchId, newTimeMatch);
+          await matchService.updateTimeMatch(context, widget.match.matchId,
+              widget.match.startTime, newTimeMatch);
         } else {
-          // Afficher un message d'erreur si le temps est invalide
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text(
-                  'Veuillez entrer une heure valide au format HH:mm (max 23:59).'),
+            SnackBar(
+              content: Text(t.errorHourFormat),
             ),
           );
           return;
@@ -119,53 +123,6 @@ class _BracketMatchState extends State<BracketMatch> {
     setState(() {
       isEditing = !isEditing;
     });
-  }
-
-  Future<void> _updateTimeMatch(int matchId, String time) async {
-    final token = await storage.read(key: 'jwt_token');
-    DateTime originalDateTime = DateTime.parse(widget.match.startTime);
-
-    List<String> timeParts = time.split(':');
-    int newHour = int.parse(timeParts[0]);
-    int newMinute = int.parse(timeParts[1]);
-    DateTime updatedDateTime = DateTime(
-      originalDateTime.year,
-      originalDateTime.month,
-      originalDateTime.day,
-      newHour,
-      newMinute,
-    );
-    String formattedDateTime = updatedDateTime.toIso8601String();
-    formattedDateTime = formattedDateTime.replaceFirst('.000', '.00Z');
-
-    var data = {
-      'startTime': formattedDateTime,
-    };
-
-    var response = await http.put(
-      Uri.parse('${dotenv.env['API_URL']}bracket/matchs/$matchId'),
-      headers: {
-        HttpHeaders.authorizationHeader: '$token',
-        HttpHeaders.contentTypeHeader: 'application/json',
-      },
-      body: jsonEncode(data),
-    );
-
-    if (response.statusCode == 200 || response.statusCode == 201) {
-      print('Start time updated successfully');
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Start time updated successfully'),
-        ),
-      );
-    } else {
-      print('Failed to update start time');
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Failed to update start time'),
-        ),
-      );
-    }
   }
 
   @override
@@ -219,10 +176,11 @@ class _BracketMatchState extends State<BracketMatch> {
           Navigator.pushNamed(context, '/match',
               arguments: widget.match.matchId);
         } else {
+          final t = AppLocalizations.of(context)!;
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
+            SnackBar(
               content: Text(
-                'Il n\'y a pas de match',
+                t.noMatch,
               ),
             ),
           );
@@ -327,16 +285,16 @@ class _BracketMatchState extends State<BracketMatch> {
                                   ),
                                 ),
                               )
-                            : Text(
-                                _timeController.text != ''
-                                    ? _timeController.text
-                                    : '00:00',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  color: context
-                                      .themeColors.invertedBackgroundColor,
-                                ),
-                              );
+                            : widget.match.status == 'created'
+                                ? Text(
+                                    _timeController.text,
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      color: context
+                                          .themeColors.invertedBackgroundColor,
+                                    ),
+                                  )
+                                : Container();
                       }
                     },
                   ),

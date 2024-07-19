@@ -40,14 +40,26 @@ class _MatchPageState extends State<MatchPage> {
   TextEditingController playerOneScoreController = TextEditingController();
   TextEditingController playerTwoScoreController = TextEditingController();
   TextEditingController dateController = TextEditingController();
-  final storage = FlutterSecureStorage();
+  final storage = const FlutterSecureStorage();
 
   @override
   void initState() {
     super.initState();
     matchClient = MatchClient();
     matchService = MatchService();
-    _checkIfOrganizer();
+    storage.read(key: 'jwt_token').then((token) {
+      setState(() {
+        isOrganizer = matchService.isAdmin(token);
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    playerOneScoreController.dispose();
+    playerTwoScoreController.dispose();
+    dateController.dispose();
+    super.dispose();
   }
 
   @override
@@ -56,42 +68,6 @@ class _MatchPageState extends State<MatchPage> {
     matchId = ModalRoute.of(context)!.settings.arguments as int;
     matchClient.subscribeMatchUpdate(matchId);
     matchService.fetchMatch(matchId);
-  }
-
-  void _checkIfOrganizer() async {
-    final token = await storage.read(key: 'jwt_token');
-    if (token != null) {
-      Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
-      setState(() {
-        isOrganizer = decodedToken['role'] == 'organizer';
-      });
-    }
-  }
-
-  bool isAdmin(Map<String, dynamic> decodedToken) {
-    // Fonction pour vérifier si l'utilisateur est administrateur
-    return decodedToken['role'] == 'organizer';
-  }
-
-  Future<void> _updateScore(int userId, int score) async {
-    final url = '${dotenv.env['API_URL']}matchs/update/score';
-    final token = await storage.read(key: 'jwt_token');
-    var request = http.MultipartRequest('POST', Uri.parse(url))
-      ..headers['Authorization'] = '$token'
-      ..fields['matchId'] = matchId.toString()
-      ..fields['userId'] = userId.toString()
-      ..fields['score'] = score.toString();
-
-    var response = await request.send();
-
-    if (response.statusCode == 200) {
-      print('Score updated successfully');
-    } else {
-      print('Failed to update score');
-      print(response.statusCode);
-      var responseData = await response.stream.bytesToString();
-      print(responseData);
-    }
   }
 
   Future<void> _editMatch(MatchResponse match) async {
@@ -103,14 +79,15 @@ class _MatchPageState extends State<MatchPage> {
 
       if (newPlayerOneScore != match.playerOne.score &&
           newPlayerOneScore != 0) {
-        await _updateScore(match.playerOne.id, newPlayerOneScore);
+        await matchService.updateScore(
+            matchId, match.playerOne.id, newPlayerOneScore);
       }
       if (newPlayerTwoScore != match.playerTwo.score &&
           newPlayerTwoScore != 0) {
-        await _updateScore(match.playerTwo.id, newPlayerTwoScore);
+        await matchService.updateScore(
+            matchId, match.playerTwo.id, newPlayerTwoScore);
       }
     }
-
     setState(() {
       isEditing = !isEditing;
     });
@@ -149,17 +126,13 @@ class _MatchPageState extends State<MatchPage> {
   }
 
   Future<void> _updateTime(DateTime dateTime) async {
-    // Votre logique pour mettre à jour la date et l'heure du match
-    print("Nouvelle date et heure sélectionnées : $dateTime");
+    final t = AppLocalizations.of(context)!;
     final token = await storage.read(key: 'jwt_token');
-
     String formattedDateTime = dateTime.toIso8601String();
     formattedDateTime = formattedDateTime.replaceFirst('.000', '.00Z');
-
     var data = {
       'startTime': formattedDateTime,
     };
-
     var response = await http.put(
       Uri.parse('${dotenv.env['API_URL']}bracket/matchs/$matchId'),
       headers: {
@@ -168,25 +141,25 @@ class _MatchPageState extends State<MatchPage> {
       },
       body: jsonEncode(data),
     );
-
     if (response.statusCode == 200 || response.statusCode == 201) {
       print('Start time updated successfully');
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Start time updated successfully'),
+        SnackBar(
+          content: Text(t.successTimeUpdate),
         ),
       );
     } else {
       print('Failed to update start time');
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Failed to update start time'),
+        SnackBar(
+          content: Text(t.failTimeUpdate),
         ),
       );
     }
   }
 
   Future<void> _startMatch(MatchResponse match) async {
+    final t = AppLocalizations.of(context)!;
     final url = '${dotenv.env['API_URL']}matchs/$matchId';
     final token = await storage.read(key: 'jwt_token');
     var response = await http.put(
@@ -202,41 +175,13 @@ class _MatchPageState extends State<MatchPage> {
         match.status = 'started';
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Match started successfully')),
+        SnackBar(content: Text(t.startMatch)),
       );
     } else {
       print('Failed to start match: ${response.statusCode}');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Failed to start match: ${response.statusCode}'),
-        ),
-      );
-    }
-  }
-
-  Future<void> _finishMatch(MatchResponse match) async {
-    final url = '${dotenv.env['API_URL']}matchs/$matchId';
-    final token = await storage.read(key: 'jwt_token');
-    var response = await http.put(
-      Uri.parse(url),
-      headers: {
-        'Authorization': '$token',
-        'Content-Type': 'application/json',
-      },
-      body: jsonEncode({'status': 'finished'}),
-    );
-    if (response.statusCode == 200) {
-      setState(() {
-        match.status = 'finished';
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Match finished successfully')),
-      );
-    } else {
-      print('Failed to finish match: ${response.statusCode}');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to finish match: ${response.statusCode}'),
+          content: Text(t.startMatchFailed),
         ),
       );
     }
@@ -549,43 +494,46 @@ class _MatchPageState extends State<MatchPage> {
                 future: storage.read(key: 'jwt_token'),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return Container(); // Afficher un indicateur de chargement si nécessaire
+                    return const Center(
+                        child:
+                            CircularProgressIndicator()); // Indicateur de chargement pendant la récupération du token
                   }
-                  if (snapshot.hasData) {
-                    Map<String, dynamic> decodedToken =
-                        JwtDecoder.decode(snapshot.data!);
-                    if (isAdmin(decodedToken)) {
-                      return ExpandableFab(
-                        distance: 112.0,
-                        children: [
-                          if (match.status != 'finished' &&
-                              match.status != 'created') ...[
-                            FloatingActionButton(
-                              heroTag: "editMatch$matchId",
-                              onPressed: () => _editMatch(match),
-                              tooltip: "Mode d'édition",
-                              child: const Icon(Icons.edit),
-                            ),
-                            if (isEditing == false) ...[
-                              FloatingActionButton(
-                                heroTag: "finishMatch$matchId",
-                                onPressed: () => _finishMatch(match),
-                                tooltip: 'Finir le match',
-                                child: const Icon(Icons.cancel),
-                              ),
-                            ]
-                          ] else
-                            FloatingActionButton(
-                              heroTag: 'startMatch$matchId',
-                              onPressed: () => _startMatch(match),
-                              tooltip: 'Commencer le match',
-                              child: const Icon(Icons.play_arrow),
-                            ),
-                        ],
-                      );
-                    }
+                  // Gestion des erreurs ou absence de données
+                  if (snapshot.hasError || !snapshot.hasData) {
+                    return Container(); // Affichez rien en cas d'erreur ou si le token est absent
                   }
-                  return Container(); // Si l'utilisateur n'est pas admin, ne montrez pas le FAB
+                  // Décodage du token et vérification des droits d'administration
+                  final token = snapshot.data!;
+                  final Map<String, dynamic> decodedToken =
+                      JwtDecoder.decode(token);
+                  if (!matchService.isAdminWithDecodedToken(decodedToken)) {
+                    return Container(); // Ne pas afficher le FAB si l'utilisateur n'est pas admin
+                  }
+                  List<Widget> fabButtons = [];
+                  if (match.status != 'finished' && match.status != 'created') {
+                    fabButtons.add(
+                      FloatingActionButton(
+                        heroTag: "editMatch$matchId",
+                        onPressed: () => _editMatch(match),
+                        tooltip: "Mode d'édition",
+                        child: const Icon(Icons.edit),
+                      ),
+                    );
+                  }
+                  if (match.status != 'finished' && match.status != 'started') {
+                    fabButtons.add(
+                      FloatingActionButton(
+                        heroTag: 'startMatch$matchId',
+                        onPressed: () => _startMatch(match),
+                        tooltip: 'Commencer le match',
+                        child: const Icon(Icons.play_arrow),
+                      ),
+                    );
+                  }
+                  return ExpandableFab(
+                    distance: 112.0,
+                    children: fabButtons,
+                  );
                 },
               ),
             );

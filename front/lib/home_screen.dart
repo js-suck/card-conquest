@@ -1,7 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:front/extension/theme_extension.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
@@ -137,7 +136,7 @@ class HomePage extends StatelessWidget {
           content: Text(t.verifyEmailMessage),
           actions: <Widget>[
             TextButton(
-              child:  Text(t.ok),
+              child: Text(t.ok),
               onPressed: () {
                 Navigator.of(context).pop(); // Close the dialog
               },

@@ -26,7 +26,7 @@ class _SummaryState extends State<Summary> {
   bool isEditing = false;
   bool isOrganizer = false;
   TextEditingController locationController = TextEditingController();
-  final storage = FlutterSecureStorage();
+  final storage = const FlutterSecureStorage();
 
   @override
   void initState() {
@@ -37,43 +37,25 @@ class _SummaryState extends State<Summary> {
 
     storage.read(key: 'jwt_token').then((token) {
       setState(() {
-        isOrganizer = isAdmin(token);
+        isOrganizer = matchService.isAdmin(token);
       });
     });
-  }
-
-  bool isAdmin(String? jwtToken) {
-    if (jwtToken == null) {
-      return false; // No token means not authenticated
-    }
-
-    Map<String, dynamic>? decodedToken = JwtDecoder.decode(jwtToken);
-
-    if (!decodedToken.containsKey('role')) {
-      return false;
-    }
-
-    return decodedToken['role'] == 'organizer';
   }
 
   Future<void> _editMatchInfo() async {
     if (isEditing) {
       final location = locationController.text;
-      print("location");
-      print(location);
       await matchService.updateMatchInfo(
           context, widget.match.matchId, location);
     }
-
     setState(() {
-      isEditing = !isEditing; // Basculer entre édition et non-édition
+      isEditing = !isEditing;
     });
   }
 
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context)!;
-
     return CustomFutureBuilder(
       future: matchService.fetchMatch(widget.match.matchId),
       onLoaded: (match) {
@@ -147,7 +129,6 @@ class _SummaryState extends State<Summary> {
                       ],
                     ),
                   ),
-                  // Autres éléments de résumé
                 ],
               ),
             ),
