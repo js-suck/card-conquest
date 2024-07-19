@@ -24,6 +24,10 @@ func (a AuthService) Login(user *models.User) (*models.User, errors.IError) {
 		return nil, errors.NewBadRequestError("invalid credentials", nil)
 	}
 
+	if !user.IsVerified {
+		return nil, errors.NewForbiddenError("user not verified")
+	}
+
 	return user, nil
 }
 

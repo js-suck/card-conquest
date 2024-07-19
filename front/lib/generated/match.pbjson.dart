@@ -52,6 +52,8 @@ const MatchResponse$json = {
     {'1': 'playerOne', '3': 3, '4': 1, '5': 11, '6': '.protos.PlayerMatch', '10': 'playerOne'},
     {'1': 'playerTwo', '3': 4, '4': 1, '5': 11, '6': '.protos.PlayerMatch', '10': 'playerTwo'},
     {'1': 'winnerId', '3': 5, '4': 1, '5': 5, '10': 'winnerId'},
+    {'1': 'location', '3': 6, '4': 1, '5': 9, '10': 'location'},
+    {'1': 'startDate', '3': 7, '4': 1, '5': 9, '10': 'startDate'},
   ],
 };
 
@@ -60,5 +62,6 @@ final $typed_data.Uint8List matchResponseDescriptor = $convert.base64Decode(
     'Cg1NYXRjaFJlc3BvbnNlEhkKCG1hdGNoX2lkGAEgASgFUgdtYXRjaElkEhYKBnN0YXR1cxgCIA'
     'EoCVIGc3RhdHVzEjEKCXBsYXllck9uZRgDIAEoCzITLnByb3Rvcy5QbGF5ZXJNYXRjaFIJcGxh'
     'eWVyT25lEjEKCXBsYXllclR3bxgEIAEoCzITLnByb3Rvcy5QbGF5ZXJNYXRjaFIJcGxheWVyVH'
-    'dvEhoKCHdpbm5lcklkGAUgASgFUgh3aW5uZXJJZA==');
+    'dvEhoKCHdpbm5lcklkGAUgASgFUgh3aW5uZXJJZBIaCghsb2NhdGlvbhgGIAEoCVIIbG9jYXRp'
+    'b24SHAoJc3RhcnREYXRlGAcgASgJUglzdGFydERhdGU=');
 

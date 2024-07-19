@@ -52,10 +52,13 @@ class _GameDetailPageState extends State<GameDetailPage> with SingleTickerProvid
       final fetchedGame = await gameService.fetchGameById(widget.gameId);
       setState(() {
         game = fetchedGame;
-        isLoadingGame = false;
       });
     } catch (e) {
       print(e);
+    } finally {
+      setState(() {
+        isLoadingGame = false;
+      });
     }
   }
 
@@ -64,10 +67,13 @@ class _GameDetailPageState extends State<GameDetailPage> with SingleTickerProvid
       final rankings = await gameService.fetchUserRankingsForGame(widget.gameId);
       setState(() {
         userRankings = rankings;
-        isLoadingUserRankings = false;
       });
     } catch (e) {
       print(e);
+    } finally {
+      setState(() {
+        isLoadingUserRankings = false;
+      });
     }
   }
 
@@ -75,11 +81,14 @@ class _GameDetailPageState extends State<GameDetailPage> with SingleTickerProvid
     try {
       final tournaments = await tournamentService.fetchTournamentsByGameId(widget.gameId);
       setState(() {
-        gameTournaments = tournaments.take(4).toList(); // Prendre les 4 premiers tournois
-        isLoadingTournaments = false;
+        gameTournaments = tournaments.take(4).toList();
       });
     } catch (e) {
       print(e);
+    } finally {
+      setState(() {
+        isLoadingTournaments = false;
+      });
     }
   }
 
@@ -140,7 +149,7 @@ class _GameDetailPageState extends State<GameDetailPage> with SingleTickerProvid
       return Center(child: Text(t.noGamesFound));
     }
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(8.0),
+      padding: const EdgeInsets.all(4.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -195,24 +204,6 @@ class _GameDetailPageState extends State<GameDetailPage> with SingleTickerProvid
           trailing: Text('#${user['Rank']}'),
         );
       },
-    );
-  }
-}
-
-class TournamentsPage extends StatelessWidget {
-  final String? searchQuery;
-
-  const TournamentsPage({Key? key, this.searchQuery}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Tournois - ${searchQuery ?? ''}'),
-      ),
-      body: Center(
-        child: Text('Liste des tournois pour le jeu: ${searchQuery ?? ''}'),
-      ),
     );
   }
 }

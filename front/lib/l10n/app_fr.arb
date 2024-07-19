@@ -68,6 +68,8 @@
   "signupSignup": "S'inscrire",
   "signupAlternative": "Ou inscrivez-vous avec",
   "signupHaveAccount": "Vous avez déjà un compte ?",
+  "noVerifyAccount": "Compte non vérifié",
+  "noVerifyAccountMessage": "Veuillez vérifier votre compte pour continuer.",
   "signupLogin": "Connectez-vous",
   "modalClose": "Fermer",
   "error": "Erreur",
@@ -75,6 +77,7 @@
   "bracketScoreboard": "Classement",
   "bracketResults": "Résultats",
   "bracketCalendar": "Calendrier",
+  "bracketMyMatches": "Mes matchs",
   "bracketRoundOf64": "64ème de finale",
   "bracketRoundOf32": "32ème de finale",
   "bracketRoundOf16": "16ème de finale",
@@ -168,5 +171,11 @@
   "guildNameRequired": "Le nom de la guilde est requis",
   "guildDescription": "Description de la guilde",
   "guildDescriptionRequired": "La description de la guilde est requise",
-  "update": "Mettre à jour"
+  "update": "Mettre à jour",
+  "errorLoadingUser": "Erreur lors du chargement de l'utilisateur",
+  "tournamentAlreadyRegistered": "Déjà inscrit",
+  "tournamentsMap": "Carte des tournois",
+  "tournamentAlreadyRegistered": "Déjà inscrit",
+  "guildCreateTitle": "Créer une guilde",
+  "noAccessPage": "Vous n'êtes pas autorisé à accéder à cette page"
 }

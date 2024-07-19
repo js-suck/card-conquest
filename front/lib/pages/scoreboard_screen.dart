@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:front/models/stat/ranking.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:front/service/user_service.dart';
 import 'package:front/utils/custom_future_builder.dart';
 import 'package:front/widget/app_bar.dart';
@@ -38,7 +39,7 @@ class _ScoreboardPageState extends State<ScoreboardPage> {
               return ListTile(
                 leading: CircleAvatar(
                   backgroundImage: NetworkImage(ranking.user.media == null
-                      ? '${dotenv.env['MEDIA_URL']}avatar.jpg'
+                      ? 'https://avatar.iran.liara.run/public/' + ranking.user.id.toString()
                       : '${dotenv.env['MEDIA_URL']}${ranking.user.media?.fileName}'),
                 ),
                 title: Text(ranking.user.username),

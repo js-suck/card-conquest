@@ -17,7 +17,6 @@ class TournamentMap extends StatefulWidget {
 class _TournamentMapState extends State<TournamentMap> {
   GoogleMapController? mapController;
   final Set<Marker> _markers = {};
-  final TextEditingController _searchController = TextEditingController();
   BitmapDescriptor markerIcon = BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue);
   late TournamentService tournamentService;
   List<Tournament> _tournaments = [];
@@ -27,7 +26,6 @@ class _TournamentMapState extends State<TournamentMap> {
     super.initState();
     tournamentService = TournamentService();
     addCustomMarker();
-    _searchController.addListener(_filterTournaments);
     fetchTournaments();
   }
 
@@ -59,19 +57,25 @@ class _TournamentMapState extends State<TournamentMap> {
           (t) => t.location?.toLowerCase() == city.toLowerCase() || t.name.toLowerCase() == city.toLowerCase(),
       orElse: () => _tournaments.first,
     );
-    mapController?.animateCamera(
-      CameraUpdate.newCameraPosition(
-        CameraPosition(
-          target: LatLng(tournament.latitude ?? 48.8566, tournament.longitude ?? 2.3522),
-          zoom: 10.0,
+
+    if (tournament != null) {
+      mapController?.animateCamera(
+        CameraUpdate.newCameraPosition(
+          CameraPosition(
+            target: LatLng(tournament.latitude ?? 48.8566, tournament.longitude ?? 2.3522),
+            zoom: 12.0,
+          ),
         ),
-      ),
-    );
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('City not found')),
+      );
+    }
   }
 
   void _onMapCreated(GoogleMapController controller) {
     mapController = controller;
-    print("Map created");
   }
 
   void _loadMarkers(List<Tournament> tournaments) {
@@ -79,9 +83,6 @@ class _TournamentMapState extends State<TournamentMap> {
       setState(() {
         _markers.clear();
         for (var tournament in tournaments) {
-          print(tournament.longitude);
-          print(tournament.name);
-          print(tournament.latitude);
           _markers.add(
             Marker(
               markerId: MarkerId(tournament.id.toString()),
@@ -134,10 +135,11 @@ class _TournamentMapState extends State<TournamentMap> {
                 ),
                 ElevatedButton(
                   onPressed: () {
-                  Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) =>  RegistrationPage(tournamentId: tournament.id)),
-                  );
+                    Navigator.pop(context);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => RegistrationPage(tournamentId: tournament.id)),
+                    );
                   },
                   child: Text(t.tournamentRegistrationRegister),
                 ),
@@ -149,58 +151,23 @@ class _TournamentMapState extends State<TournamentMap> {
     );
   }
 
-  void _filterTournaments() {
-    String search = _searchController.text.toLowerCase();
-    _zoomToCity(search);
-    setState(() {
-      _markers.clear();
-      _tournaments
-          .where((tournament) => tournament.location!.toLowerCase().contains(search) || tournament.name.toLowerCase().contains(search))
-          .forEach((tournament) {
-        _markers.add(
-          Marker(
-            icon: markerIcon,
-            markerId: MarkerId(tournament.id.toString()),
-            position: LatLng(tournament.latitude ?? 48.8566, tournament.longitude ?? 2.3522),
-            infoWindow: InfoWindow(
-              title: tournament.name,
-              snippet: 'Click here for more info',
-              onTap: () {
-                _showCustomInfoWindow(context, tournament);
-              },
-            ),
-            onTap: () {
-              _showCustomInfoWindow(context, tournament);
-            },
-          ),
-        );
-      });
-    });
-  }
-
   @override
   void dispose() {
     mapController?.dispose();
-    _searchController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
-        title: TextField(
-          controller: _searchController,
-          decoration: InputDecoration(
-            hintText: 'Search a name or a city',
-            hintStyle: TextStyle(color: Colors.white),
-          ),
-        ),
+        title: Text(t.tournamentsMap)
       ),
       body: GoogleMap(
         onMapCreated: _onMapCreated,
         initialCameraPosition: CameraPosition(
-          target: LatLng(48.8566, 2.3522), // Initial position set to Paris
+          target: LatLng(48.8566, 2.3522),
           zoom: 10.0,
         ),
         markers: _markers,

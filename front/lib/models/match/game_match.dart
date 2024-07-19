@@ -13,4 +13,11 @@ class GameMatch {
       name: json['name'],
     );
   }
+
+  toJson() {
+    return {
+      'ID': id,
+      'name': name,
+    };
+  }
 }

@@ -60,6 +60,18 @@ var UserPermissions = []Permission{
 		Key:       PermissionLeaveGuild,
 		CanAccess: true,
 	},
+	{
+		Key:       PermissionCreateGuild,
+		CanAccess: true,
+	},
+	{
+		Key:       PermissionUpdateGuild,
+		CanAccess: true,
+	},
+	{
+		Key:       PermissionDeleteGuild,
+		CanAccess: true,
+	},
 }
 
 var OrganizerPermissions = []Permission{
@@ -85,6 +97,10 @@ var OrganizerPermissions = []Permission{
 	},
 	{
 		Key:       PermissionDeleteTags,
+		CanAccess: true,
+	},
+	{
+		Key:       PermissionUpdateTournament,
 		CanAccess: true,
 	},
 	{

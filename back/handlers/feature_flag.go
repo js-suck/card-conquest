@@ -58,3 +58,12 @@ func (h *FeatureFlagHandler) GetFeatureFlags(c *gin.Context) {
 		c.JSON(http.StatusOK, flags)
 	}
 }
+
+func (h *FeatureFlagHandler) CheckNotificationEnabled(c *gin.Context) {
+	notificationEnabled, err := h.featureFlagService.GetFeatureFlag("notification")
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Feature flag not found"})
+	} else {
+		c.JSON(http.StatusOK, gin.H{"notification_enabled": notificationEnabled})
+	}
+}

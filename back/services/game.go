@@ -164,7 +164,7 @@ func (s *GameService) DeleteGame(id uint) errors.IError {
 
 func (s *GameService) GetGameByID(id uint) (*models.Game, errors.IError) {
 	var game models.Game
-	if err := s.Db.First(&game, id).Error; err != nil {
+	if err := s.Db.Preload("Media").First(&game, id).Error; err != nil {
 		return nil, errors.NewNotFoundError("Game not found", err)
 	}
 	return &game, nil

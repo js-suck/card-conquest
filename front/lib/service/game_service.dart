@@ -73,6 +73,9 @@ class GameService {
     }
 
     final List<dynamic> responseJson = jsonDecode(response.body);
+    if(responseJson.isEmpty) {
+      return [];
+    }
     return responseJson.cast<Map<String, dynamic>>();
   }
 

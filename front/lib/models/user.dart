@@ -10,7 +10,7 @@ class User {
   final String? role;
   final String? country;
   final Media? media;
-  final List<Guild>? guilds;
+  List<Guild>? guilds;
 
   User({
     required this.id,
@@ -38,5 +38,34 @@ class User {
           ? List<Guild>.from(json['guilds'].map((item) => Guild.fromJson(item)))
           : null,
     );
+  }
+
+  bool IsAdmin() {
+    return role == "admin";
+  }
+
+  bool IsUser() {
+    return role == "user";
+  }
+
+  bool IsOrganizer() {
+    return role == "organizer";
+  }
+
+  void setGuilds(List<Guild> guilds) {
+    this.guilds = guilds;
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'username': username,
+      'email': email,
+      'address': address,
+      'phone': phone,
+      'role': role,
+      'country': country,
+      'media': media?.toJson(),
+    };
   }
 }

@@ -64,7 +64,9 @@ class GuildService {
     return responseJson.map((json) => guild.Guild.fromJson(json)).toList();
   }
 
-  Future<bool> joinGuild(String guildId, String userId, String token) async {
+  Future<bool> joinGuild(String guildId, String userId) async {
+    String? token = await storage
+        .read(key: 'jwt_token');
     final response = await http.post(
       Uri.parse('${dotenv.env['API_URL']}guilds/$guildId/users/$userId'),
       headers: {
@@ -101,6 +103,7 @@ class GuildService {
 
   Future<bool> leaveGuild(String guildId, String userId) async {
     String? token = await storage.read(key: 'jwt_token');
+    print("leaving guild");
     final response = await http.delete(
       Uri.parse('${dotenv.env['API_URL']}guilds/$guildId/users/$userId'),
       headers: {

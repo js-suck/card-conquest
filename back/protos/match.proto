@@ -25,4 +25,6 @@
     PlayerMatch playerOne = 3;
     PlayerMatch playerTwo = 4;
     int32 winnerId = 5;
+    string location = 6;
+    string startDate = 7;
   }

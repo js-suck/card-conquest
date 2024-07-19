@@ -59,7 +59,7 @@ func (s *GenericService) Create(m models.IModel) errors.IError {
 }
 
 func (s *GenericService) Update(m models.IModel) errors.IError {
-	result := s.Db.Model(m).Updates(m)
+	result := s.Db.Model(m).Where("id = ?", m.GetID()).Updates(m)
 	if result.Error != nil {
 		return errors.NewErrorResponse(500, result.Error.Error())
 	}

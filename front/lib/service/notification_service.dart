@@ -4,8 +4,11 @@ import 'dart:developer';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_core/firebase_core.dart';
+
+import '../providers/notification_provider.dart';
 
 class NotificationService {
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
@@ -16,8 +19,8 @@ class NotificationService {
     await _initializeLocalNotifications();
     await _requestNotificationPermissions();
     await _configureFirebaseMessaging();
-    await _loadNotifications();
   }
+
 
   Future<void> _initializeLocalNotifications() async {
     const AndroidInitializationSettings initializationSettingsAndroid =
@@ -109,19 +112,13 @@ class NotificationService {
 
   Future<void> _saveNotifications() async {
     final prefs = await SharedPreferences.getInstance();
+    final notificationProvider = NotificationProvider();
     List<String> notificationStrings = _notifications.map((notification) => jsonEncode(notification.toMap())).toList();
     print("notificationStrings $notificationStrings");
     await prefs.setStringList('notifications', notificationStrings);
+    notificationProvider.addNotifications(_notifications);
   }
 
-  Future<void> _loadNotifications() async {
-    final prefs = await SharedPreferences.getInstance();
-    List<String>? notificationStrings = prefs.getStringList('notifications');
-    print("notificationStrings received $notificationStrings");
-    if (notificationStrings != null) {
-      _notifications = notificationStrings.map((string) => RemoteMessage.fromMap(jsonDecode(string))).toList();
-    }
-  }
   Future<List<RemoteMessage>> getNotifications() async {
     final prefs = await SharedPreferences.getInstance();
     List<String>? notificationStrings = prefs.getStringList('notifications');
@@ -138,9 +135,8 @@ class NotificationService {
     await prefs.setStringList('notifications', []);
   }
 
-  int getCount() {
-    return _notifications.length;
-  }
+
+
 
 
 }

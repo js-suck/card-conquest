@@ -1,6 +1,6 @@
+import 'package:front/models/match/player.dart';
 import 'package:front/models/match/user.dart';
 import 'package:front/models/media.dart';
-
 import 'game_match.dart';
 
 class Tournament {
@@ -16,9 +16,10 @@ class Tournament {
   final int maxPlayers;
   final int playersRegistered;
   final String status;
-  final List<String> tags;
+  final List<String>? tags;
   final double? latitude;
   final double? longitude;
+  final List<Player> players;
 
   Tournament({
     required this.id,
@@ -33,9 +34,10 @@ class Tournament {
     required this.maxPlayers,
     required this.playersRegistered,
     required this.status,
-    required this.tags,
+    this.tags,
     this.latitude,
     this.longitude,
+    required this.players,
   });
 
   factory Tournament.fromJson(Map<String, dynamic> json) {
@@ -53,8 +55,36 @@ class Tournament {
       playersRegistered: json['players_registered'],
       status: json['status'] ?? 'unknown',
       tags: json['tags'] != null ? List<String>.from(json['tags']) : [],
-      latitude: json['latitude'] != null ? double.parse(json['latitude'].toString()) : null,
-      longitude: json['longitude'] != null ? double.parse(json['longitude'].toString()) : null,
+      latitude: json['latitude'] != null
+          ? double.parse(json['latitude'].toString())
+          : null,
+      longitude: json['longitude'] != null
+          ? double.parse(json['longitude'].toString())
+          : null,
+      players: json['players'] != null
+          ? List<Player>.from(json['players'].map((x) => Player.fromJson(x)))
+          : [],
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'description': description,
+      'location': location,
+      'organizer': organizer.toJson(),
+      'game': game.toJson(),
+      'start_date': startDate.toIso8601String(),
+      'end_date': endDate.toIso8601String(),
+      'media': media?.toJson(),
+      'max_players': maxPlayers,
+      'players_registered': playersRegistered,
+      'status': status,
+      'tags': tags,
+      'latitude': latitude,
+      'longitude': longitude,
+      'players': players.map((x) => x.toJson()).toList(),
+    };
   }
 }

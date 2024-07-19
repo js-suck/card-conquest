@@ -78,6 +78,8 @@ func (s MatchService) UpdateScore(matchId uint, score *models.Score, userId int)
 			go tournamentService.SendTournamentUpdatesForGRPC(match.TournamentID)
 			go s.SendMatchUpdatesForGRPC(match.ID)
 
+			tournamentService.SendTournamentIsEnded(match.TournamentID, score.PlayerID)
+
 			return nil
 		}
 
@@ -296,6 +298,10 @@ func (s *MatchService) GetAll(models interface{}, filterParams FilterParams, pre
 		query = query.Where("player_one_id = ? OR player_two_id = ?", userID, userID)
 	}
 
+	if tournamentID, ok := filterParams.Fields["TournamentID"]; ok {
+		query = query.Where("tournament_id = ?", tournamentID)
+	}
+
 	if status, ok := filterParams.Fields["Status"]; ok {
 		query = query.Where("status = ?", status)
 	}
@@ -439,8 +445,10 @@ func (s MatchService) SendMatchUpdatesForGRPC(u uint) {
 	update := &authentication_api.MatchResponse{}
 
 	update = &authentication_api.MatchResponse{
-		MatchId: int32(uint32(match.ID)),
-		Status:  match.Status,
+		MatchId:   int32(uint32(match.ID)),
+		Status:    match.Status,
+		Location:  match.Tournament.Location,
+		StartDate: match.StartTime.Format(time.RFC3339),
 		PlayerOne: &authentication_api.PlayerMatch{
 			Id:       int32(uint32(match.PlayerOne.ID)),
 			Username: match.PlayerOne.Username,

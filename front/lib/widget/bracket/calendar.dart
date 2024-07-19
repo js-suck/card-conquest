@@ -2,9 +2,9 @@ import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:front/models/match/match.dart';
 import 'package:front/service/match_service.dart';
-
-import '../../utils/custom_future_builder.dart';
-import 'match/match_tiles.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:front/utils/custom_future_builder.dart';
+import 'package:front/widget/bracket/match/match_tiles.dart';
 
 class Calendar extends StatefulWidget {
   const Calendar({super.key, required this.tournamentId});
@@ -40,11 +40,17 @@ class _CalendarState extends State<Calendar> {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     return RefreshIndicator(
       onRefresh: _refreshMatches,
       child: CustomFutureBuilder(
           future: matchesFuture,
           onLoaded: (matches) {
+            if (matches.isEmpty) {
+              return Center(
+                child: Text(t.playerNoMatches),
+              );
+            }
             final groupedMatches =
                 groupBy(matches, (match) => match.tournamentStep.sequence);
             List<Widget> tournamentStepWidgets = [];

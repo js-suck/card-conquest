@@ -10,11 +10,15 @@ import 'package:front/service/game_service.dart';
 import 'package:front/service/tournament_service.dart';
 import 'package:front/utils/custom_future_builder.dart';
 import 'package:front/widget/app_bar.dart';
-import 'package:front/widget/bottom_bar.dart';
 import 'package:front/widget/games/games_list.dart';
 import 'package:front/widget/tournaments/all_tournaments_list.dart';
 import 'package:front/widget/tournaments/recent_tournaments_list.dart';
 import 'package:provider/provider.dart';
+import 'package:jwt_decoder/jwt_decoder.dart';
+
+import '../providers/feature_flag_provider.dart';
+import '../widget/bottom_bar.dart';
+import 'game_detail_screen.dart';
 
 class HomeUserPage extends StatefulWidget {
   const HomeUserPage({Key? key}) : super(key: key);
@@ -27,15 +31,36 @@ class _HomePageState extends State<HomeUserPage> {
   final storage = const FlutterSecureStorage();
   late TournamentService tournamentService;
   late GameService gameService;
+  late bool isGuildEnabled;
+  String userRole = '';
+  bool isLoading = true;
 
   @override
   void initState() {
     super.initState();
     tournamentService = TournamentService();
     gameService = GameService();
+    _initializeUserData();
+  }
+
+  Future<void> _initializeUserData() async {
+    await getUserRole();
+    setState(() {
+      isLoading = false;
+    });
     tournamentService.fetchTournaments();
     tournamentService.fetchRecentTournaments();
     gameService.fetchGames();
+  }
+
+  Future<void> getUserRole() async {
+    String? token = await storage.read(key: 'jwt_token');
+    if (token != null) {
+      Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
+      setState(() {
+        userRole = decodedToken['role'];
+      });
+    }
   }
 
   Future<void> _onTournamentTapped(int tournamentId, String status) async {
@@ -45,21 +70,12 @@ class _HomePageState extends State<HomeUserPage> {
         page = RegistrationPage(tournamentId: tournamentId);
         break;
       case 'started':
-        // Ajoutez un id pour la page bracket
-        page = BracketPage(tournamentID: tournamentId);
-        break;
       case 'finished':
-        // Ajoutez un id pour la page bracket
-        page = BracketPage(tournamentID: tournamentId);
-        break;
       case 'canceled':
-        // Ajoutez la page correspondante pour les tournois annulés
         page = BracketPage(tournamentID: tournamentId);
         break;
       default:
-        page = RegistrationPage(
-            tournamentId:
-                tournamentId); // Par défaut, redirigez vers la page d'inscription
+        page = RegistrationPage(tournamentId: tournamentId);
     }
     Navigator.push(
       context,
@@ -68,61 +84,85 @@ class _HomePageState extends State<HomeUserPage> {
   }
 
   Future<void> _onTournamentPageTapped() async {
-    final selectedPageModel =
-        Provider.of<SelectedPageModel>(context, listen: false);
-    selectedPageModel.changePage(const TournamentsPage(searchQuery: null,), 1);
+    final selectedPageModel = Provider.of<SelectedPageModel>(context, listen: false);
+    selectedPageModel.changePage(const TournamentsPage(searchQuery: null), 1);
   }
 
   Future<void> _onGamePageTapped() async {
-    final selectedPageModel =
-        Provider.of<SelectedPageModel>(context, listen: false);
+    final selectedPageModel = Provider.of<SelectedPageModel>(context, listen: false);
     selectedPageModel.changePage(const GamesPage(), 3);
+  }
+
+  Future<void> _onGameTapped(int id) async {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => GameDetailPage(gameId: id),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    final featureNotifier = Provider.of<FeatureNotifier>(context, listen: false);
+    isGuildEnabled = featureNotifier.isFeatureEnabled('guild');
     final t = AppLocalizations.of(context)!;
+
     return Scaffold(
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: isGuildEnabled && userRole != 'invite'
+          ? FloatingActionButton(
         onPressed: () {
           Navigator.pushNamed(context, '/guild');
         },
-        child: Icon(Icons.diversity_3),
         backgroundColor: context.themeColors.accentColor,
-      ),
+        child: const Icon(Icons.diversity_3),
+      )
+          : null,
       appBar: TopAppBar(title: t.homeTitle, isAvatar: true, isPage: false),
-      body: SingleChildScrollView(
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
         child: Column(
           children: [
             _buildSectionTitle(t.recentTournaments),
             CustomFutureBuilder(
-                future: tournamentService.fetchRecentTournaments(),
-                onLoaded: (tournaments) {
-                  return RecentTournamentsList(
-                    recentTournaments: tournaments,
-                    onTournamentTapped: (id, status) =>
-                        _onTournamentTapped(id, status),
-                  );
-                }),
-            _buildSectionTitleWithButton(t.homeTournaments,
-                t.homeShowTournaments, _onTournamentPageTapped as VoidCallback),
+              future: tournamentService.fetchRecentTournaments(),
+              onLoaded: (tournaments) {
+                return RecentTournamentsList(
+                  recentTournaments: tournaments,
+                  onTournamentTapped: (id, status) => _onTournamentTapped(id, status),
+                );
+              },
+            ),
+            _buildSectionTitleWithButton(
+              t.homeTournaments,
+              t.homeShowTournaments,
+              _onTournamentPageTapped,
+            ),
             CustomFutureBuilder(
-                future: tournamentService.fetchTournaments(),
-                onLoaded: (tournaments) {
-                  return AllTournamentsList(
-                    allTournaments: tournaments.take(4).toList(),
-                    onTournamentTapped: (id, status) =>
-                        _onTournamentTapped(id, status),
-                    emptyMessage: t.noUpcomingTournaments,
-                  );
-                }),
-            _buildSectionTitleWithButton(t.homeGames, t.homeShowGames,
-                _onGamePageTapped as VoidCallback),
+              future: tournamentService.fetchTournaments(),
+              onLoaded: (tournaments) {
+                return AllTournamentsList(
+                  allTournaments: tournaments.take(4).toList(),
+                  onTournamentTapped: (id, status) => _onTournamentTapped(id, status),
+                  emptyMessage: t.noUpcomingTournaments,
+                );
+              },
+            ),
+            _buildSectionTitleWithButton(
+              t.homeGames,
+              t.homeShowGames,
+              _onGamePageTapped,
+            ),
             CustomFutureBuilder(
-                future: gameService.fetchGames(),
-                onLoaded: (games) {
-                  return GamesList(games: games.take(4).toList());
-                }),
+              future: gameService.fetchGames(),
+              onLoaded: (games) {
+                return GamesList(
+                  games: games.take(4).toList(),
+                  onGameTapped: _onGameTapped,
+                );
+              },
+            ),
           ],
         ),
       ),
@@ -142,8 +182,7 @@ class _HomePageState extends State<HomeUserPage> {
     );
   }
 
-  Widget _buildSectionTitleWithButton(
-      String title, String buttonText, VoidCallback onPressed) {
+  Widget _buildSectionTitleWithButton(String title, String buttonText, VoidCallback onPressed) {
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Row(
