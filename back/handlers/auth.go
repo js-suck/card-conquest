@@ -64,6 +64,11 @@ func (h *AuthHandler) Login(c *gin.Context) {
 
 	userData, err := h.AuthService.Login(&user)
 
+	if err != nil && err.Code() == http.StatusForbidden {
+		c.JSON(http.StatusForbidden, gin.H{"error": "User not verified"})
+		return
+	}
+
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
 		return

@@ -34,8 +34,8 @@ var tournamentsFixtures = []models.Tournament{
 		GameID:     1,
 		Rounds:     3,
 		MaxPlayers: 32,
-		Longitude:  40.7128,
-		Latitude:   -74.0060,
+		Longitude:  -74.0060152,
+		Latitude:   40.7127281,
 		StartDate:  "2024-04-12T00:00:00Z",
 		EndDate:    "2024-05-12T00:00:00Z",
 	},
@@ -54,8 +54,8 @@ var tournamentsFixtures = []models.Tournament{
 		GameID:     2,
 		Rounds:     3,
 		MaxPlayers: 32,
-		Longitude:  48.8566,
-		Latitude:   2.3522,
+		Longitude:  2.3483915,
+		Latitude:   48.8534951,
 		StartDate:  "2024-08-12T00:00:00Z",
 		EndDate:    "2024-09-12T00:00:00Z",
 	},
@@ -74,8 +74,8 @@ var tournamentsFixtures = []models.Tournament{
 		GameID:     3,
 		Rounds:     3,
 		MaxPlayers: 32,
-		Longitude:  51.5074,
-		Latitude:   -0.1278,
+		Longitude:  -0.1277653,
+		Latitude:   51.5074456,
 		StartDate:  "2024-12-12T00:00:00Z",
 		EndDate:    "2025-01-12T00:00:00Z",
 	},
@@ -110,6 +110,20 @@ func gameMigration(db *gorm.DB) (*models.Game, error) {
 		return nil, err
 	}
 	return &game, nil
+}
+func synchronizeSequence(db *gorm.DB, tableName string, sequenceName string) error {
+	var maxID int
+	err := db.Table(tableName).Select("MAX(id)").Row().Scan(&maxID)
+	if err != nil {
+		return err
+	}
+
+	err = db.Exec(fmt.Sprintf("SELECT setval('%s', %d)", sequenceName, maxID)).Error
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func tournamentMigration(db *gorm.DB, game *models.Game) (*models.Tournament, error) {
@@ -223,7 +237,32 @@ func generateTournamentMatches(db *gorm.DB, tournamentStepID, tournamentID uint)
 	}
 
 }
+func featureFlagMigration(db *gorm.DB) (*models.FeatureFlag, error) {
 
+	featureFlag := models.FeatureFlag{
+		Name:    "googleSignIn",
+		Enabled: true,
+	}
+
+	db.Create(&featureFlag)
+
+	featureFlag2 := models.FeatureFlag{
+		Name:    "notification",
+		Enabled: true,
+	}
+
+	db.Create(&featureFlag2)
+
+	featureFlag3 := models.FeatureFlag{
+		Name:    "guild",
+		Enabled: true,
+	}
+
+	db.Create(&featureFlag3)
+
+	return &featureFlag, nil
+
+}
 func mediaMigration(db *gorm.DB) (*models.Media, error) {
 	err := db.AutoMigrate(&models.Media{})
 
@@ -250,10 +289,11 @@ func usersMigration(db *gorm.DB) (*[]models.User, error) {
 	for i := 0; i < 10; i++ {
 
 		user := models.User{
-			Username: faker.FirstName(),
-			Email:    faker.Email(),
-			Password: "$2a$14$FEB9c6k0pEXUZB3txwOFCeurpu/j/wY5StHUykMXkZShMqdZi/Exm", // Replace with a secure password hashing mechanism
-			Role:     "user",
+			Username:   faker.FirstName(),
+			Email:      faker.Email(),
+			Password:   "$2a$14$FEB9c6k0pEXUZB3txwOFCeurpu/j/wY5StHUykMXkZShMqdZi/Exm", // Replace with a secure password hashing mechanism
+			Role:       "user",
+			IsVerified: true,
 		}
 
 		if err := db.Create(&user).Error; err != nil {
@@ -263,10 +303,11 @@ func usersMigration(db *gorm.DB) (*[]models.User, error) {
 	}
 
 	user := models.User{
-		Username: "user",
-		Email:    faker.Email(),
-		Password: "$2a$14$FEB9c6k0pEXUZB3txwOFCeurpu/j/wY5StHUykMXkZShMqdZi/Exm",
-		Role:     "user",
+		Username:   "user",
+		Email:      faker.Email(),
+		Password:   "$2a$14$FEB9c6k0pEXUZB3txwOFCeurpu/j/wY5StHUykMXkZShMqdZi/Exm",
+		Role:       "user",
+		IsVerified: true,
 	}
 
 	if err := db.Create(&user).Error; err != nil {
@@ -274,10 +315,11 @@ func usersMigration(db *gorm.DB) (*[]models.User, error) {
 	}
 
 	user2 := models.User{
-		Username: "user2",
-		Email:    faker.Email(),
-		Password: "$2a$14$FEB9c6k0pEXUZB3txwOFCeurpu/j/wY5StHUykMXkZShMqdZi/Exm",
-		Role:     "user",
+		Username:   "user2",
+		Email:      faker.Email(),
+		Password:   "$2a$14$FEB9c6k0pEXUZB3txwOFCeurpu/j/wY5StHUykMXkZShMqdZi/Exm",
+		Role:       "user",
+		IsVerified: true,
 	}
 
 	if err := db.Create(&user2).Error; err != nil {
@@ -286,10 +328,11 @@ func usersMigration(db *gorm.DB) (*[]models.User, error) {
 	}
 
 	organizer := models.User{
-		Username: "organizer",
-		Email:    faker.Email(),
-		Password: "$2a$14$FEB9c6k0pEXUZB3txwOFCeurpu/j/wY5StHUykMXkZShMqdZi/Exm",
-		Role:     "organizer",
+		Username:   "organizer",
+		Email:      faker.Email(),
+		Password:   "$2a$14$FEB9c6k0pEXUZB3txwOFCeurpu/j/wY5StHUykMXkZShMqdZi/Exm",
+		Role:       "organizer",
+		IsVerified: true,
 	}
 
 	if err := db.Create(&organizer).Error; err != nil {
@@ -298,10 +341,11 @@ func usersMigration(db *gorm.DB) (*[]models.User, error) {
 	}
 
 	organizer2 := models.User{
-		Username: "organizer2",
-		Email:    faker.Email(),
-		Password: "$2a$14$FEB9c6k0pEXUZB3txwOFCeurpu/j/wY5StHUykMXkZShMqdZi/Exm",
-		Role:     "organizer",
+		Username:   "organizer2",
+		Email:      faker.Email(),
+		Password:   "$2a$14$FEB9c6k0pEXUZB3txwOFCeurpu/j/wY5StHUykMXkZShMqdZi/Exm",
+		Role:       "organizer",
+		IsVerified: true,
 	}
 
 	if err := db.Create(&organizer2).Error; err != nil {
@@ -450,6 +494,7 @@ func MigrateDatabase() error {
 	err = db.AutoMigrate(&models.GameScore{})
 	err = db.AutoMigrate(&models.Guild{})
 	err = db.AutoMigrate(&models.ChatMessage{})
+	err = db.AutoMigrate(&models.FeatureFlag{})
 
 	// Add triggers and functions
 	createFunction := `
@@ -545,7 +590,7 @@ $$ LANGUAGE plpgsql;
 	var user models.User
 
 	if user.ID == 0 {
-		user = models.User{Username: "admin", Password: "$2a$14$FEB9c6k0pEXUZB3txwOFCeurpu/j/wY5StHUykMXkZShMqdZi/Exm", Email: "test@example.com", Role: "admin"}
+		user = models.User{Username: "admin", Password: "$2a$14$FEB9c6k0pEXUZB3txwOFCeurpu/j/wY5StHUykMXkZShMqdZi/Exm", IsVerified: true, Email: "test@example.com", Role: "admin"}
 		db.Create(&user)
 	}
 	users, errUsers := usersMigration(db)
@@ -569,11 +614,15 @@ $$ LANGUAGE plpgsql;
 	}
 
 	registrationsTournamenstMigrations(db, users)
-
+	featureFlagMigration(db)
 	if err != nil {
 		fmt.Println(err.Error())
 		return err
 	}
 
+	err = synchronizeSequence(db, "tournaments", "tournaments_id_seq")
+	if err != nil {
+		log.Fatalf("failed to synchronize tournaments sequence: %v", err)
+	}
 	return nil
 }

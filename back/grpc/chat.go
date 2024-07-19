@@ -107,8 +107,9 @@ func (s *chatServer) GetChatHistory(ctx context.Context, req *authentication_api
 		userService := service.NewUserService(db.DB)
 		err := userService.Get(&user, uint(msg.UserId), "Media")
 
+		// Skip the message if the user is not found
 		if err != nil {
-			return nil, err
+			continue
 		}
 
 		chatMessages = append(chatMessages, &authentication_api.ChatHistoryMessage{

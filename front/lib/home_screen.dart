@@ -17,13 +17,22 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context)!;
-    if (showVerificationDialog) {
-      Future.microtask(() => _showVerificationDialog(context));
-    }
 
     final ButtonStyle buttonStyle = ElevatedButton.styleFrom(
       foregroundColor: context.themeColors.secondaryBackgroundAccentColor,
       backgroundColor: context.themeColors.accentColor,
+      minimumSize: const Size(230, 50),
+      textStyle:
+          const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+      ),
+      elevation: 5,
+    );
+
+    final ButtonStyle guestButtonStyle = ElevatedButton.styleFrom(
+      foregroundColor: context.themeColors.accentColor,
+      backgroundColor: context.themeColors.accentColor.withOpacity(0.5),
       minimumSize: const Size(230, 50),
       textStyle:
           const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
@@ -52,13 +61,6 @@ class HomePage extends StatelessWidget {
             children: <Widget>[
               Image.asset('assets/images/logo.png', width: 200),
               const SizedBox(height: 20),
-              Text(
-                t.welcome,
-                style: const TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
               const SizedBox(height: 40),
               if (!kIsWeb)
                 ElevatedButton(
@@ -69,7 +71,8 @@ class HomePage extends StatelessWidget {
                         builder: (context) =>
                             SignUpPage()), // Navigate to SignUpPage
                   ),
-                  child: Text(t.signup),
+                  child: Text(t.signup,
+                      style: const TextStyle(color: Colors.white)),
                 ),
               const SizedBox(height: 20),
               ElevatedButton(
@@ -80,23 +83,26 @@ class HomePage extends StatelessWidget {
                       builder: (context) =>
                           const LoginPage()), // Navigate to LoginPage
                 ),
-                child: Text(t.login),
+                child:
+                    Text(t.login, style: const TextStyle(color: Colors.white)),
               ),
               const SizedBox(height: 20),
               if (!kIsWeb)
                 ElevatedButton(
-                  style: buttonStyle,
+                  style: guestButtonStyle,
                   onPressed: () {
                     //add jwt token
                     const storage = FlutterSecureStorage();
                     const token =
                         "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiaW52aXRlIiwibmFtZSI6Ikludml0w6kifQ.1TMIPCEDolEVv1TMX77Y7-RA6AW4zCG2JrcjFT4hM90";
                     storage.write(key: 'jwt_token', value: token);
+                    storage.write(key: 'user_id', value: '0');
 
                     // Navigate to the main page
                     Navigator.pushNamed(context, '/main');
                   },
-                  child: Text(t.guest),
+                  child: Text(t.guest,
+                      style: const TextStyle(color: Colors.white)),
                 ),
               const SizedBox(height: 20),
               if (kIsWeb)
@@ -124,26 +130,5 @@ class HomePage extends StatelessWidget {
     } else {
       Navigator.pushNamed(context, '/login');
     }
-  }
-
-  void _showVerificationDialog(BuildContext context) {
-    final t = AppLocalizations.of(context)!;
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text(t.verifyEmail),
-          content: Text(t.verifyEmailMessage),
-          actions: <Widget>[
-            TextButton(
-              child: Text(t.ok),
-              onPressed: () {
-                Navigator.of(context).pop(); // Close the dialog
-              },
-            ),
-          ],
-        );
-      },
-    );
   }
 }

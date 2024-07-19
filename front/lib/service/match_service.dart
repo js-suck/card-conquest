@@ -127,7 +127,7 @@ class MatchService {
 
     final response = await http.get(
       Uri.parse(
-          '${dotenv.env['API_URL']}matchs?tournamentId=$tournamentId&Status=finished'),
+          '${dotenv.env['API_URL']}matchs?TournamentID=$tournamentId&Status=finished'),
       headers: {
         HttpHeaders.authorizationHeader: '$token',
       },
@@ -146,7 +146,28 @@ class MatchService {
 
     final response = await http.get(
       Uri.parse(
-          '${dotenv.env['API_URL']}matchs?tournamentId=$tournamentId&Unfinished=true'),
+          '${dotenv.env['API_URL']}matchs?TournamentID=$tournamentId&Unfinished=true'),
+      headers: {
+        HttpHeaders.authorizationHeader: '$token',
+      },
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to load matches');
+    }
+    final List<dynamic> responseJson = jsonDecode(response.body);
+    return responseJson.map((json) => match.Match.fromJson(json)).toList();
+  }
+
+  Future<List<match.Match>> fetchMatchesOfTournamentOfPlayer(
+      tournamentId) async {
+    String? token = await storage.read(key: 'jwt_token');
+    String? userId = await storage.read(key: 'user_id');
+    // retrieve id of the current user
+
+    final response = await http.get(
+      Uri.parse(
+          '${dotenv.env['API_URL']}matchs?TournamentID=$tournamentId&UserID=$userId'),
       headers: {
         HttpHeaders.authorizationHeader: '$token',
       },

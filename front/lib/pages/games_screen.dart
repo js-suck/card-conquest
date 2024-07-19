@@ -22,6 +22,8 @@ class _GamesPageState extends State<GamesPage> {
   List<Game> _allGames = [];
   List<Game> _filteredGames = [];
   List<Game> _trendyGames = [];
+  String searchQuery = '';
+
 
   @override
   void initState() {
@@ -53,6 +55,19 @@ class _GamesPageState extends State<GamesPage> {
         final gameName = game.name.toLowerCase();
         return gameName.contains(query);
       }).toList();
+    });
+  }
+
+  void _filterGames(String query) {
+    final filtered = _allGames.where((game) {
+      final nameLower = game.name.toLowerCase();
+      final searchLower = query.toLowerCase();
+      return nameLower.contains(searchLower);
+    }).toList();
+
+    setState(() {
+      searchQuery = query;
+      _filteredGames = filtered;
     });
   }
 
@@ -97,10 +112,9 @@ class _GamesPageState extends State<GamesPage> {
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: TextField(
-                controller: _searchController,
-                onChanged: (value) => _onSearchChanged(),
+                onChanged: _filterGames,
                 decoration: InputDecoration(
-                  labelText: t.gamesSearchBar,
+                  hintText: t.gamesSearchBar,
                   prefixIcon: const Icon(Icons.search),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),

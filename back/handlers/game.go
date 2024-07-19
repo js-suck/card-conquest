@@ -214,7 +214,7 @@ func (h *GameHandler) GetGameByID(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, game)
+	c.JSON(http.StatusOK, game.ToRead())
 }
 
 // GetGameRanks

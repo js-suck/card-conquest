@@ -12,6 +12,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:front/pages/chat_screen.dart';
 import 'package:front/pages/guild_screen.dart';
 import 'package:front/providers/feature_flag_provider.dart';
+import 'package:front/providers/notification_provider.dart';
 import 'package:front/providers/prodviders.dart';
 import 'package:front/providers/user_provider.dart';
 import 'package:front/routes/routes.dart';
@@ -39,6 +40,10 @@ Future<void> main() async {
     log("FCMToken $fcmToken");
     const storage = FlutterSecureStorage();
     storage.write(key: 'fcm_token', value: fcmToken);
+
+    // Create an instance of NotificationProvider
+    final notificationProvider = NotificationProvider();
+    // Pass the instance to the NotificationService constructor
     await NotificationService().init();
   }
 
@@ -72,17 +77,6 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-    _initializeRemoteConfig();
-  }
-
-  Future<void> _initializeRemoteConfig() async {
-    await _loadDefaultValues();
-  }
-
-  Future<void> _loadDefaultValues() async {
-    final String defaultConfig =
-        await rootBundle.loadString('assets/default_config.json');
-    final Map<String, dynamic> defaultConfigMap = json.decode(defaultConfig);
   }
 
   @override
@@ -145,7 +139,6 @@ class _MyAppState extends State<MyApp> {
               builder: (context) => GuildView(),
             );
           }
-          print("pathSegments ${routes.containsKey("/tournamentUpdatesDemo")}");
 
           if (routes.containsKey(uri.path)) {
             return MaterialPageRoute(builder: routes[uri.path]!);

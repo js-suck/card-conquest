@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
 class Scoreboard extends StatelessWidget {
@@ -63,7 +64,7 @@ class Scoreboard extends StatelessWidget {
                 'isTournament': isTounament,
               });
             },
-            leading: ClipRRect(
+              leading: ClipRRect(
                 borderRadius: BorderRadius.circular(30),
                 child: CircleAvatar(
                     child: Image.asset('assets/images/avatar.png'))),

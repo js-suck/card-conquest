@@ -462,6 +462,10 @@ func (s *TournamentService) GetAll(models interface{}, filterParams FilterParams
 			Where("user_tournaments.user_id = ?", filterParams.Fields["UserID"])
 	}
 
+	if _, ok := filterParams.Fields["OrganizerID"]; ok {
+		query = query.Where("tournaments.user_id = ?", filterParams.Fields["OrganizerID"])
+	}
+
 	if _, ok := filterParams.Fields["GameID"]; ok {
 		query = query.Where("tournaments.game_id = ?", filterParams.Fields["GameID"])
 	}
@@ -486,7 +490,7 @@ func (s *TournamentService) GetAll(models interface{}, filterParams FilterParams
 }
 
 func (s *TournamentService) SendTournamentIsSoon() (string, errors.IError) {
-	firebaseClient, errF := firebase.NewFirebaseClient("./firebase/privateKey.json")
+	firebaseClient, errF := firebase.NewFirebaseClient("./firebase/privateKey.json", s.Db)
 
 	if errF != nil {
 		return "", errors.NewInternalServerError("Failed to initialize Firebase", errF)
@@ -517,6 +521,71 @@ func (s *TournamentService) SendTournamentIsSoon() (string, errors.IError) {
 	return "Successfully sent notification", nil
 }
 
+func (s *TournamentService) SendTournamentIsStarted(tournamentID uint) errors.IError {
+	firebaseClient, errF := firebase.NewFirebaseClient("./firebase/privateKey.json", s.Db)
+
+	if errF != nil {
+		return errors.NewInternalServerError("Failed to initialize Firebase", errF)
+	}
+
+	tournament := models.Tournament{}
+	err := s.Db.Preload("Users").First(&tournament, tournamentID).Error
+	if err != nil {
+		return errors.NewInternalServerError("Failed to get tournament", err)
+
+	}
+
+	for _, user := range tournament.Users {
+		token := user.FCMToken
+		if token != "" {
+			title := "Tournament is started"
+			body := "The tournament " + tournament.Name + " has started"
+			_, err := firebaseClient.SendNotification(token, title, body)
+			if err != nil {
+				return errors.NewInternalServerError("Failed to send notification", err)
+			}
+		}
+	}
+
+	return nil
+}
+
+func (s *TournamentService) SendTournamentIsEnded(tournamentID uint, winnerID uint) errors.IError {
+	firebaseClient, errF := firebase.NewFirebaseClient("./firebase/privateKey.json", s.Db)
+
+	if errF != nil {
+		return errors.NewInternalServerError("Failed to initialize Firebase", errF)
+	}
+
+	tournament := models.Tournament{}
+	err := s.Db.Preload("Users").First(&tournament, tournamentID).Error
+	if err != nil {
+		return errors.NewInternalServerError("Failed to get tournament", err)
+
+	}
+
+	winner := models.User{}
+	err = s.Db.First(&winner, winnerID).Error
+
+	if err != nil {
+		return errors.NewInternalServerError("Failed to get winner", err)
+	}
+
+	for _, user := range tournament.Users {
+		token := user.FCMToken
+		if token != "" {
+			title := "Tournament is ended"
+			body := "The tournament " + tournament.Name + " has ended"
+			body = body + "The winner is " + winner.Username
+			_, err := firebaseClient.SendNotification(token, title, body)
+			if err != nil {
+				return errors.NewInternalServerError("Failed to send notification", err)
+			}
+		}
+	}
+
+	return nil
+}
 func (s *TournamentService) UserSubscribeToTournaments(userID uint, tournamentID uint) errors.IError {
 	user := models.User{}
 	tournament := models.Tournament{}

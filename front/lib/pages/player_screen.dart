@@ -85,7 +85,8 @@ class _PlayerPageState extends State<PlayerPage> {
                           ? CachedNetworkImageProvider(
                               '${dotenv.env['MEDIA_URL']}$playerMedia',
                             )
-                          : const AssetImage('assets/images/avatar.png')
+                          : CachedNetworkImageProvider(
+                                  'https://avatar.iran.liara.run/public/${playerId}')
                               as ImageProvider,
                       fit: BoxFit.cover,
                     ),

@@ -54,6 +54,7 @@ func SetupRouter(db *gorm.DB) *gin.Engine {
 	uploadFileHandler := handlers.NewUploadHandler(services.NewFileService(db))
 	matchHandler := handlers.NewMatchHandler(services.NewMatchService(db))
 	guildHandler := handlers.NewGuildHandler(services.NewGuildService(db))
+	featureFlagHandler := handlers.NewFeatureFlagHandler(db)
 
 	publicRoutes := r.Group("/api/v1")
 	protectedRoutes := r.Group("/api/v1")
@@ -90,9 +91,14 @@ func SetupRouter(db *gorm.DB) *gin.Engine {
 	protectedRoutes.GET(("/games/user/:userID/rankings"), gameHandler.GetUserGameRankings)
 	protectedRoutes.GET(("/games/:id/ranks"), gameHandler.GetGameRanks)
 	protectedRoutes.GET("/games/:id", gameHandler.GetGameByID)
+	protectedRoutes.GET(("/matchs"), matchHandler.GetAllMatchs)
+	protectedRoutes.GET(("/matchs/:id"), matchHandler.GetMatch)
 
 	protectedRoutes.Use(middlewares.AuthenticationMiddleware())
 	{
+		publicRoutes.GET("/feature/:name", featureFlagHandler.GetFeatureFlag)
+		publicRoutes.POST("/feature/:name", featureFlagHandler.SetFeatureFlag)
+		publicRoutes.GET("/feature", featureFlagHandler.GetFeatureFlags)
 		publicRoutes.POST("/images", uploadFileHandler.UploadImage)
 
 		protectedRoutes.POST("/users", permissions.PermissionMiddleware(permissions.PermissionCreateUser), userHandler.PostUser)
@@ -116,8 +122,6 @@ func SetupRouter(db *gorm.DB) *gin.Engine {
 
 		protectedRoutes.PUT("/matchs/:id", permissions.PermissionMiddleware(permissions.PermissionUpdateMatch), matchHandler.UpdateMatch)
 		protectedRoutes.GET("/matchs/between-users", matchHandler.GetMatchesBetweenUsers)
-		protectedRoutes.GET(("/matchs"), matchHandler.GetAllMatchs)
-		protectedRoutes.GET(("/matchs/:id"), matchHandler.GetMatch)
 
 		protectedRoutes.POST("/games", gameHandler.CreateGame)
 		protectedRoutes.PUT("/games/:id", gameHandler.UpdateGame)
