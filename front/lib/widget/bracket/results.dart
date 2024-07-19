@@ -66,6 +66,7 @@ class _ResultsState extends State<Results> {
           }
 
           return SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
             child: Column(
               children: tournamentStepWidgets,
             ),

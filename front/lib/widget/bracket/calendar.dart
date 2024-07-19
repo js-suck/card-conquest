@@ -64,6 +64,7 @@ class _CalendarState extends State<Calendar> {
             });
 
             return SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
               child: Column(
                 children: tournamentStepWidgets,
               ),

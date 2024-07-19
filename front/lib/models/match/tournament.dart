@@ -15,7 +15,7 @@ class Tournament {
   final Media? media;
   final int maxPlayers;
   final int playersRegistered;
-  final String status;
+  late final String status;
   final List<String>? tags;
   final double? latitude;
   final double? longitude;

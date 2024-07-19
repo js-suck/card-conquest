@@ -12,7 +12,8 @@ import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import '../providers/feature_flag_provider.dart';
 
-Future<void> login(BuildContext context, String username, String password, Function(bool) setLoading) async {
+Future<void> login(BuildContext context, String username, String password,
+    Function(bool) setLoading) async {
   final t = AppLocalizations.of(context)!;
   final storage = new FlutterSecureStorage();
   String? fcmToken = await storage.read(key: 'fcm_token');
@@ -38,7 +39,7 @@ Future<void> login(BuildContext context, String username, String password, Funct
       print(decodedToken['role']);
       if (decodedToken['role'] != 'admin') {
         ScaffoldMessenger.of(context).showSnackBar(
-           SnackBar(
+          SnackBar(
             content: Text(t.noAccessPage),
             duration: Duration(seconds: 1),
           ),
@@ -121,7 +122,8 @@ class _LoginPageState extends State<LoginPage> {
   void initState() {
     super.initState();
 
-    final featureNotifier = Provider.of<FeatureNotifier>(context, listen: false);
+    final featureNotifier =
+        Provider.of<FeatureNotifier>(context, listen: false);
     isGoogleSignInEnabled = featureNotifier.isFeatureEnabled('googleSignIn');
   }
 
@@ -135,7 +137,8 @@ class _LoginPageState extends State<LoginPage> {
     if (_formKey.currentState?.validate() == true) {
       setLoading(true); // Set loading to true before login
       try {
-        login(context, _usernameController.text, _passwordController.text, setLoading);
+        login(context, _usernameController.text, _passwordController.text,
+            setLoading);
       } catch (e) {
         setLoading(false); // Set loading to false if there's an error
         if (kDebugMode) {
@@ -172,7 +175,7 @@ class _LoginPageState extends State<LoginPage> {
       try {
         String normalizedToken = base64.normalize(token.split(".")[1]);
         var tokenData =
-        jsonDecode(utf8.decode(base64Url.decode(normalizedToken)));
+            jsonDecode(utf8.decode(base64Url.decode(normalizedToken)));
         print('Token data: $tokenData');
 
         int userId = tokenData['user_id'];
@@ -192,7 +195,7 @@ class _LoginPageState extends State<LoginPage> {
     try {
       final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
       final GoogleSignInAuthentication? googleAuth =
-      await googleUser?.authentication;
+          await googleUser?.authentication;
 
       final auth.AuthCredential credential = auth.GoogleAuthProvider.credential(
         accessToken: googleAuth?.accessToken,
@@ -231,171 +234,176 @@ class _LoginPageState extends State<LoginPage> {
         backgroundColor: Colors.transparent,
       ),
       body: _isLoading
-          ? Center(child: CircularProgressIndicator()) // Show loading indicator if loading
+          ? const Center(
+              child:
+                  CircularProgressIndicator()) // Show loading indicator if loading
           : SingleChildScrollView(
-        child: Center(
-          child: Column(
-            children: <Widget>[
-              Image.asset('assets/images/logo.png', width: 150),
-              const SizedBox(height: 30),
-              Form(
-                key: _formKey,
-                child: Container(
-                  width: 320,
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Connectez-vous à votre compte',
-                        style: TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 20),
-                      const Text('Username',
-                          style: TextStyle(
-                              fontSize: 14, fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 10),
-                      TextFormField(
-                        controller: _usernameController,
-                        style: const TextStyle(color: Colors.black),
-                        decoration: InputDecoration(
-                          hintText: 'username',
-                          hintStyle: TextStyle(color: const Color(0xFF888888).withOpacity(0.5)),
-                          fillColor: Colors.grey[100],
-                          filled: true,
-                          contentPadding: const EdgeInsets.symmetric(
-                              vertical: 10.0, horizontal: 10.0),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10.0),
-                            borderSide: BorderSide.none,
-                          ),
-                        ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Veuillez entrer un username valide';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 20),
-                      const Text('Mot de passe',
-                          style: TextStyle(
-                              fontSize: 14, fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 10),
-                      TextFormField(
-                        controller: _passwordController,
-                        style: const TextStyle(color: Colors.black),
-                        decoration: InputDecoration(
-                          hintText: '*******',
-                          hintStyle: TextStyle(
-                              color: const Color(0xFF888888).withOpacity(0.5)),
-                          fillColor: Colors.grey[100],
-                          filled: true,
-                          contentPadding: const EdgeInsets.symmetric(
-                              vertical: 10.0, horizontal: 10.0),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10.0),
-                            borderSide: BorderSide.none,
-                          ),
-                        ),
-                        obscureText: true,
-                        validator: (value) {
-                          if (value == null ||
-                              value.isEmpty ||
-                              value.length < 6) {
-                            return 'Le mot de passe doit contenir au moins 6 caractères';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 20),
-                      ElevatedButton(
-                        onPressed: _login,
-                        style: ElevatedButton.styleFrom(
-                          minimumSize: const Size(double.infinity, 45),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                        child: const Text(
-                          'Connexion',
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      if (!kIsWeb)
-                        const Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: <Widget>[
-                            Flexible(
-                              child: Text(
-                                'ou connectez-vous avec',
-                                style: TextStyle(fontSize: 14),
-                              ),
+              child: Center(
+                child: Column(
+                  children: <Widget>[
+                    Image.asset('assets/images/logo.png', width: 150),
+                    const SizedBox(height: 30),
+                    Form(
+                      key: _formKey,
+                      child: Container(
+                        width: 320,
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Connectez-vous à votre compte',
+                              style: TextStyle(
+                                  fontSize: 18, fontWeight: FontWeight.bold),
                             ),
-                          ],
-                        ),
-                      const SizedBox(height: 10),
-                      if (!kIsWeb && isGoogleSignInEnabled)
-                        ElevatedButton(
-                          onPressed: _googleSignIn,
-                          style: ElevatedButton.styleFrom(
-                            foregroundColor: Colors.white,
-                            backgroundColor: const Color(0xFFF5F4F6),
-                            minimumSize: const Size(double.infinity, 45),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: <Widget>[
-                              Image.asset('assets/images/google.png',
-                                  width: 30),
-                              const SizedBox(width: 10),
-                            ],
-                          ),
-                        ),
-                      const SizedBox(height: 10),
-                      if (!kIsWeb)
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: <Widget>[
-                            const Flexible(
-                              child: Text(
-                                'Vous n\'avez pas de compte ?',
-                                style: TextStyle(fontSize: 14),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                            TextButton(
-                              onPressed: () {
-                                Navigator.pushNamed(context, '/signup');
-                              },
-                              child: const Text(
-                                'Inscrivez-vous',
+                            const SizedBox(height: 20),
+                            const Text('Username',
                                 style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFFFF933D),
+                                    fontSize: 14, fontWeight: FontWeight.bold)),
+                            const SizedBox(height: 10),
+                            TextFormField(
+                              controller: _usernameController,
+                              style: const TextStyle(color: Colors.black),
+                              decoration: InputDecoration(
+                                hintText: 'username',
+                                hintStyle: TextStyle(
+                                    color: const Color(0xFF888888)
+                                        .withOpacity(0.5)),
+                                fillColor: Colors.grey[100],
+                                filled: true,
+                                contentPadding: const EdgeInsets.symmetric(
+                                    vertical: 10.0, horizontal: 10.0),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10.0),
+                                  borderSide: BorderSide.none,
                                 ),
                               ),
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Veuillez entrer un username valide';
+                                }
+                                return null;
+                              },
                             ),
+                            const SizedBox(height: 20),
+                            const Text('Mot de passe',
+                                style: TextStyle(
+                                    fontSize: 14, fontWeight: FontWeight.bold)),
+                            const SizedBox(height: 10),
+                            TextFormField(
+                              controller: _passwordController,
+                              style: const TextStyle(color: Colors.black),
+                              decoration: InputDecoration(
+                                hintText: '*******',
+                                hintStyle: TextStyle(
+                                    color: const Color(0xFF888888)
+                                        .withOpacity(0.5)),
+                                fillColor: Colors.grey[100],
+                                filled: true,
+                                contentPadding: const EdgeInsets.symmetric(
+                                    vertical: 10.0, horizontal: 10.0),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10.0),
+                                  borderSide: BorderSide.none,
+                                ),
+                              ),
+                              obscureText: true,
+                              validator: (value) {
+                                if (value == null ||
+                                    value.isEmpty ||
+                                    value.length < 6) {
+                                  return 'Le mot de passe doit contenir au moins 6 caractères';
+                                }
+                                return null;
+                              },
+                            ),
+                            const SizedBox(height: 20),
+                            ElevatedButton(
+                              onPressed: _login,
+                              style: ElevatedButton.styleFrom(
+                                minimumSize: const Size(double.infinity, 45),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+                              child: const Text(
+                                'Connexion',
+                                style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                            const SizedBox(height: 20),
+                            if (!kIsWeb)
+                              const Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: <Widget>[
+                                  Flexible(
+                                    child: Text(
+                                      'ou connectez-vous avec',
+                                      style: TextStyle(fontSize: 14),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            const SizedBox(height: 10),
+                            if (!kIsWeb && isGoogleSignInEnabled)
+                              ElevatedButton(
+                                onPressed: _googleSignIn,
+                                style: ElevatedButton.styleFrom(
+                                  foregroundColor: Colors.white,
+                                  backgroundColor: const Color(0xFFF5F4F6),
+                                  minimumSize: const Size(double.infinity, 45),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: <Widget>[
+                                    Image.asset('assets/images/google.png',
+                                        width: 30),
+                                    const SizedBox(width: 10),
+                                  ],
+                                ),
+                              ),
+                            const SizedBox(height: 10),
+                            if (!kIsWeb)
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: <Widget>[
+                                  const Flexible(
+                                    child: Text(
+                                      'Vous n\'avez pas de compte ?',
+                                      style: TextStyle(fontSize: 14),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.pushNamed(context, '/signup');
+                                    },
+                                    child: const Text(
+                                      'Inscrivez-vous',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFFFF933D),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
                           ],
                         ),
-                    ],
-                  ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ],
-          ),
-        ),
-      ),
+            ),
     );
   }
 }

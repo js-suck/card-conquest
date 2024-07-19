@@ -59,4 +59,17 @@ final ThemeData darkTheme = ThemeData(
     textColor: fontColor,
     backgroundColor: accentColor,
   ),
+  floatingActionButtonTheme: const FloatingActionButtonThemeData(
+    backgroundColor: accentColor,
+    foregroundColor: Colors.white,
+    splashColor: Colors.white,
+  ),
+  dropdownMenuTheme: const DropdownMenuThemeData(
+    inputDecorationTheme: InputDecorationTheme(
+      fillColor: Colors.white,
+      border: OutlineInputBorder(
+        borderSide: BorderSide(color: accentColor),
+      ),
+    ),
+  ),
 );
