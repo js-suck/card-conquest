@@ -178,5 +178,18 @@
   "tournamentAlreadyRegistered": "You are already registered in this tournament",
   "guildCreateTitle": "Create Guild",
   "noAccessPage": "You don't have access to this page",
-  "tournamentsMap": "Tournaments Map"
+  "tournamentsMap": "Tournaments Map",
+  "matchDate": "Date",
+  "matchLocation": "Location",
+  "enterLocation": "Enter location",
+  "errorHourFormat": "Please enter a valid time in the format HH (max 23:59).",
+  "noMatch": "There is no match.",
+  "successTimeUpdate": "Start time updated successfully",
+  "failTimeUpdate": "Error on the update of match time",
+  "successLocationUpdate": "Location updated successfully",
+  "failedLocationUpdate": "Location updated failed",
+  "startMatch": "Match started successfully",
+  "startMatchFailed": "Match failed to start",
+  "matchErrorSelected": "This match is already selected",
+  "matchNull": "There is no match"
 }
