@@ -50,7 +50,7 @@ func (a AuthService) SendConfirmationEmail(to, name, token string) errors.IError
 			TemplateLanguage: true,
 			Subject:          "Welcome to CardConquest",
 			Variables: map[string]interface{}{
-				"confirmation_link": fmt.Sprintf("http://localhost:8080/api/v1/users/verify?token=%s", token),
+				"confirmation_link": fmt.Sprintf("https://card-conquest-422420.ew.r.appspot.com/api/v1/users/verify?token=%s", token),
 			},
 		},
 	}

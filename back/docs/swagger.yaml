@@ -91,6 +91,10 @@ definitions:
     type: object
   models.GuildRead:
     properties:
+      admins:
+        items:
+          $ref: '#/definitions/models.UserReadWithImage'
+        type: array
       description:
         type: string
       id:
@@ -416,50 +420,6 @@ definitions:
       username:
         type: string
     type: object
-  models.UserReadWithImage:
-    properties:
-      email:
-        type: string
-      id:
-        type: integer
-      media:
-        $ref: '#/definitions/models.Media'
-      username:
-        type: string
-    type: object
-  models.UserReadWithImage:
-    properties:
-      email:
-        type: string
-      id:
-        type: integer
-      media:
-        $ref: '#/definitions/models.Media'
-      username:
-        type: string
-    type: object
-  models.UserReadWithImage:
-    properties:
-      email:
-        type: string
-      id:
-        type: integer
-      media:
-        $ref: '#/definitions/models.Media'
-      username:
-        type: string
-    type: object
-  models.UserReadWithImage:
-    properties:
-      email:
-        type: string
-      id:
-        type: integer
-      media:
-        $ref: '#/definitions/models.Media'
-      username:
-        type: string
-    type: object
   models.UserStats:
     properties:
       email:
@@ -485,7 +445,7 @@ definitions:
       username:
         type: string
     type: object
-host: localhost:8080
+host: card-conquest-422420.ew.r.appspot.com
 info:
   contact:
     email: support@swagger.io
@@ -499,6 +459,43 @@ info:
   title: Swagger Example API
   version: "1.0"
 paths:
+  /bracket/matchs/{id}:
+    put:
+      consumes:
+      - application/json
+      description: Update a match with the given ID.
+      parameters:
+      - default: Bearer <Add access token here>
+        description: Insert your access token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Match ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Match data
+        in: body
+        name: match
+        required: true
+        schema:
+          $ref: '#/definitions/models.Match'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update a match
+      tags:
+      - Match
   /confirm-email:
     get:
       consumes:
@@ -968,6 +965,45 @@ paths:
       tags:
       - Guild
   /guilds/{id}/users/{userID}:
+    delete:
+      consumes:
+      - application/json
+      description: Remove a user from a guild
+      parameters:
+      - description: Guild ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: User ID
+        in: path
+        name: userID
+        required: true
+        type: integer
+      - default: Bearer <Add access token here>
+        description: Insert your access token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Remove a user from a guild
+      tags:
+      - Guild
     post:
       consumes:
       - application/json
@@ -1007,6 +1043,49 @@ paths:
       security:
       - BearerAuth: []
       summary: Add a user to a guild
+      tags:
+      - Guild
+  /guilds/user/{userId}:
+    get:
+      consumes:
+      - application/json
+      description: Get guilds by user ID
+      parameters:
+      - description: User ID
+        in: path
+        name: userId
+        required: true
+        type: integer
+      - default: Bearer <Add access token here>
+        description: Insert your access token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.GuildRead'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get guilds by user ID
       tags:
       - Guild
   /images:
@@ -1433,6 +1512,19 @@ paths:
         in: query
         name: UserID
         type: integer
+      - description: Search by gameID
+        in: query
+        name: GameID
+        type: integer
+      - description: Search by name
+        in: query
+        name: Name
+        type: string
+      - description: Sort order (use 'start_date' for ascending order, '-start_date'
+          for descending order)
+        in: query
+        name: Sort
+        type: string
       - default: Bearer <Add access token here>
         description: Insert your access token
         in: header
@@ -1699,15 +1791,15 @@ paths:
         name: max_players
         type: integer
       - description: Longitude
-        example: 40.7128
+        example: "40.7128"
         in: formData
         name: longitude
-        type: number
+        type: string
       - description: Latitude
-        example: 74.006
+        example: "74.0060"
         in: formData
         name: latitude
-        type: number
+        type: string
       - default: Bearer <Add access token here>
         description: Insert your access token
         in: header
@@ -2046,6 +2138,44 @@ paths:
       summary: Get user stats
       tags:
       - User
+  /users/{id}:
+    put:
+      consumes:
+      - application/json
+      description: Update a user
+      parameters:
+      - description: User Payload
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/models.User'
+      - default: Bearer <Add access token here>
+        description: Insert your access token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.User'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update a user
+      tags:
+      - User
   /users/{id}/upload/picture:
     post:
       consumes:
@@ -2165,43 +2295,6 @@ paths:
       security:
       - BearerAuth: []
       summary: Get a user by ID
-      tags:
-      - User
-    put:
-      consumes:
-      - application/json
-      description: Update a user
-      parameters:
-      - description: User Payload
-        in: body
-        name: payload
-        required: true
-        schema:
-          $ref: '#/definitions/models.User'
-      - default: Bearer <Add access token here>
-        description: Insert your access token
-        in: header
-        name: Authorization
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/models.User'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/errors.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/errors.ErrorResponse'
-      security:
-      - BearerAuth: []
-      summary: Update a user
       tags:
       - User
   /users/ranks:

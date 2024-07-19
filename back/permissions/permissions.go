@@ -88,6 +88,10 @@ var OrganizerPermissions = []Permission{
 		CanAccess: true,
 	},
 	{
+		Key:       PermissionUpdateUser,
+		CanAccess: true,
+	},
+	{
 		Key:       PermissionCreateTags,
 		CanAccess: true,
 	},
