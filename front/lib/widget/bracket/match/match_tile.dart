@@ -133,7 +133,7 @@ class MatchTile extends StatelessWidget {
                                 ? NetworkImage(match
                                             .playerOne.media?.fileName ==
                                         ''
-                                    ? '${dotenv.env['MEDIA_URL']}avatar.jpg'
+                                    ? 'https://avatar.iran.liara.run/public/${match.playerOne.id}'
                                     : '${dotenv.env['MEDIA_URL']}${match.playerOne.media?.fileName}')
                                 : null,
                           ),
@@ -156,7 +156,7 @@ class MatchTile extends StatelessWidget {
                                 ? NetworkImage(match
                                             .playerTwo.media?.fileName ==
                                         ''
-                                    ? '${dotenv.env['MEDIA_URL']}avatar.jpg'
+                                    ? 'https://avatar.iran.liara.run/public/${match.playerTwo.id}'
                                     : '${dotenv.env['MEDIA_URL']}${match.playerTwo.media?.fileName}')
                                 : null,
                           ),

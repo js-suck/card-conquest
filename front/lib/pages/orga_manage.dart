@@ -16,6 +16,10 @@ import 'package:flutter_google_places/flutter_google_places.dart';
 import 'package:google_maps_webservice/places.dart';
 import 'package:intl/intl.dart';
 import 'package:front/pages/bracket_screen.dart';
+import 'package:front/service/tournament_service.dart';
+import 'package:front/models/match/tournament.dart';
+import 'package:front/extension/theme_extension.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class OrganizerManagePage extends StatefulWidget {
   final int tournamentId;
@@ -29,6 +33,7 @@ class OrganizerManagePage extends StatefulWidget {
 class _OrganizerManagePageState extends State<OrganizerManagePage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  late TournamentService tournamentService;
   final storage = const FlutterSecureStorage();
 
   bool _loading = true;
@@ -76,76 +81,114 @@ class _OrganizerManagePageState extends State<OrganizerManagePage>
     }
   }
 
-  String _formatDateForDisplay(DateTime date) {
+  String _formatDateForDisplay(DateTime? date) {
+    if (date == null) {
+      return '';
+    }
     return DateFormat('dd-MM-yyyy').format(date);
   }
 
-  String _formatDateForBackend(DateTime date) {
+  String _formatDateForBackend(DateTime? date) {
+    if (date == null) {
+      return '';
+    }
     return '${DateFormat('yyyy-MM-ddTHH:mm:ss').format(date.toUtc())}Z';
   }
 
   @override
   void initState() {
     super.initState();
+    tournamentService = TournamentService();
+    tournamentService.fetchTournament(widget.tournamentId);
     _tabController = TabController(length: 2, vsync: this);
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
-      final tournament = await fetchTournament(widget.tournamentId);
+      final tournament =
+          await tournamentService.fetchTournament(widget.tournamentId);
       setState(() {
         _nameController.text = tournament.name;
-        _locationController.text = tournament.location;
-        _descriptionController.text = tournament.description;
-        _startDateController.text = _formatDateForDisplay(tournament.startDate);
-        _endDateController.text = _formatDateForDisplay(tournament.endDate);
+        _locationController.text = tournament.location ?? '';
+        _descriptionController.text = tournament.description ?? '';
+        _startDateController.text = tournament.startDate != null
+            ? _formatDateForDisplay(tournament.startDate)
+            : '';
+        _endDateController.text = tournament.endDate != null
+            ? _formatDateForDisplay(tournament.endDate)
+            : '';
+        latitude = tournament.latitude;
+        longitude = tournament.longitude;
         _tournament = tournament;
         _loading = false;
       });
     });
   }
 
-  Future<Tournament> fetchTournament(int id) async {
-    String? token = await storage.read(key: 'jwt_token');
-
-    final response = await http.get(
-      Uri.parse('${dotenv.env['API_URL']}tournaments/$id'),
-      headers: {
-        'Authorization': '$token',
+  void _showLoader() {
+    final t = AppLocalizations.of(context)!;
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          content: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              const CircularProgressIndicator(),
+              const SizedBox(width: 20),
+              Text(t.organizerNewTournamentCreateLoading),
+            ],
+          ),
+        );
       },
     );
-    debugPrint(response.body);
-    if (response.statusCode == 200) {
-      return Tournament.fromJson(json.decode(response.body));
-    } else {
-      throw Exception('Failed to load tournament');
-    }
+  }
+
+  void _hideLoader() {
+    Navigator.of(context, rootNavigator: true).pop();
   }
 
   Future<void> updateTournament(Tournament tournament) async {
+    final t = AppLocalizations.of(context)!;
+    _showLoader();
     String? token = await storage.read(key: 'jwt_token');
-    final response = await http.put(
-      Uri.parse('${dotenv.env['API_URL']}tournaments/${tournament.id}'),
-      headers: {
-        'Content-Type': 'application/json; charset=UTF-8',
-        'Authorization': '$token',
-      },
-      body: jsonEncode({
-        'name': _nameController.text,
-        'description': _descriptionController.text,
-        'location': _locationController.text,
-        'latitude': latitude.toString(),
-        'longitude': longitude.toString(),
-        'start_date': _formatDateForBackend(_startDate!),
-        'end_date': _formatDateForBackend(_endDate!),
-      }),
-    );
+
+    var uri = Uri.parse('${dotenv.env['API_URL']}tournaments/${tournament.id}');
+    var request = http.MultipartRequest('PUT', uri)
+      ..headers['Authorization'] = '$token';
+
+    request.fields['name'] = _nameController.text;
+    request.fields['description'] = _descriptionController.text;
+    request.fields['location'] = _locationController.text;
+    request.fields['latitude'] = latitude.toString();
+    request.fields['longitude'] = longitude.toString();
+
+    if (_startDate != null) {
+      request.fields['start_date'] = _formatDateForBackend(_startDate!);
+    }
+
+    if (_endDate != null) {
+      request.fields['end_date'] = _formatDateForBackend(_endDate!);
+    }
+
+    if (_selectedImage != null) {
+      request.files.add(await http.MultipartFile.fromPath(
+        'image', // le nom du champ de formulaire pour l'image
+        _selectedImage!.path,
+      ));
+    }
+
+    var response = await request.send();
 
     if (response.statusCode == 200) {
+      _hideLoader();
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Tournament updated successfully')),
+        SnackBar(content: Text(t.organizerManageTournamentUpdateSuccess)),
       );
     } else {
+      _hideLoader();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-            content: Text('Failed to update tournament: ${response.body}')),
+            content: Text(
+                '${t.organizerManageTournamentUpdateError} ${response.reasonPhrase}')),
       );
     }
   }
@@ -161,6 +204,7 @@ class _OrganizerManagePageState extends State<OrganizerManagePage>
   }
 
   Future<void> _startTournament() async {
+    final t = AppLocalizations.of(context)!;
     String? token = await storage.read(key: 'jwt_token');
     int tournamentId = widget.tournamentId;
 
@@ -174,7 +218,7 @@ class _OrganizerManagePageState extends State<OrganizerManagePage>
 
     if (response.statusCode == 200) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Tournoi démarré avec succès')),
+        SnackBar(content: Text(t.organizerManageTournamentStarted)),
       );
       setState(() {
         _tournament?.status = 'started';
@@ -182,12 +226,14 @@ class _OrganizerManagePageState extends State<OrganizerManagePage>
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-            content: Text('Échec du démarrage du tournoi: ${response.body}')),
+            content: Text(
+                '${t.organizerManageTournamentStartedError} ${response.body}')),
       );
     }
   }
 
   Future<void> _finishTournament(int tournamentID) async {
+    final t = AppLocalizations.of(context)!;
     String? token = await storage.read(key: 'jwt_token');
     final response = await http.put(
       Uri.parse('${dotenv.env['API_URL']}tournaments/$tournamentID'),
@@ -201,7 +247,7 @@ class _OrganizerManagePageState extends State<OrganizerManagePage>
     );
     if (response.statusCode == 200) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Tournament finished successfully')),
+        SnackBar(content: Text(t.organizerManageTournamentFinished)),
       );
       setState(() {
         _tournament?.status = 'finished';
@@ -209,19 +255,20 @@ class _OrganizerManagePageState extends State<OrganizerManagePage>
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-            content:
-                Text('Failed to update tournament status: ${response.body}')),
+            content: Text(
+                '${t.organizerManageTournamentFinishedError} ${response.body}')),
       );
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     String? status = _tournament?.status;
 
     return Scaffold(
-      appBar: const TopAppBar(
-        title: 'Gestion',
+      appBar: TopAppBar(
+        title: t.organizerManageTournament,
         roundedCorners: false,
       ),
       body: Builder(
@@ -254,18 +301,24 @@ class _OrganizerManagePageState extends State<OrganizerManagePage>
                     children: [
                       (_tournament == null ||
                               _tournament?.players.isEmpty == true)
-                          ? const Center(
-                              child: Text('Aucun utilisateur inscrit'))
+                          ? Center(
+                              child: Text(t.organizerManageNoPlayers),
+                            )
                           : ListView.builder(
                               itemCount: _tournament!.players.length,
                               itemBuilder: (context, index) {
                                 final player = _tournament!.players[index];
+                                print(player.media?.fileName);
                                 return ListTile(
                                   leading: CircleAvatar(
-                                    child: Text(player['username'][0]),
+                                    backgroundImage: NetworkImage(player
+                                                .media?.fileName ==
+                                            ''
+                                        ? 'https://avatar.iran.liara.run/public/${player.id}'
+                                        : '${dotenv.env['MEDIA_URL']}${player.media?.fileName}'),
                                   ),
-                                  title: Text(player['username']),
-                                  subtitle: Text(player['email']),
+                                  title: Text(player.username),
+                                  subtitle: Text(player.email ?? ''),
                                 );
                               },
                             ),
@@ -273,14 +326,17 @@ class _OrganizerManagePageState extends State<OrganizerManagePage>
                         padding: const EdgeInsets.all(16.0),
                         child: ListView(
                           children: [
-                            const Text(
-                              'Designation du tournoi:',
+                            Text(
+                              t.organizerNewTournamentName,
                               style: TextStyle(fontSize: 18.0),
                             ),
                             Container(
                               decoration: BoxDecoration(
-                                color: Colors.white,
+                                color: context.themeColors.backgroundColor,
                                 borderRadius: BorderRadius.circular(8.0),
+                                border: Border.all(
+                                  color: Colors.grey,
+                                ),
                               ),
                               child: TextField(
                                 controller: _nameController,
@@ -293,23 +349,27 @@ class _OrganizerManagePageState extends State<OrganizerManagePage>
                               ),
                             ),
                             const SizedBox(height: 20),
-                            const Text(
-                              'Adresse:',
-                              style: TextStyle(fontSize: 18.0),
+                            Text(
+                              t.organizerNewTournamentAddress,
+                              style: const TextStyle(fontSize: 18.0),
                             ),
                             Container(
                                 decoration: BoxDecoration(
-                                  color: Colors.white,
+                                  color: context.themeColors.backgroundColor,
                                   borderRadius: BorderRadius.circular(8.0),
+                                  border: Border.all(
+                                    color: Colors.grey,
+                                  ),
                                 ),
                                 child: TextField(
                                   controller: _locationController,
                                   keyboardType: TextInputType.text,
-                                  decoration: const InputDecoration(
-                                    contentPadding:
-                                        EdgeInsets.symmetric(horizontal: 10.0),
+                                  decoration: InputDecoration(
+                                    contentPadding: const EdgeInsets.symmetric(
+                                        horizontal: 10.0),
                                     border: InputBorder.none,
-                                    labelText: 'ex: 10 rue des ananas',
+                                    labelText:
+                                        t.organizerNewTournamentAddressHint,
                                   ),
                                   onTap: () async {
                                     try {
@@ -351,7 +411,6 @@ class _OrganizerManagePageState extends State<OrganizerManagePage>
                                               'Inside setState: $_locationController.text');
                                         });
                                         print(_locationController.text);
-                                        print('aahahah');
                                         // Perte de focus pour forcer la mise à jour visuelle
                                       }
                                     } catch (e) {
@@ -359,22 +418,24 @@ class _OrganizerManagePageState extends State<OrganizerManagePage>
                                       ScaffoldMessenger.of(context)
                                           .showSnackBar(
                                         SnackBar(
-                                          content:
-                                              Text('An error occurred: $e'),
+                                          content: Text('${t.error} $e'),
                                         ),
                                       );
                                     }
                                   },
                                 )),
                             const SizedBox(height: 20),
-                            const Text(
-                              'Description:',
-                              style: TextStyle(fontSize: 18.0),
+                            Text(
+                              t.organizerNewTournamentDescription,
+                              style: const TextStyle(fontSize: 18.0),
                             ),
                             Container(
                               decoration: BoxDecoration(
-                                color: Colors.white,
+                                color: context.themeColors.backgroundColor,
                                 borderRadius: BorderRadius.circular(8.0),
+                                border: Border.all(
+                                  color: Colors.grey,
+                                ),
                               ),
                               child: TextField(
                                 controller: _descriptionController,
@@ -387,9 +448,9 @@ class _OrganizerManagePageState extends State<OrganizerManagePage>
                               ),
                             ),
                             const SizedBox(height: 20),
-                            const Text(
-                              'Date de début du tournoi:',
-                              style: TextStyle(fontSize: 18.0),
+                            Text(
+                              t.organizerNewTournamentStartDate,
+                              style: const TextStyle(fontSize: 18.0),
                             ),
                             InkWell(
                               onTap: () => _selectStartDate(context),
@@ -403,9 +464,9 @@ class _OrganizerManagePageState extends State<OrganizerManagePage>
                               ),
                             ),
                             const SizedBox(height: 20),
-                            const Text(
-                              'Date de fin du tournoi:',
-                              style: TextStyle(fontSize: 18.0),
+                            Text(
+                              t.organizerNewTournamentEndDate,
+                              style: const TextStyle(fontSize: 18.0),
                             ),
                             InkWell(
                               onTap: () => _selectEndDate(context),
@@ -428,7 +489,7 @@ class _OrganizerManagePageState extends State<OrganizerManagePage>
                                 child: Container(
                                   height: 150,
                                   width: double.infinity,
-                                  color: Colors.white,
+                                  color: context.themeColors.backgroundColor,
                                   child: _selectedImage != null
                                       ? Image.file(
                                           _selectedImage!,
@@ -451,7 +512,7 @@ class _OrganizerManagePageState extends State<OrganizerManagePage>
                                   updateTournament(_tournament!);
                                 }
                               },
-                              child: const Text('Modifier le tournoi'),
+                              child: Text(t.organizerManageUpdate),
                             ),
                           ],
                         ),
@@ -473,19 +534,22 @@ class _OrganizerManagePageState extends State<OrganizerManagePage>
               children: [
                 if (status == 'opened') ...[
                   FloatingActionButton(
+                    backgroundColor: context.themeColors.accentColor,
                     heroTag: "startTournament${widget.tournamentId}",
                     onPressed: _startTournament,
-                    tooltip: 'Démarrer le tournoi',
+                    tooltip: t.organizerManageStart,
                     child: const Icon(Icons.play_arrow),
                   ),
                 ] else if (status == 'started') ...[
                   FloatingActionButton(
+                    backgroundColor: context.themeColors.accentColor,
                     heroTag: "finishTournament${widget.tournamentId}",
                     onPressed: () => _finishTournament(widget.tournamentId),
-                    tooltip: 'Terminer le tournoi',
+                    tooltip: t.organizerManageFinish,
                     child: const Icon(Icons.stop),
                   ),
                   FloatingActionButton(
+                    backgroundColor: context.themeColors.accentColor,
                     heroTag: "bracket${widget.tournamentId}",
                     onPressed: () {
                       Navigator.push(
@@ -496,17 +560,19 @@ class _OrganizerManagePageState extends State<OrganizerManagePage>
                         ),
                       );
                     },
-                    tooltip: 'Voir le bracket',
+                    tooltip: t.organizerManageShowBracket,
                     child: const Icon(Icons.format_list_numbered),
                   ),
                 ] else if (status == 'finished') ...[
                   FloatingActionButton(
+                    backgroundColor: context.themeColors.accentColor,
                     heroTag: "startTournament${widget.tournamentId}",
                     onPressed: _startTournament,
-                    tooltip: 'Redémarrer le tournoi',
+                    tooltip: t.organizerManageRestart,
                     child: const Icon(Icons.play_arrow),
                   ),
                   FloatingActionButton(
+                    backgroundColor: context.themeColors.accentColor,
                     heroTag: "bracket${widget.tournamentId}",
                     onPressed: () {
                       Navigator.push(
@@ -517,7 +583,7 @@ class _OrganizerManagePageState extends State<OrganizerManagePage>
                         ),
                       );
                     },
-                    tooltip: 'Voir le bracket',
+                    tooltip: t.organizerManageShowBracket,
                     child: const Icon(Icons.format_list_numbered),
                   ),
                 ],
@@ -536,46 +602,5 @@ class _OrganizerManagePageState extends State<OrganizerManagePage>
     _startDateController.dispose();
     _endDateController.dispose();
     super.dispose();
-  }
-}
-
-class Tournament {
-  final int id;
-  final String name;
-  final String description;
-  final String location;
-  late String status;
-  final DateTime startDate;
-  final DateTime endDate;
-  final String imageFilename;
-  final int maxPlayers;
-  final List<dynamic> players; // Changed type to dynamic
-
-  Tournament({
-    required this.id,
-    required this.name,
-    required this.description,
-    required this.location,
-    required this.status,
-    required this.startDate,
-    required this.endDate,
-    required this.imageFilename,
-    required this.maxPlayers,
-    required this.players,
-  });
-
-  factory Tournament.fromJson(Map<String, dynamic> json) {
-    return Tournament(
-      id: json['id'],
-      name: json['name'],
-      description: json['description'],
-      location: json['location'],
-      status: json['status'],
-      startDate: DateTime.parse(json['start_date']),
-      endDate: DateTime.parse(json['end_date']),
-      imageFilename: json['media']['file_name'],
-      maxPlayers: json['max_players'] ?? 0,
-      players: json['players'] ?? [],
-    );
   }
 }

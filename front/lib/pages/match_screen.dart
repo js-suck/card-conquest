@@ -260,14 +260,11 @@ class _MatchPageState extends State<MatchPage> {
                                     shape: BoxShape.rectangle,
                                     borderRadius: BorderRadius.circular(10),
                                     image: DecorationImage(
-                                      image: matchInfo
-                                                  .playerOne.media?.fileName !=
+                                      image: NetworkImage(matchInfo
+                                                  .playerOne.media?.fileName ==
                                               ''
-                                          ? NetworkImage(
-                                                  '${dotenv.env['MEDIA_URL']}${matchInfo.playerOne.media?.fileName}')
-                                              as ImageProvider<Object>
-                                          : const AssetImage(
-                                              'assets/images/avatar.png'),
+                                          ? 'https://avatar.iran.liara.run/public/${matchInfo.playerOne.id}'
+                                          : '${dotenv.env['MEDIA_URL']}${matchInfo.playerOne.media?.fileName}'),
                                       fit: BoxFit.cover,
                                     ),
                                   ),
@@ -417,14 +414,11 @@ class _MatchPageState extends State<MatchPage> {
                                     shape: BoxShape.rectangle,
                                     borderRadius: BorderRadius.circular(10),
                                     image: DecorationImage(
-                                      image: matchInfo
-                                                  .playerTwo.media?.fileName !=
+                                      image: NetworkImage(matchInfo
+                                                  .playerTwo.media?.fileName ==
                                               ''
-                                          ? NetworkImage(
-                                                  '${dotenv.env['MEDIA_URL']}${matchInfo.playerTwo.media?.fileName}')
-                                              as ImageProvider<Object>
-                                          : const AssetImage(
-                                              'assets/images/avatar.png'),
+                                          ? 'https://avatar.iran.liara.run/public/${matchInfo.playerTwo.id}'
+                                          : '${dotenv.env['MEDIA_URL']}${matchInfo.playerTwo.media?.fileName}'),
                                       fit: BoxFit.cover,
                                     ),
                                   ),
