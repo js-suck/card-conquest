@@ -129,6 +129,8 @@ func (h *AuthHandler) Register(c *gin.Context) {
 	}
 	user.Password = hashedPassword
 
+	user.Role = "user"
+
 	errCreation := h.UserService.Create(&user)
 
 	if err != nil {
