@@ -33,11 +33,27 @@ const Match$json = {
   '1': 'Match',
   '2': [
     {'1': 'position', '3': 1, '4': 1, '5': 5, '10': 'position'},
-    {'1': 'player_one', '3': 2, '4': 1, '5': 11, '6': '.protos.Player', '10': 'playerOne'},
-    {'1': 'player_two', '3': 3, '4': 1, '5': 11, '6': '.protos.Player', '10': 'playerTwo'},
+    {
+      '1': 'player_one',
+      '3': 2,
+      '4': 1,
+      '5': 11,
+      '6': '.protos.Player',
+      '10': 'playerOne'
+    },
+    {
+      '1': 'player_two',
+      '3': 3,
+      '4': 1,
+      '5': 11,
+      '6': '.protos.Player',
+      '10': 'playerTwo'
+    },
     {'1': 'status', '3': 4, '4': 1, '5': 9, '10': 'status'},
     {'1': 'winner_id', '3': 5, '4': 1, '5': 5, '10': 'winnerId'},
     {'1': 'match_id', '3': 6, '4': 1, '5': 5, '10': 'matchId'},
+    {'1': 'location', '3': 7, '4': 1, '5': 9, '10': 'location'},
+    {'1': 'startTime', '3': 8, '4': 1, '5': 9, '10': 'startTime'},
   ],
 };
 
@@ -46,14 +62,22 @@ final $typed_data.Uint8List matchDescriptor = $convert.base64Decode(
     'CgVNYXRjaBIaCghwb3NpdGlvbhgBIAEoBVIIcG9zaXRpb24SLQoKcGxheWVyX29uZRgCIAEoCz'
     'IOLnByb3Rvcy5QbGF5ZXJSCXBsYXllck9uZRItCgpwbGF5ZXJfdHdvGAMgASgLMg4ucHJvdG9z'
     'LlBsYXllclIJcGxheWVyVHdvEhYKBnN0YXR1cxgEIAEoCVIGc3RhdHVzEhsKCXdpbm5lcl9pZB'
-    'gFIAEoBVIId2lubmVySWQSGQoIbWF0Y2hfaWQYBiABKAVSB21hdGNoSWQ=');
+    'gFIAEoBVIId2lubmVySWQSGQoIbWF0Y2hfaWQYBiABKAVSB21hdGNoSWQSGgoIbG9jYXRpb24Y'
+    'ByABKAlSCGxvY2F0aW9uEhwKCXN0YXJ0VGltZRgIIAEoCVIJc3RhcnRUaW1l');
 
 @$core.Deprecated('Use tournamentStepDescriptor instead')
 const TournamentStep$json = {
   '1': 'TournamentStep',
   '2': [
     {'1': 'step', '3': 1, '4': 1, '5': 5, '10': 'step'},
-    {'1': 'matches', '3': 2, '4': 3, '5': 11, '6': '.protos.Match', '10': 'matches'},
+    {
+      '1': 'matches',
+      '3': 2,
+      '4': 3,
+      '5': 11,
+      '6': '.protos.Match',
+      '10': 'matches'
+    },
   ],
 };
 
@@ -68,8 +92,21 @@ const TournamentResponse$json = {
   '2': [
     {'1': 'tournament_id', '3': 1, '4': 1, '5': 5, '10': 'tournamentId'},
     {'1': 'tournament_name', '3': 2, '4': 1, '5': 9, '10': 'tournamentName'},
-    {'1': 'tournament_status', '3': 3, '4': 1, '5': 9, '10': 'tournamentStatus'},
-    {'1': 'tournament_steps', '3': 4, '4': 3, '5': 11, '6': '.protos.TournamentStep', '10': 'tournamentSteps'},
+    {
+      '1': 'tournament_status',
+      '3': 3,
+      '4': 1,
+      '5': 9,
+      '10': 'tournamentStatus'
+    },
+    {
+      '1': 'tournament_steps',
+      '3': 4,
+      '4': 3,
+      '5': 11,
+      '6': '.protos.TournamentStep',
+      '10': 'tournamentSteps'
+    },
   ],
 };
 
@@ -92,4 +129,3 @@ const TournamentRequest$json = {
 final $typed_data.Uint8List tournamentRequestDescriptor = $convert.base64Decode(
     'ChFUb3VybmFtZW50UmVxdWVzdBIjCg10b3VybmFtZW50X2lkGAEgASgFUgx0b3VybmFtZW50SW'
     'Q=');
-

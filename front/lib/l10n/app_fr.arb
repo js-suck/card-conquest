@@ -177,5 +177,18 @@
   "tournamentsMap": "Carte des tournois",
   "tournamentAlreadyRegistered": "Déjà inscrit",
   "guildCreateTitle": "Créer une guilde",
-  "noAccessPage": "Vous n'êtes pas autorisé à accéder à cette page"
+  "noAccessPage": "Vous n'êtes pas autorisé à accéder à cette page",
+  "matchDate": "Date",
+  "matchLocation": "Lieu",
+  "enterLocation": "Entrez un lieu",
+  "errorHourFormat": "Veuillez entrer une heure valide au format HH:mm (max 23:59).",
+  "noMatch": "Il n'y a pas de match",
+  "successTimeUpdate": "L'heure du match à bien été mis à jour",
+  "failTimeUpdate": "Erreur sur la modification de l'heure du match",
+  "successLocationUpdate": "Le lieu du match a bien été mis à jour",
+  "failedLocationUpdate": "Erreur sur la modification du lieu du match",
+  "startMatch": "Le match commence",
+  "startMatchFailed": "Erreur sur le lancement du match",
+  "matchErrorSelected": "Ce match est déjà sélectionné",
+  "matchNull": "Il n'y a pas de match"
 }
