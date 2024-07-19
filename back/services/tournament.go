@@ -233,6 +233,14 @@ func (s *TournamentService) SendTournamentUpdatesForGRPC(tournamentId uint) erro
 			if match.WinnerID != nil {
 				winnerId = int32(*match.WinnerID)
 			}
+			var startTime string
+			if match.StartTime.Format(time.RFC3339) != "" {
+				startTime = match.StartTime.Format(time.RFC3339)
+			}
+			var location string
+			if match.Location != "" {
+				location = match.Location
+			}
 			tournamentMatch := &authentication_api.Match{
 				Position:  int32(match.MatchPosition),
 				PlayerOne: playerOne,
@@ -240,6 +248,8 @@ func (s *TournamentService) SendTournamentUpdatesForGRPC(tournamentId uint) erro
 				Status:    match.Status,
 				WinnerId:  winnerId,
 				MatchId:   int32(match.ID),
+				StartTime: startTime,
+				Location:  location,
 			}
 
 			tournamentStep.Matches = append(tournamentStep.Matches, tournamentMatch)

@@ -17,7 +17,7 @@ message Match {
   int32 winner_id = 5;
   int32 match_id = 6;
   string location = 7;
-  string startDate = 8;
+  string startTime = 8;
 }
 
 message TournamentStep {
