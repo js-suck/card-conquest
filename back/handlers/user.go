@@ -212,7 +212,15 @@ func (h *UserHandler) UpdateUser(c *gin.Context) {
 		return
 	}
 
+	type UserUpdate struct {
+		Username string `json:"username"`
+		Email    string `json:"email"`
+		Address  string `json:"address"`
+		Phone    string `json:"phone"`
+	}
+
 	user := models.User{}
+
 	err = h.UserService.Get(&user, uint(userID), "Media")
 	if err != nil || user.ID == 0 {
 		c.JSON(http.StatusNotFound, errors.NewNotFoundError("User not found", err).ToGinH())
@@ -223,6 +231,12 @@ func (h *UserHandler) UpdateUser(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, errors.NewBadRequestError("Invalid data", err).ToGinH())
 		return
 	}
+
+	if user.Role == "admin" {
+		c.JSON(http.StatusBadRequest, errors.NewBadRequestError("Cannot update role to admin", nil).ToGinH())
+		return
+	}
+
 	user.ID = uint(userID)
 	err = h.UserService.Update(&user)
 	if err != nil {
