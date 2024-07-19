@@ -39,7 +39,7 @@ class _ScoreboardPageState extends State<ScoreboardPage> {
               return ListTile(
                 leading: CircleAvatar(
                   backgroundImage: NetworkImage(ranking.user.media == null
-                      ? '${dotenv.env['MEDIA_URL']}avatar.jpg'
+                      ? 'https://avatar.iran.liara.run/public/' + ranking.user.id.toString()
                       : '${dotenv.env['MEDIA_URL']}${ranking.user.media?.fileName}'),
                 ),
                 title: Text(ranking.user.username),

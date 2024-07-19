@@ -25,15 +25,33 @@ Future<void> signUp(BuildContext context, String username, String email,
 
   if (response.statusCode == 201) {
     // Handle successful registration
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-          builder: (context) => HomePage(showVerificationDialog: true)),
-    );
+    Future.microtask(() => _showVerificationDialog(context));
   } else {
     // Handle error in registration
     throw Exception(t.signupError);
   }
+}
+
+void _showVerificationDialog(BuildContext context) {
+  final t = AppLocalizations.of(context)!;
+  showDialog(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        title: Text(t.verifyEmail),
+        content: Text(t.verifyEmailMessage),
+        actions: <Widget>[
+          TextButton(
+            child: Text(t.ok),
+            onPressed: () {
+              Navigator.of(context).pop();
+              Navigator.of(context).pushReplacementNamed('/login');
+            },
+          ),
+        ],
+      );
+    },
+  );
 }
 
 class SignUpPage extends StatefulWidget {
@@ -148,6 +166,7 @@ class _SignUpPageState extends State<SignUpPage> {
                               fontSize: 14, fontWeight: FontWeight.bold)),
                       const SizedBox(height: 10),
                       TextFormField(
+                        style: const TextStyle(color: Colors.black),
                         controller: _usernameController,
                         decoration: InputDecoration(
                           hintText: t.username.toLowerCase(),
@@ -175,6 +194,7 @@ class _SignUpPageState extends State<SignUpPage> {
                               fontSize: 14, fontWeight: FontWeight.bold)),
                       const SizedBox(height: 10),
                       TextFormField(
+                        style: const TextStyle(color: Colors.black),
                         controller: _emailController,
                         decoration: InputDecoration(
                           hintText: t.emailHint,
@@ -204,6 +224,7 @@ class _SignUpPageState extends State<SignUpPage> {
                               fontSize: 14, fontWeight: FontWeight.bold)),
                       const SizedBox(height: 10),
                       TextFormField(
+                        style: const TextStyle(color: Colors.black),
                         controller: _passwordController,
                         decoration: InputDecoration(
                           hintText: '*******',
@@ -234,6 +255,7 @@ class _SignUpPageState extends State<SignUpPage> {
                               fontSize: 14, fontWeight: FontWeight.bold)),
                       const SizedBox(height: 10),
                       TextFormField(
+                        style: const TextStyle(color: Colors.black),
                         controller: _confirmPasswordController,
                         decoration: InputDecoration(
                           hintText: '*******',
@@ -271,8 +293,7 @@ class _SignUpPageState extends State<SignUpPage> {
                           Flexible(
                             child: GestureDetector(
                               onTap: () {
-                                // Ouvrir la page des terms & policy
-                                Navigator.pushNamed(context, '/terms');
+
                               },
                               child: Text(
                                 t.signupTermsAccept,

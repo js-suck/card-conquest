@@ -6,16 +6,16 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:front/utils/custom_future_builder.dart';
 import 'package:front/widget/bracket/match/match_tiles.dart';
 
-class Calendar extends StatefulWidget {
-  const Calendar({super.key, required this.tournamentId});
+class MyMatches extends StatefulWidget {
+  const MyMatches({super.key, required this.tournamentId});
 
   final int tournamentId;
 
   @override
-  State<Calendar> createState() => _CalendarState();
+  State<MyMatches> createState() => _MyMatchesState();
 }
 
-class _CalendarState extends State<Calendar> {
+class _MyMatchesState extends State<MyMatches> {
   late MatchService matchService;
   late Future<List<Match>> matchesFuture;
 
@@ -27,7 +27,7 @@ class _CalendarState extends State<Calendar> {
   }
 
   Future<List<Match>> fetchMatches() {
-    return matchService.fetchUnfinishedMatchesOfTournament(_tournamentId);
+    return matchService.fetchMatchesOfTournamentOfPlayer(_tournamentId);
   }
 
   Future<void> _refreshMatches() async {
@@ -53,15 +53,17 @@ class _CalendarState extends State<Calendar> {
             }
             final groupedMatches =
                 groupBy(matches, (match) => match.tournamentStep.sequence);
+            final sortedMatches = groupedMatches.keys.toList()
+              ..sort((a, b) => b.compareTo(a));
             List<Widget> tournamentStepWidgets = [];
-            groupedMatches.forEach((sequence, matches) {
+            for (var step in sortedMatches) {
               tournamentStepWidgets.add(
                 MatchTiles(
-                  matches: matches,
+                  matches: groupedMatches[step]!,
                   isSteps: true,
                 ),
               );
-            });
+            }
 
             return SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
@@ -71,9 +73,5 @@ class _CalendarState extends State<Calendar> {
             );
           }),
     );
-    /* TODO: Add matches for the calendar
-    return MatchTiles(matches: matches, isPast: false);
-
-     */
   }
 }

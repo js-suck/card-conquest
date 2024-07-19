@@ -1,31 +1,32 @@
-//import 'dart:html';
 import 'dart:math';
 import 'dart:convert';
 import 'dart:io';
+import 'package:front/extension/theme_extension.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:front/widget/app_bar.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:dotted_border/dotted_border.dart';
-import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_google_places/flutter_google_places.dart';
 import 'package:google_maps_webservice/places.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class OrgaPage extends StatelessWidget {
   const OrgaPage({super.key});
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
+    final t = AppLocalizations.of(context)!;
+    return Scaffold(
       appBar: TopAppBar(
-        title: 'Creation Tournoi',
+        title: t.organizerNewTournament,
         isAvatar: false,
         isPage: true,
         isSettings: false,
       ),
-      body: Scaffold(
+      body: const Scaffold(
         body: SingleChildScrollView(
           child: Center(
             child: MyForm(),
@@ -47,7 +48,6 @@ class _MyFormState extends State<MyForm> {
   final storage = const FlutterSecureStorage();
   final TextEditingController _designationController = TextEditingController();
   final TextEditingController _locationController = TextEditingController();
-  final TextEditingController _typeController = TextEditingController();
   final TextEditingController _selectGameController = TextEditingController();
   final TextEditingController _sizeController = TextEditingController();
   final TextEditingController _descController = TextEditingController();
@@ -59,6 +59,7 @@ class _MyFormState extends State<MyForm> {
   DateTime? _endDate;
   File? _selectedImage;
   int? _selectedValue;
+  int? _selectedGameId;
   List<dynamic> games = [];
 
   double? latitude;
@@ -99,7 +100,7 @@ class _MyFormState extends State<MyForm> {
   }
 
   String _formatDateForBackend(DateTime date) {
-    return '${DateFormat('yyyy-MM-ddTHH:mm:ss').format(date.toUtc())}Z';
+    return '${DateFormat('yyyy-MM-ddTHH:mm:ss').format(date)}Z';
   }
 
   Future<void> _loadGames() async {
@@ -128,20 +129,19 @@ class _MyFormState extends State<MyForm> {
   @override
   void initState() {
     super.initState();
-    _typeController.text = 'TKO';
-    _sizeController.text = '32';
     _loadGames();
   }
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 20.0),
       child: Column(
         children: [
-          const Text(
-            'Créer un nouveau tournoi',
-            style: TextStyle(fontSize: 24.0),
+          Text(
+            t.organizerNewTournamentTitle,
+            style: const TextStyle(fontSize: 24.0),
           ),
           Container(
             padding: const EdgeInsets.all(20.0),
@@ -150,14 +150,18 @@ class _MyFormState extends State<MyForm> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
                 const SizedBox(height: 8.0),
-                const Text(
-                  'Designation du tournoi:',
-                  style: TextStyle(fontSize: 18.0),
+                Text(
+                  t.organizerNewTournamentName,
+                  style: const TextStyle(fontSize: 18.0),
                 ),
                 Container(
                   decoration: BoxDecoration(
-                    color: colorBGInput, // Couleur du rectangle gris
+                    color: context.themeColors
+                        .backgroundColor, // Couleur du rectangle gris
                     borderRadius: BorderRadius.circular(8.0), // Bords arrondis
+                    border: Border.all(
+                      color: Colors.grey,
+                    ),
                   ),
                   child: TextField(
                     controller: _designationController,
@@ -165,27 +169,31 @@ class _MyFormState extends State<MyForm> {
                     decoration: const InputDecoration(
                       contentPadding: EdgeInsets.symmetric(horizontal: 10.0),
                       border: InputBorder.none,
-                      labelText: 'ex: Jon Smith',
+                      labelText: 'ex: Pokemon',
                     ),
                   ),
                 ),
                 const SizedBox(height: 20),
-                const Text(
-                  'Adresse:',
-                  style: TextStyle(fontSize: 18.0),
+                Text(
+                  t.organizerNewTournamentAddress,
+                  style: const TextStyle(fontSize: 18.0),
                 ),
                 Container(
                   decoration: BoxDecoration(
-                    color: const Color(0xfafafafa),
+                    color: context.themeColors.backgroundColor,
                     borderRadius: BorderRadius.circular(8.0),
+                    border: Border.all(
+                      color: Colors.grey,
+                    ),
                   ),
                   child: TextField(
                     controller: _locationController,
                     keyboardType: TextInputType.text,
-                    decoration: const InputDecoration(
-                      contentPadding: EdgeInsets.symmetric(horizontal: 10.0),
+                    decoration: InputDecoration(
+                      contentPadding:
+                          const EdgeInsets.symmetric(horizontal: 10.0),
                       border: InputBorder.none,
-                      labelText: 'ex: 10 rue des ananas',
+                      labelText: t.organizerNewTournamentAddressHint,
                     ),
                     onTap: () async {
                       print("Tapped on address input");
@@ -201,7 +209,7 @@ class _MyFormState extends State<MyForm> {
                           apiKey: apiKey,
                           types: ["geocode"],
                           mode: Mode.overlay,
-                          language: "fr",
+                          language: t.organizerNewTournamentAddressLanguage,
                           components: [Component(Component.country, "fr")],
                           strictbounds: false,
                         );
@@ -231,9 +239,9 @@ class _MyFormState extends State<MyForm> {
                   ),
                 ),
                 const SizedBox(height: 20),
-                const Text(
-                  'Date de début du tournoi:',
-                  style: TextStyle(fontSize: 18.0),
+                Text(
+                  t.organizerNewTournamentStartDate,
+                  style: const TextStyle(fontSize: 18.0),
                 ),
                 InkWell(
                   onTap: () => _selectStartDate(context),
@@ -247,9 +255,9 @@ class _MyFormState extends State<MyForm> {
                   ),
                 ),
                 const SizedBox(height: 20),
-                const Text(
-                  'Date de fin du tournoi:',
-                  style: TextStyle(fontSize: 18.0),
+                Text(
+                  t.organizerNewTournamentEndDate,
+                  style: const TextStyle(fontSize: 18.0),
                 ),
                 InkWell(
                   onTap: () => _selectEndDate(context),
@@ -263,59 +271,46 @@ class _MyFormState extends State<MyForm> {
                   ),
                 ),
                 const SizedBox(height: 20),
-                const Text(
-                  'Game:',
-                  style: TextStyle(fontSize: 18.0),
+                Text(
+                  t.organizerNewTournamentGame,
+                  style: const TextStyle(fontSize: 18.0),
                 ),
                 DropdownMenu(
                   controller: _selectGameController,
                   inputDecorationTheme: const InputDecorationTheme(
                       outlineBorder: BorderSide(color: colorBGInput),
                       fillColor: colorBGInput),
-                  menuStyle: const MenuStyle(
-                    backgroundColor:
-                        MaterialStatePropertyAll<Color>(colorBGInput),
+                  menuStyle: MenuStyle(
+                    backgroundColor: MaterialStatePropertyAll<Color>(
+                        context.themeColors.backgroundColor),
                   ),
-                  label: const Text(
-                    'Sélectionnez un jeu',
-                    style: TextStyle(fontSize: 16.0),
+                  label: Text(
+                    t.organizerNewTournamentGameSelect,
+                    style: const TextStyle(fontSize: 16.0),
                   ),
                   width: 300,
                   dropdownMenuEntries: games.map<DropdownMenuEntry>((game) {
                     return DropdownMenuEntry(
+                      labelWidget: Text(
+                        game['name'],
+                        style: TextStyle(color: context.themeColors.fontColor),
+                      ),
                       value: game['id'],
                       label: game['name'],
                     );
                   }).toList(),
+                  onSelected: (dynamic value) {
+                    setState(() {
+                      _selectedGameId = value;
+                      _selectGameController.text = games
+                          .firstWhere((game) => game['id'] == value)['name'];
+                    });
+                  },
                 ),
                 const SizedBox(height: 20),
-                const Text(
-                  'Type de tournoi:',
-                  style: TextStyle(fontSize: 18.0),
-                ),
-                DropdownMenu(
-                  controller: _typeController,
-                  inputDecorationTheme: const InputDecorationTheme(
-                      outlineBorder: BorderSide(color: colorBGInput),
-                      fillColor: colorBGInput),
-                  menuStyle: const MenuStyle(
-                    backgroundColor:
-                        MaterialStatePropertyAll<Color>(colorBGInput),
-                  ),
-                  label: const Text(
-                    'Sélectionnez un type',
-                    style: TextStyle(fontSize: 16.0),
-                  ),
-                  width: 300,
-                  dropdownMenuEntries: const [
-                    DropdownMenuEntry(value: 'suisse', label: 'Suisse'),
-                    DropdownMenuEntry(value: 'tko', label: 'TKO'),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                const Text(
-                  'Image',
-                  style: TextStyle(fontSize: 18.0),
+                Text(
+                  t.organizerNewTournamentImage,
+                  style: const TextStyle(fontSize: 18.0),
                 ),
                 GestureDetector(
                   onTap: () {
@@ -341,66 +336,93 @@ class _MyFormState extends State<MyForm> {
                         ),
                 ),
                 const SizedBox(height: 20),
-                const Text(
-                  'Nombre de place:',
-                  style: TextStyle(fontSize: 18.0),
+                Text(
+                  t.organizerNewTournamentSize,
+                  style: const TextStyle(fontSize: 18.0),
                 ),
                 DropdownMenu(
                   controller: _sizeController,
                   inputDecorationTheme: const InputDecorationTheme(
                       outlineBorder: BorderSide(color: colorBGInput),
                       fillColor: colorBGInput),
-                  menuStyle: const MenuStyle(
-                    backgroundColor:
-                        MaterialStatePropertyAll<Color>(colorBGInput),
+                  menuStyle: MenuStyle(
+                    backgroundColor: MaterialStatePropertyAll<Color>(
+                        context.themeColors.backgroundColor),
                   ),
-                  label: const Text(
-                    'Nombre max de places',
-                    style: TextStyle(fontSize: 16.0),
+                  label: Text(
+                    t.organizerNewTournamentMaxSize,
+                    style: const TextStyle(fontSize: 16.0),
                   ),
                   width: 300,
-                  dropdownMenuEntries: const [
-                    DropdownMenuEntry(value: 16, label: '16 places'),
-                    DropdownMenuEntry(value: 32, label: '32 places'),
-                    DropdownMenuEntry(value: 64, label: '64 places'),
-                    DropdownMenuEntry(value: 128, label: '128 places'),
+                  dropdownMenuEntries: [
+                    DropdownMenuEntry(
+                        labelWidget: Text(t.organizerNewTournament16players,
+                            style: TextStyle(
+                                color: context.themeColors.fontColor)),
+                        value: 16,
+                        label: t.organizerNewTournament16players),
+                    DropdownMenuEntry(
+                        labelWidget: Text(t.organizerNewTournament32players,
+                            style: TextStyle(
+                                color: context.themeColors.fontColor)),
+                        value: 32,
+                        label: t.organizerNewTournament32players),
+                    DropdownMenuEntry(
+                        labelWidget: Text(t.organizerNewTournament64players,
+                            style: TextStyle(
+                                color: context.themeColors.fontColor)),
+                        value: 64,
+                        label: t.organizerNewTournament64players),
+                    DropdownMenuEntry(
+                        labelWidget: Text(t.organizerNewTournament128players,
+                            style: TextStyle(
+                                color: context.themeColors.fontColor)),
+                        value: 128,
+                        label: t.organizerNewTournament128players),
                   ],
                   onSelected: (int? value) {
                     setState(() {
                       _selectedValue = value;
-                      _sizeController.text =
-                          value != null ? '$value places' : '';
+                      _sizeController.text = value != null
+                          ? '$value ${t.organizerNewTournamentPlace}'
+                          : '';
                     });
                   },
                 ),
                 const SizedBox(height: 20),
-                const Text(
-                  'Description de votre tournoi:',
-                  style: TextStyle(fontSize: 18.0),
+                Text(
+                  t.organizerNewTournamentDescription,
+                  style: const TextStyle(fontSize: 18.0),
                 ),
                 Container(
                   decoration: BoxDecoration(
-                    color: colorBGInput, // Couleur du rectangle gris
+                    color: context.themeColors.backgroundColor,
                     borderRadius: BorderRadius.circular(8.0), // Bords arrondis
+                    border: Border.all(
+                      color: Colors.grey,
+                    ),
                   ),
                   child: TextField(
                     controller: _descController,
                     keyboardType: TextInputType.multiline,
                     maxLines: 8, //or null
-                    decoration: const InputDecoration(
-                      contentPadding: EdgeInsets.symmetric(horizontal: 10.0),
+                    decoration: InputDecoration(
+                      contentPadding:
+                          const EdgeInsets.symmetric(horizontal: 10.0),
                       border: InputBorder.none,
-                      labelText: 'Entrez votre description',
+                      labelText: t.organizerNewTournamentDescriptionHint,
                     ),
                   ),
                 ),
                 const SizedBox(height: 20),
                 ElevatedButton(
-                  onPressed: () {
-                    _submitForm();
-                  },
-                  child: const Text('Submit'),
-                ),
+                    onPressed: () {
+                      _submitForm();
+                    },
+                    child: Text(
+                      t.organizerNewTournamentCreate,
+                      style: const TextStyle(fontSize: 16.0),
+                    )),
                 const SizedBox(height: 20),
               ],
             ),
@@ -414,7 +436,6 @@ class _MyFormState extends State<MyForm> {
   void dispose() {
     _designationController.dispose();
     _locationController.dispose();
-    _typeController.dispose();
     _selectGameController.dispose();
     _sizeController.dispose();
     _descController.dispose();
@@ -430,17 +451,45 @@ class _MyFormState extends State<MyForm> {
     });
   }
 
-  Future<void> _submitForm() async {
-    print("iciez1");
+  void _showLoader() {
+    final t = AppLocalizations.of(context)!;
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          content: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              const CircularProgressIndicator(),
+              const SizedBox(width: 20),
+              Text(t.organizerNewTournamentCreateLoading),
+            ],
+          ),
+        );
+      },
+    );
+  }
 
+  void _hideLoader() {
+    Navigator.of(context, rootNavigator: true).pop();
+  }
+
+  Future<void> _submitForm() async {
+    final t = AppLocalizations.of(context)!;
     if (_designationController.text.isEmpty ||
         _locationController.text.isEmpty ||
-        _descController.text.isEmpty) {
+        _descController.text.isEmpty ||
+        _selectGameController.text.isEmpty ||
+        _sizeController.text.isEmpty ||
+        _startDate == null ||
+        _endDate == null ||
+        _selectedImage == null) {
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Text('Error'),
-          content: const Text('Please fill in all required fields.'),
+          title: Text(t.error),
+          content: Text(t.organizerNewTournamentCreateError),
           actions: [
             TextButton(
               onPressed: () {
@@ -452,10 +501,12 @@ class _MyFormState extends State<MyForm> {
         ),
       );
     } else {
+      _showLoader();
       // All required fields are filled, proceed to submit the form
       try {
         var uri = Uri.parse('${dotenv.env['API_URL']}tournaments');
         String? token = await storage.read(key: 'jwt_token');
+        String? userID = await storage.read(key: 'user_id');
 
         var request = http.MultipartRequest('POST', uri)
           ..headers['Authorization'] = '$token';
@@ -468,8 +519,8 @@ class _MyFormState extends State<MyForm> {
         request.fields['location'] = _locationController.text;
         request.fields['latitude'] = latitude.toString();
         request.fields['longitude'] = longitude.toString();
-        request.fields['organizer_id'] = '1';
-        request.fields['game_id'] = '1';
+        request.fields['organizer_id'] = '$userID';
+        request.fields['game_id'] = _selectedGameId.toString();
         num selectedValue = num.parse(_selectedValue.toString());
         int rounds = (log(selectedValue) / log(2)).ceil();
         request.fields['rounds'] = rounds.toString();
@@ -487,7 +538,6 @@ class _MyFormState extends State<MyForm> {
           var responseData = await http.Response.fromStream(response);
           // Vider le formulaire
           _designationController.clear();
-          _typeController.clear();
           _selectGameController.clear();
           _sizeController.clear();
           _descController.clear();
@@ -499,11 +549,12 @@ class _MyFormState extends State<MyForm> {
           showDialog(
             context: context,
             builder: (context) => AlertDialog(
-              title: const Text('Succès'),
-              content: const Text('Le tournoi a été créé avec succès.'),
+              title: Text(t.organizerNewTournamentCreateSuccessTitle),
+              content: Text(t.organizerNewTournamentCreateSuccess),
               actions: [
                 TextButton(
                   onPressed: () {
+                    _hideLoader();
                     Navigator.pop(context);
                     Navigator.pushNamed(context, '/orga/home');
                   },

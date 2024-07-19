@@ -56,7 +56,7 @@ class _GuildListScreenState extends State<GuildListScreen> {
     final t = AppLocalizations.of(context)!;
 
     if (token != null && userID != null) {
-      bool success = await guildService.joinGuild(guildId, userID, token);
+      bool success = await guildService.joinGuild(guildId, userID);
       if (success) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(t.guildJoinedSuccess)),
@@ -129,14 +129,16 @@ class _GuildListScreenState extends State<GuildListScreen> {
                       child: ListTile(
                     leading: CircleAvatar(
                       backgroundImage: CachedNetworkImageProvider(
-                        '${dotenv.env['MEDIA_URL']}${guild.media?.fileName}',
+                        guild.media?.fileName != null
+                            ? '${dotenv.env['MEDIA_URL']}${guild.media?.fileName}'
+                            : 'https://avatar.iran.liara.run/public/${guild.id}',
                       ),
                       radius: 25,
                     ),
                     title: Text(guild.name ?? ''),
                     subtitle: Text(guild.description ?? ''),
                     onTap: () {
-                      Navigator.push(
+                      Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(
                             builder: (context) => GuildView(guildId: guild.id)),
@@ -152,15 +154,13 @@ class _GuildListScreenState extends State<GuildListScreen> {
         ),
       ),
       floatingActionButton:
-          user != null && (user.IsAdmin() || user.IsOrganizer())
-              ? FloatingActionButton(
-                  onPressed: () {
-                    Navigator.pushNamed(context, '/guild/create');
-                  },
-                  child: Icon(Icons.add),
-                  tooltip: t.guildCreateMine,
-                )
-              : null,
+      FloatingActionButton(
+          onPressed: () {
+            Navigator.pushNamed(context, '/guild/create');
+          },
+          child: Icon(Icons.add),
+          tooltip: t.guildCreateMine,
+        )
     );
   }
 }

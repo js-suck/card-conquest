@@ -32,7 +32,7 @@ type CreateTournamentPayload struct {
 	StartDate   string  `form:"start_date" json:"start_date" validate:"required"`
 	EndDate     string  `form:"end_date" json:"end_date" validate:"required"`
 	Rounds      int     `form:"rounds" json:"rounds" validate:"required"`
-	TagsIDs     []uint  `form:"tags_ids" json:"tags_ids" validate:"required"`
+	TagsIDs     []uint  `form:"tags_ids" json:"tags_ids"`
 	Image       []byte  `gorm:"type:longblob" json:"-"`
 	MaxPlayers  int     `form:"max_players" json:"max_players" validate:"required"`
 	Longitude   float64 `form:"longitude" json:"longitude"`
@@ -42,7 +42,7 @@ type CreateTournamentPayload struct {
 type Tournament struct {
 	BaseModel
 	MediaModel
-	ID          uint             `json:"id"`
+	ID          uint             `gorm:"primary_key;auto_increment" json:"id"`
 	Name        string           `json:"name" validate:"required"`
 	Description string           `json:"description" validate:"required"`
 	Location    string           `json:"location"`

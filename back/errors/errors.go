@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 	"net/http"
 )
 
@@ -48,6 +49,7 @@ func (e *ErrorResponse) ToGinH() gin.H {
 }
 
 func NewErrorResponse(code int, message string) *ErrorResponse {
+	logrus.Error(message)
 	return &ErrorResponse{
 		ErrorMessage: message,
 		ErrorCode:    code,
@@ -55,6 +57,7 @@ func NewErrorResponse(code int, message string) *ErrorResponse {
 }
 
 func NewValidationError(message string, field string) *ValidationError {
+	logrus.Error(message)
 	return &ValidationError{
 		ErrorMessage: message,
 		ErrorCode:    http.StatusBadRequest,
@@ -69,10 +72,12 @@ func NewBadRequestError(message string, err error) *ErrorResponse {
 
 func NewNotFoundError(message string, err error) *ErrorResponse {
 	fmt.Println(err)
+	logrus.Error(message)
 	return NewErrorResponse(http.StatusNotFound, message)
 }
 
 func NewInternalServerError(message string, err error) *ErrorResponse {
+	logrus.Error(message)
 
 	if customError, ok := err.(IError); ok {
 		return NewErrorResponse(customError.Code(), customError.Error())
@@ -83,7 +88,13 @@ func NewInternalServerError(message string, err error) *ErrorResponse {
 }
 
 func NewUnauthorizedError(message string) *ErrorResponse {
+	logrus.Error(message)
 	return NewErrorResponse(http.StatusUnauthorized, message)
+}
+
+func NewForbiddenError(message string) *ErrorResponse {
+	logrus.Error(message)
+	return NewErrorResponse(http.StatusForbidden, message)
 }
 
 func IsFileNotFound(err error) bool {

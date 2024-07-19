@@ -231,7 +231,7 @@ func (h *GuildHandler) AddUserToGuild(c *gin.Context) {
 		return
 	}
 
-	firebaseClient, errF := firebase.NewFirebaseClient("./firebase/privateKey.json")
+	firebaseClient, errF := firebase.NewFirebaseClient("./firebase/privateKey.json", h.GuildService.Db)
 	if errF != nil {
 		log.Fatalf("Failed to initialize Firebase: %v", errF)
 	}

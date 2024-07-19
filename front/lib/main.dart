@@ -77,17 +77,6 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-    _initializeRemoteConfig();
-  }
-
-  Future<void> _initializeRemoteConfig() async {
-    await _loadDefaultValues();
-  }
-
-  Future<void> _loadDefaultValues() async {
-    final String defaultConfig =
-        await rootBundle.loadString('assets/default_config.json');
-    final Map<String, dynamic> defaultConfigMap = json.decode(defaultConfig);
   }
 
   @override
@@ -150,7 +139,6 @@ class _MyAppState extends State<MyApp> {
               builder: (context) => GuildView(),
             );
           }
-          print("pathSegments ${routes.containsKey("/tournamentUpdatesDemo")}");
 
           if (routes.containsKey(uri.path)) {
             return MaterialPageRoute(builder: routes[uri.path]!);

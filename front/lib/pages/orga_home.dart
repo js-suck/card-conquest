@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:front/main.dart';
+import 'package:front/service/tournament_service.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:front/widget/app_bar.dart';
@@ -8,46 +9,13 @@ import 'package:intl/intl.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:front/notifier/theme_notifier.dart';
-
-class Tournament {
-  final int id;
-  final String name;
-  final String description;
-  final String location;
-  final String startDate;
-  final String endDate;
-  final String imageFilename;
-  final int maxPlayers;
-
-  Tournament({
-    required this.id,
-    required this.name,
-    required this.description,
-    required this.location,
-    required this.startDate,
-    required this.endDate,
-    required this.imageFilename,
-    required this.maxPlayers,
-  });
-
-  factory Tournament.fromJson(Map<String, dynamic> json) {
-    return Tournament(
-      id: json['id'],
-      name: json['name'],
-      description: json['description'],
-      location: json['location'],
-      startDate: json['start_date'],
-      endDate: json['end_date'],
-      imageFilename: json['media']['file_name'],
-      maxPlayers: json['max_players'],
-    );
-  }
-}
-
-//Image.network(
-//           'https://docs.flutter.dev/assets/images/dash/dash-fainting.gif');
+import 'package:front/models/tournament.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:front/utils/custom_future_builder.dart';
 
 class OrganizerHomePage extends StatefulWidget {
+  const OrganizerHomePage({super.key});
+
   @override
   _OrganizerHomePageState createState() => _OrganizerHomePageState();
 }
@@ -55,82 +23,81 @@ class OrganizerHomePage extends StatefulWidget {
 class _OrganizerHomePageState extends State<OrganizerHomePage> {
   final storage = const FlutterSecureStorage();
   late Future<List<Tournament>> futureTournaments;
+  late TournamentService tournamentService;
+  final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey =
+      GlobalKey<RefreshIndicatorState>();
 
   @override
   void initState() {
     super.initState();
-    futureTournaments = fetchTournaments();
+    tournamentService = TournamentService();
+    tournamentService.fetchTournamentsOfOrganizer();
   }
 
-  Future<List<Tournament>> fetchTournaments() async {
-    String? token = await storage.read(key: 'jwt_token');
-    final response = await http.get(
-      Uri.parse('${dotenv.env['API_URL']}tournaments'),
-      headers: {
-        'Authorization': '$token',
-      },
-    );
-
-    if (response.statusCode == 200) {
-      List jsonResponse = json.decode(response.body);
-      return jsonResponse
-          .map((tournament) => Tournament.fromJson(tournament))
-          .toList();
-    } else {
-      throw Exception('Failed to load tournaments');
-    }
+  Future<void> _refreshTournaments() async {
+    setState(() {
+      futureTournaments = tournamentService.fetchTournamentsOfOrganizer();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     final isDarkMode = Provider.of<ThemeNotifier>(context).isDarkMode;
     final fontColor = isDarkMode ? Colors.red : Colors.blue;
 
     return Scaffold(
-      appBar: const TopAppBar(title: 'Accueil'),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              TextButton(
-                onPressed: () {
-                  Navigator.pushNamed(context, '/orga/add/tournament');
-                },
-                child: Center(
-                  // Utilisation de Center
-                  child: Text(
-                    'Créer un nouveau tournoi +',
-                    style: TextStyle(
-                      color: fontColor,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
+      appBar: TopAppBar(title: t.organizerTitle),
+      body: RefreshIndicator(
+        key: _refreshIndicatorKey,
+        onRefresh: _refreshTournaments,
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pushNamed(context, '/orga/add/tournament');
+                  },
+                  child: Center(
+                    // Utilisation de Center
+                    child: Text(
+                      t.organizerCreateTournament,
+                      style: TextStyle(
+                        color: fontColor,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 20),
-              const Text(
-                'Vos tournois en cours',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 10),
-              FutureBuilder<List<Tournament>>(
-                future: futureTournaments,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
-                  } else if (snapshot.hasError) {
-                    return Center(child: Text('Erreur: ${snapshot.error}'));
-                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return const Center(child: Text('Aucun tournoi en cours'));
-                  } else {
-                    var ongoingTournaments = snapshot.data!
-                        .where((t) => DateTime.parse(t.startDate)
-                            .toUtc()
-                            .isAfter(DateTime.now().toUtc()))
+                const SizedBox(height: 20),
+                Text(
+                  t.organizerOngoingTournaments,
+                  style: const TextStyle(
+                      fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 10),
+                CustomFutureBuilder<List<Tournament>>(
+                  future: tournamentService.fetchTournamentsOfOrganizer(),
+                  onLoaded: (tournaments) {
+                    if (tournaments.isEmpty) {
+                      return Text(t.noOngoingTournaments);
+                    }
+                    var ongoingTournaments = tournaments
+                        .where((t) =>
+                            t.startDate
+                                .toUtc()
+                                .isBefore(DateTime.now().toUtc()) &&
+                            t.endDate.toUtc().isAfter(DateTime.now().toUtc()))
                         .toList();
+                    if (ongoingTournaments.isEmpty) {
+                      return Text(t.noOngoingTournaments);
+                    }
+                    print(ongoingTournaments);
                     return SizedBox(
                       height: 200,
                       child: ListView.builder(
@@ -138,8 +105,7 @@ class _OrganizerHomePageState extends State<OrganizerHomePage> {
                         itemCount: ongoingTournaments.length,
                         itemBuilder: (context, index) {
                           var tournament = ongoingTournaments[index];
-                          DateTime startDate =
-                              DateTime.parse(tournament.startDate);
+                          DateTime startDate = tournament.startDate;
                           String formattedDate =
                               DateFormat('dd.MM.yyyy').format(startDate);
                           String formattedTime =
@@ -224,26 +190,22 @@ class _OrganizerHomePageState extends State<OrganizerHomePage> {
                         },
                       ),
                     );
-                  }
-                },
-              ),
-              const SizedBox(height: 20),
-              const Text(
-                'Tous vos tournois',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 10),
-              FutureBuilder<List<Tournament>>(
-                future: futureTournaments,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
-                  } else if (snapshot.hasError) {
-                    return Center(child: Text('Erreur: ${snapshot.error}'));
-                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return const Center(child: Text('Aucun tournois'));
-                  } else {
-                    var draftTournaments = snapshot.data!.toList();
+                  },
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  t.organizerTournaments,
+                  style: const TextStyle(
+                      fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 10),
+                CustomFutureBuilder<List<Tournament>>(
+                  future: tournamentService.fetchTournamentsOfOrganizer(),
+                  onLoaded: (tournaments) {
+                    if (tournaments.isEmpty) {
+                      return Text(t.noOrganizerTournaments);
+                    }
+                    var draftTournaments = tournaments.toList();
                     return GridView.builder(
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
@@ -271,7 +233,7 @@ class _OrganizerHomePageState extends State<OrganizerHomePage> {
                               borderRadius: BorderRadius.circular(10),
                               image: DecorationImage(
                                 image: NetworkImage(
-                                    'http://192.168.252.44:8080/api/v1/images/${tournament.imageFilename}'),
+                                    '${dotenv.env['MEDIA_URL']}${tournament.imageFilename}'),
                                 fit: BoxFit.cover,
                               ),
                             ),
@@ -287,7 +249,7 @@ class _OrganizerHomePageState extends State<OrganizerHomePage> {
                                           const TextStyle(color: Colors.white),
                                     ),
                                     subtitle: Text(
-                                      '${tournament.startDate.substring(0, 10)} ${tournament.startDate.substring(11, 16)}', // Date et heure formatées
+                                      '${DateFormat('dd.MM.yyyy').format(tournament.startDate)} ${DateFormat('HH:mm').format(tournament.startDate)}', // Date et heure formatées
                                       style: const TextStyle(
                                           color: Colors.white70),
                                     ),
@@ -299,10 +261,10 @@ class _OrganizerHomePageState extends State<OrganizerHomePage> {
                         );
                       },
                     );
-                  }
-                },
-              ),
-            ],
+                  },
+                ),
+              ],
+            ),
           ),
         ),
       ),

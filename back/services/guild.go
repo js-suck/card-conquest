@@ -36,7 +36,7 @@ func (s GuildService) AddUserToGuild(userID uint, guildID uint) errors.IError {
 func (s GuildService) AddAdminToTheGuild(guildID uint, userID uint) errors.IError {
 	guild := models.Guild{}
 	user := models.User{}
-	if err := s.Db.Preload("Admins").First(&guild, guildID).Error; err != nil {
+	if err := s.Db.Preload("Admins").Preload("Players").First(&guild, guildID).Error; err != nil {
 		return errors.NewInternalServerError("Guild not found", err)
 	}
 	if err := s.Db.First(&user, userID).Error; err != nil {
@@ -46,6 +46,12 @@ func (s GuildService) AddAdminToTheGuild(guildID uint, userID uint) errors.IErro
 	if err != nil {
 		return errors.NewInternalServerError("Could not add user to guild", err)
 	}
+
+	err = s.Db.Model(&guild).Association("Players").Append(&user)
+	if err != nil {
+		return errors.NewInternalServerError("Could not add user to guild", err)
+	}
+
 	return nil
 }
 

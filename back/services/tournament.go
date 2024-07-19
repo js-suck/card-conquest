@@ -233,6 +233,14 @@ func (s *TournamentService) SendTournamentUpdatesForGRPC(tournamentId uint) erro
 			if match.WinnerID != nil {
 				winnerId = int32(*match.WinnerID)
 			}
+			var startTime string
+			if match.StartTime.Format(time.RFC3339) != "" {
+				startTime = match.StartTime.Format(time.RFC3339)
+			}
+			var location string
+			if match.Location != "" {
+				location = match.Location
+			}
 			tournamentMatch := &authentication_api.Match{
 				Position:  int32(match.MatchPosition),
 				PlayerOne: playerOne,
@@ -240,6 +248,8 @@ func (s *TournamentService) SendTournamentUpdatesForGRPC(tournamentId uint) erro
 				Status:    match.Status,
 				WinnerId:  winnerId,
 				MatchId:   int32(match.ID),
+				StartTime: startTime,
+				Location:  location,
 			}
 
 			tournamentStep.Matches = append(tournamentStep.Matches, tournamentMatch)
@@ -462,6 +472,10 @@ func (s *TournamentService) GetAll(models interface{}, filterParams FilterParams
 			Where("user_tournaments.user_id = ?", filterParams.Fields["UserID"])
 	}
 
+	if _, ok := filterParams.Fields["OrganizerID"]; ok {
+		query = query.Where("tournaments.user_id = ?", filterParams.Fields["OrganizerID"])
+	}
+
 	if _, ok := filterParams.Fields["GameID"]; ok {
 		query = query.Where("tournaments.game_id = ?", filterParams.Fields["GameID"])
 	}
@@ -486,7 +500,7 @@ func (s *TournamentService) GetAll(models interface{}, filterParams FilterParams
 }
 
 func (s *TournamentService) SendTournamentIsSoon() (string, errors.IError) {
-	firebaseClient, errF := firebase.NewFirebaseClient("./firebase/privateKey.json")
+	firebaseClient, errF := firebase.NewFirebaseClient("./firebase/privateKey.json", s.Db)
 
 	if errF != nil {
 		return "", errors.NewInternalServerError("Failed to initialize Firebase", errF)
@@ -518,7 +532,7 @@ func (s *TournamentService) SendTournamentIsSoon() (string, errors.IError) {
 }
 
 func (s *TournamentService) SendTournamentIsStarted(tournamentID uint) errors.IError {
-	firebaseClient, errF := firebase.NewFirebaseClient("./firebase/privateKey.json")
+	firebaseClient, errF := firebase.NewFirebaseClient("./firebase/privateKey.json", s.Db)
 
 	if errF != nil {
 		return errors.NewInternalServerError("Failed to initialize Firebase", errF)
@@ -547,7 +561,7 @@ func (s *TournamentService) SendTournamentIsStarted(tournamentID uint) errors.IE
 }
 
 func (s *TournamentService) SendTournamentIsEnded(tournamentID uint, winnerID uint) errors.IError {
-	firebaseClient, errF := firebase.NewFirebaseClient("./firebase/privateKey.json")
+	firebaseClient, errF := firebase.NewFirebaseClient("./firebase/privateKey.json", s.Db)
 
 	if errF != nil {
 		return errors.NewInternalServerError("Failed to initialize Firebase", errF)

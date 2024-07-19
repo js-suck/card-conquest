@@ -4,9 +4,11 @@ import (
 	"authentication-api/errors"
 	"authentication-api/models"
 	"authentication-api/services"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
+	"time"
 )
 
 type MatchHandler struct {
@@ -163,6 +165,62 @@ func (h *MatchHandler) UpdateMatch(c *gin.Context) {
 	err = h.MatchService.Update(&match)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, errors.NewInternalServerError("Error updating match", err).ToGinH())
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Match updated"})
+}
+
+// UpdateBracketMatch godoc
+// @Summary Update a match
+// @Description Update a match with the given ID.
+// @Tags Match
+// @Accept json
+// @Produce json
+// @Success 200
+// @Failure 500 {object} errors.ErrorResponse
+// @Security BearerAuth
+// @Param Authorization header string true "Insert your access token" default(Bearer <Add access token here>)
+// @Param id path string true "Match ID"
+// @Param match body models.Match true "Match data"
+// @Router /bracket/matchs/{id} [put]
+func (h *MatchHandler) UpdateBracketMatch(c *gin.Context) {
+	var requestData struct {
+		StartTime time.Time `json:"startTime"`
+		Location  string    `json:"location"`
+	}
+	var defaultDate = time.Time{}
+	fmt.Println(requestData)
+	fmt.Println(requestData.Location)
+	fmt.Println("requestData")
+	if err := c.ShouldBindJSON(&requestData); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	fmt.Println(requestData)
+
+	match := models.Match{}
+
+	matchIdStr := c.Param("id")
+	matchId, err := strconv.Atoi(matchIdStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid match id"})
+		return
+	}
+
+	err = h.MatchService.Get(&match, uint(matchId))
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Match not found"})
+		return
+	}
+	if defaultDate != requestData.StartTime {
+		match.StartTime = requestData.StartTime
+	} else if requestData.Location != "" {
+		match.Location = requestData.Location
+	}
+
+	if err := h.MatchService.Update(match); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update match"})
 		return
 	}
 

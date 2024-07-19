@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:front/extension/theme_extension.dart';
@@ -31,16 +34,32 @@ class _MatchPageState extends State<MatchPage> {
   late int matchId;
   final bool isBracket = true;
   bool isEditing = false;
+  bool isOrganizer = false;
+  DateTime selectedDateTime = DateTime.now();
+
   TextEditingController playerOneScoreController = TextEditingController();
   TextEditingController playerTwoScoreController = TextEditingController();
-
-  final storage = FlutterSecureStorage();
+  TextEditingController dateController = TextEditingController();
+  final storage = const FlutterSecureStorage();
 
   @override
   void initState() {
     super.initState();
     matchClient = MatchClient();
     matchService = MatchService();
+    storage.read(key: 'jwt_token').then((token) {
+      setState(() {
+        isOrganizer = matchService.isAdmin(token);
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    playerOneScoreController.dispose();
+    playerTwoScoreController.dispose();
+    dateController.dispose();
+    super.dispose();
   }
 
   @override
@@ -49,33 +68,6 @@ class _MatchPageState extends State<MatchPage> {
     matchId = ModalRoute.of(context)!.settings.arguments as int;
     matchClient.subscribeMatchUpdate(matchId);
     matchService.fetchMatch(matchId);
-  }
-
-  bool isAdmin(Map<String, dynamic> decodedToken) {
-    // Fonction pour vérifier si l'utilisateur est administrateur
-    return decodedToken['role'] == 'organizer';
-  }
-
-  Future<void> _updateScore(int userId, int score) async {
-    final url = '${dotenv.env['API_URL']}matches/update/score';
-    final token = await storage.read(key: 'jwt_token');
-
-    var request = http.MultipartRequest('POST', Uri.parse(url))
-      ..headers['Authorization'] = '$token'
-      ..fields['matchId'] = matchId.toString()
-      ..fields['userId'] = userId.toString()
-      ..fields['score'] = score.toString();
-
-    var response = await request.send();
-
-    if (response.statusCode == 200) {
-      print('Score updated successfully');
-    } else {
-      print('Failed to update score');
-      print(response.statusCode);
-      var responseData = await response.stream.bytesToString();
-      print(responseData);
-    }
   }
 
   Future<void> _editMatch(MatchResponse match) async {
@@ -87,20 +79,87 @@ class _MatchPageState extends State<MatchPage> {
 
       if (newPlayerOneScore != match.playerOne.score &&
           newPlayerOneScore != 0) {
-        await _updateScore(match.playerOne.id, newPlayerOneScore);
+        await matchService.updateScore(
+            matchId, match.playerOne.id, newPlayerOneScore);
       }
       if (newPlayerTwoScore != match.playerTwo.score &&
           newPlayerTwoScore != 0) {
-        await _updateScore(match.playerTwo.id, newPlayerTwoScore);
+        await matchService.updateScore(
+            matchId, match.playerTwo.id, newPlayerTwoScore);
       }
     }
-
     setState(() {
       isEditing = !isEditing;
     });
   }
 
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? pickedDate = await showDatePicker(
+      context: context,
+      initialDate: selectedDateTime,
+      firstDate: DateTime.now(),
+      lastDate: DateTime(2101),
+    );
+    if (pickedDate != null) {
+      _selectTime(context, pickedDate);
+    }
+  }
+
+  Future<void> _selectTime(BuildContext context, DateTime pickedDate) async {
+    final TimeOfDay? pickedTime = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(selectedDateTime),
+    );
+    if (pickedTime != null) {
+      final DateTime pickedDateTime = DateTime(
+        pickedDate.year,
+        pickedDate.month,
+        pickedDate.day,
+        pickedTime.hour,
+        pickedTime.minute,
+      );
+      setState(() {
+        selectedDateTime = pickedDateTime;
+      });
+      _updateTime(pickedDateTime);
+    }
+  }
+
+  Future<void> _updateTime(DateTime dateTime) async {
+    final t = AppLocalizations.of(context)!;
+    final token = await storage.read(key: 'jwt_token');
+    String formattedDateTime = dateTime.toIso8601String();
+    formattedDateTime = formattedDateTime.replaceFirst('.000', '.00Z');
+    var data = {
+      'startTime': formattedDateTime,
+    };
+    var response = await http.put(
+      Uri.parse('${dotenv.env['API_URL']}bracket/matchs/$matchId'),
+      headers: {
+        HttpHeaders.authorizationHeader: '$token',
+        HttpHeaders.contentTypeHeader: 'application/json',
+      },
+      body: jsonEncode(data),
+    );
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      print('Start time updated successfully');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(t.successTimeUpdate),
+        ),
+      );
+    } else {
+      print('Failed to update start time');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(t.failTimeUpdate),
+        ),
+      );
+    }
+  }
+
   Future<void> _startMatch(MatchResponse match) async {
+    final t = AppLocalizations.of(context)!;
     final url = '${dotenv.env['API_URL']}matchs/$matchId';
     final token = await storage.read(key: 'jwt_token');
     var response = await http.put(
@@ -116,41 +175,13 @@ class _MatchPageState extends State<MatchPage> {
         match.status = 'started';
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Match started successfully')),
+        SnackBar(content: Text(t.startMatch)),
       );
     } else {
       print('Failed to start match: ${response.statusCode}');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Failed to start match: ${response.statusCode}'),
-        ),
-      );
-    }
-  }
-
-  Future<void> _finishMatch(MatchResponse match) async {
-    final url = '${dotenv.env['API_URL']}matchs/$matchId';
-    final token = await storage.read(key: 'jwt_token');
-    var response = await http.put(
-      Uri.parse(url),
-      headers: {
-        'Authorization': '$token',
-        'Content-Type': 'application/json',
-      },
-      body: jsonEncode({'status': 'finished'}),
-    );
-    if (response.statusCode == 200) {
-      setState(() {
-        match.status = 'finished';
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Match finished successfully')),
-      );
-    } else {
-      print('Failed to finish match: ${response.statusCode}');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to finish match: ${response.statusCode}'),
+          content: Text(t.startMatchFailed),
         ),
       );
     }
@@ -190,6 +221,7 @@ class _MatchPageState extends State<MatchPage> {
             // Initialisez les contrôleurs avec les scores actuels
             playerOneScoreController.text = match.playerOne.score.toString();
             playerTwoScoreController.text = match.playerTwo.score.toString();
+            dateController.text = match.startDate.toString();
             return Scaffold(
               appBar: TopAppBar(
                 title: t.matchTitle,
@@ -228,14 +260,11 @@ class _MatchPageState extends State<MatchPage> {
                                     shape: BoxShape.rectangle,
                                     borderRadius: BorderRadius.circular(10),
                                     image: DecorationImage(
-                                      image: matchInfo
-                                                  .playerOne.media?.fileName !=
+                                      image: NetworkImage(matchInfo
+                                                  .playerOne.media?.fileName ==
                                               ''
-                                          ? NetworkImage(
-                                                  '${dotenv.env['MEDIA_URL']}${matchInfo.playerOne.media?.fileName}')
-                                              as ImageProvider<Object>
-                                          : const AssetImage(
-                                              'assets/images/avatar.png'),
+                                          ? 'https://avatar.iran.liara.run/public/${matchInfo.playerOne.id}'
+                                          : '${dotenv.env['MEDIA_URL']}${matchInfo.playerOne.media?.fileName}'),
                                       fit: BoxFit.cover,
                                     ),
                                   ),
@@ -266,11 +295,18 @@ class _MatchPageState extends State<MatchPage> {
                         padding: const EdgeInsets.only(top: 8.0),
                         child: Column(
                           children: [
-                            Text(
-                              '${matchInfo.startTime.day.toString().padLeft(2, '0')}/${matchInfo.startTime.month.toString().padLeft(2, '0')}/${matchInfo.startTime.year} ${matchInfo.startTime.hour.toString().padLeft(2, '0')}:${matchInfo.startTime.minute.toString().padLeft(2, '0')}',
-                              style: const TextStyle(
-                                fontSize: 16,
-                                color: Colors.grey,
+                            GestureDetector(
+                              onTap: () {
+                                if (isOrganizer) {
+                                  _selectDate(context);
+                                }
+                              },
+                              child: Text(
+                                '${matchInfo.startTime.day.toString().padLeft(2, '0')}/${matchInfo.startTime.month.toString().padLeft(2, '0')}/${matchInfo.startTime.year} ${matchInfo.startTime.hour.toString().padLeft(2, '0')}:${matchInfo.startTime.minute.toString().padLeft(2, '0')}',
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.grey,
+                                ),
                               ),
                             ),
                             Row(
@@ -378,14 +414,11 @@ class _MatchPageState extends State<MatchPage> {
                                     shape: BoxShape.rectangle,
                                     borderRadius: BorderRadius.circular(10),
                                     image: DecorationImage(
-                                      image: matchInfo
-                                                  .playerTwo.media?.fileName !=
+                                      image: NetworkImage(matchInfo
+                                                  .playerTwo.media?.fileName ==
                                               ''
-                                          ? NetworkImage(
-                                                  '${dotenv.env['MEDIA_URL']}${matchInfo.playerTwo.media?.fileName}')
-                                              as ImageProvider<Object>
-                                          : const AssetImage(
-                                              'assets/images/avatar.png'),
+                                          ? 'https://avatar.iran.liara.run/public/${matchInfo.playerTwo.id}'
+                                          : '${dotenv.env['MEDIA_URL']}${matchInfo.playerTwo.media?.fileName}'),
                                       fit: BoxFit.cover,
                                     ),
                                   ),
@@ -455,43 +488,46 @@ class _MatchPageState extends State<MatchPage> {
                 future: storage.read(key: 'jwt_token'),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return Container(); // Afficher un indicateur de chargement si nécessaire
+                    return const Center(
+                        child:
+                            CircularProgressIndicator()); // Indicateur de chargement pendant la récupération du token
                   }
-                  if (snapshot.hasData) {
-                    Map<String, dynamic> decodedToken =
-                        JwtDecoder.decode(snapshot.data!);
-                    if (isAdmin(decodedToken)) {
-                      return ExpandableFab(
-                        distance: 112.0,
-                        children: [
-                          if (match.status != 'finished' &&
-                              match.status != 'created') ...[
-                            FloatingActionButton(
-                              heroTag: "editMatch$matchId",
-                              onPressed: () => _editMatch(match),
-                              tooltip: "Mode d'édition",
-                              child: const Icon(Icons.edit),
-                            ),
-                            if (isEditing == false) ...[
-                              FloatingActionButton(
-                                heroTag: "finishMatch$matchId",
-                                onPressed: () => _finishMatch(match),
-                                tooltip: 'Finir le match',
-                                child: const Icon(Icons.cancel),
-                              ),
-                            ]
-                          ] else
-                            FloatingActionButton(
-                              heroTag: 'startMatch$matchId',
-                              onPressed: () => _startMatch(match),
-                              tooltip: 'Commencer le match',
-                              child: const Icon(Icons.play_arrow),
-                            ),
-                        ],
-                      );
-                    }
+                  // Gestion des erreurs ou absence de données
+                  if (snapshot.hasError || !snapshot.hasData) {
+                    return Container(); // Affichez rien en cas d'erreur ou si le token est absent
                   }
-                  return Container(); // Si l'utilisateur n'est pas admin, ne montrez pas le FAB
+                  // Décodage du token et vérification des droits d'administration
+                  final token = snapshot.data!;
+                  final Map<String, dynamic> decodedToken =
+                      JwtDecoder.decode(token);
+                  if (!matchService.isAdminWithDecodedToken(decodedToken)) {
+                    return Container(); // Ne pas afficher le FAB si l'utilisateur n'est pas admin
+                  }
+                  List<Widget> fabButtons = [];
+                  if (match.status != 'finished' && match.status != 'created') {
+                    fabButtons.add(
+                      FloatingActionButton(
+                        heroTag: "editMatch$matchId",
+                        onPressed: () => _editMatch(match),
+                        tooltip: "Mode d'édition",
+                        child: const Icon(Icons.edit),
+                      ),
+                    );
+                  }
+                  if (match.status != 'finished' && match.status != 'started') {
+                    fabButtons.add(
+                      FloatingActionButton(
+                        heroTag: 'startMatch$matchId',
+                        onPressed: () => _startMatch(match),
+                        tooltip: 'Commencer le match',
+                        child: const Icon(Icons.play_arrow),
+                      ),
+                    );
+                  }
+                  return ExpandableFab(
+                    distance: 112.0,
+                    children: fabButtons,
+                  );
                 },
               ),
             );

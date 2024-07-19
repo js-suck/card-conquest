@@ -3,6 +3,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:front/extension/theme_extension.dart';
 import 'package:front/models/match/match.dart';
 import 'package:front/models/match/score.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class MatchTile extends StatelessWidget {
   const MatchTile(
@@ -83,11 +84,12 @@ class MatchTile extends StatelessWidget {
 
     return GestureDetector(
       onTap: () {
+        final t = AppLocalizations.of(context)!;
         if (matchId != null && matchId == match.id) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
+            SnackBar(
               content: Text(
-                'Ce match est déjà sélectionné',
+                t.matchErrorSelected,
               ),
             ),
           );
@@ -97,9 +99,9 @@ class MatchTile extends StatelessWidget {
           Navigator.pushNamed(context, '/match', arguments: match.id);
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
+            SnackBar(
               content: Text(
-                'Il n\'y a pas de match',
+                t.matchNull,
               ),
             ),
           );
@@ -131,7 +133,7 @@ class MatchTile extends StatelessWidget {
                                 ? NetworkImage(match
                                             .playerOne.media?.fileName ==
                                         ''
-                                    ? '${dotenv.env['MEDIA_URL']}avatar.jpg'
+                                    ? 'https://avatar.iran.liara.run/public/${match.playerOne.id}'
                                     : '${dotenv.env['MEDIA_URL']}${match.playerOne.media?.fileName}')
                                 : null,
                           ),
@@ -154,7 +156,7 @@ class MatchTile extends StatelessWidget {
                                 ? NetworkImage(match
                                             .playerTwo.media?.fileName ==
                                         ''
-                                    ? '${dotenv.env['MEDIA_URL']}avatar.jpg'
+                                    ? 'https://avatar.iran.liara.run/public/${match.playerTwo.id}'
                                     : '${dotenv.env['MEDIA_URL']}${match.playerTwo.media?.fileName}')
                                 : null,
                           ),
