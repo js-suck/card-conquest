@@ -21,9 +21,9 @@ import (
 import _ "github.com/swaggo/gin-swagger" // gin-swagger middleware
 import _ "github.com/swaggo/files"       // swagger embed files
 
-// @title           Swagger Example API
+// @title           Card Conquest API
 // @version         1.0
-// @description     This is a sample server celler server.
+// @description     TCG API game
 // @termsOfService  http://swagger.io/terms/
 
 // @contact.name   API Support
@@ -33,7 +33,7 @@ import _ "github.com/swaggo/files"       // swagger embed files
 // @license.name  Apache 2.0
 // @license.url   http://www.apache.org/licenses/LICENSE-2.0.html
 
-// @host      localhost:8080
+// @host      card-conquest-422420.ew.r.appspot.com
 // @BasePath  /api/v1
 
 // @securityDefinitions.apikey BearerAuth
@@ -116,6 +116,7 @@ func main() {
 	}
 
 	docs.SwaggerInfo.BasePath = "/api/v1"
+	docs.SwaggerInfo.Schemes = []string{"https"}
 	go func() {
 		lis, err := net.Listen("tcp", ":50051")
 		if err != nil {
