@@ -32,6 +32,7 @@
 - **Map des Tournois** : Affichage des tournois sur une carte interactive.
 - **Guilde** : Gestion des guildes, création et modification des guildes.
 - **OAuth2 avec Google** : Intégration de l'authentification via Google.
+- **Swagger** : Intégration du swagger.
 
 ### Vivian Ruhlmann
 - **User Bracket** : Interface de visualisation des brackets de tournois.
